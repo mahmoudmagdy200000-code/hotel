@@ -1,0 +1,25 @@
+Booking Confirmation
+
+Confirmation number: 4598271234
+Booking Reference #: 4598271234
+
+Guest information
+Name: John Michael Smith
+Phone: +1 555-123-4567
+Email: john.smith@email.com
+
+Stay Details
+Check-in: 2026-02-15
+Check-out: 2026-02-18
+Number of nights: 3
+
+Room type: Deluxe Double Room
+1 Room
+
+Payment Summary
+Total price: USD 450.00
+
+Important Information
+- Check-in time: 14:00
+- Check-out time: 12:00
+- Free cancellation until Feb 12, 2026

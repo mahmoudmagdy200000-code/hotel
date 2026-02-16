@@ -1,0 +1,30 @@
+﻿At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: ([33m:S  
+  tring) [], RemoteExcepti   
+ on
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+(!) Some chunks are larger 
+than 500 kB after 
+minification. Consider:
+- Using dynamic import() to 
+code-split the application
+- Use build.rollupOptions.out
+put.manualChunks to improve 
+chunking: https://rollupjs.or
+g/configuration-options/#outp
+ut-manualchunks
+- Adjust chunk size limit 
+for this warning via build.ch
+unkSizeWarningLimit.[39m
+
+[32mΓ£ô built in 25.67s[39m

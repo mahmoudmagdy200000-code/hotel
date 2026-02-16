@@ -1,0 +1,2873 @@
+﻿
+> hotel-frontend@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+runtime: VirtualAlloc of 
+8192 bytes failed with 
+errno=1455
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (runtime  
+  : Virtua...with errno=14   
+ 55:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+fatal error: 
+out of memory
+
+
+runtime: VirtualAlloc of 
+24576
+ bytes failed with errno=1455
+fatal error: out of memory
+
+
+
+runtime stack:
+
+runtime.throw
+(
+{
+0x7ff6c13814c2
+?
+, 
+0xc000b81000
+?
+}
+)
+
+	
+runtime/panic.go:1094 +0x4d 
+fp=0x72b5ff800
+ sp=0x72b5ff7d0 pc=
+0x7ff6c0d771ad
+
+runtime.sysUsedOS
+(0xc000b80000, 0x2000)
+	runtime/mem_windows.go:83 
++0x1bb fp=0x72b5ff860 
+sp=0x72b5ff800 
+pc=0x7ff6c0d1bc7b
+
+runtime.sysUsed
+(
+...
+)
+
+	
+runtime/mem.go
+:
+85
+
+
+runtime.(*mheap).allocSpan
+(
+0x7ff6c17b4860
+, 
+0x1
+, 
+0x0
+, 
+0xa
+)
+
+	
+runtime/mheap.go
+:
+1404
+ +
+0x487
+ fp=
+0x72b5ff908
+ sp=
+0x72b5ff860
+ pc=
+0x7ff6c0d2eb47
+
+
+runtime.(*mheap).alloc.func1
+(
+)
+
+	
+runtime/mheap.go
+:
+1017
+ +
+0x5c fp=0x72b5ff950 
+sp=0x72b5ff908 
+pc=0x7ff6c0d2e31c
+
+
+runtime.systemstack
+(
+0x7ff6c17aa6e0
+)
+	runtime/asm_amd64.s:513 +
+0x49
+ fp=
+0x72b5ff960 sp=0x72b5ff950 
+pc=0x7ff6c0d7d269
+
+goroutine 893 
+gp=0xc000168a80 m=0 
+mp=0x7ff6c17ab5c0 [running]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:478 
++0x8 fp=0xc0007a9b28 
+sp=0xc0007a9b18 pc=
+0x7ff6c0d7d208
+
+
+runtime.(*mheap).alloc
+(0x0?, 0x0?, 0x0?)
+	runtime/mheap.go:1011 +0x5b 
+fp=0xc0007a9b70 
+sp=0xc0007a9b28 
+pc=0x7ff6c0d2e27b
+runtime.(*mcentral).grow
+(
+0xc0007a9be8
+?
+)
+
+	runtime/mcentral.go:253 
++0x36 fp=0xc0007a9ba0 
+sp=0xc0007a9b70 pc=
+0x7ff6c0d19c96
+
+runtime.(*mcentral).cacheSpan
+(0x7ff6c17c5478)
+	runtime/mcentral.go:171 
++0x42e fp=0xc0007a9c18 
+sp=0xc0007a9ba0 
+pc=0x7ff6c0d19b2e
+runtime.(*mcache).refill(0x1b
+ca1b105a0, 0x90?
+)
+
+	runtime/mcache.go:184 
++0x153 fp=0xc0007a9c58 
+sp=0xc0007a9c18
+ pc=
+0x7ff6c0d19153
+runtime.(*mcache).nextFree
+(0x1bca1b105a0, 0xa)
+
+	runtime/malloc.go:968 +0x7e 
+fp=0xc0007a9c90 
+sp=0xc0007a9c58 
+pc=0x7ff6c0d1575e
+
+runtime.mallocgcSmallScanNoHe
+ader(0x30
+, 0x7ff6c135ce20)
+	runtime/malloc.go:1378
+ +0x145 fp=0xc0007a9cf0 
+sp=0xc0007a9c90
+ pc=0x7ff6c0d16025
+
+runtime.mallocgc
+(
+0x30
+, 
+0x7ff6c135ce20
+, 
+0x1
+)
+
+	
+runtime/malloc.go
+:
+1066
+ +
+0xa5
+ fp=
+0xc0007a9d20
+ sp=
+0xc0007a9cf0
+ pc=
+0x7ff6c0d75045
+
+
+runtime.newobject
+(
+0x7ff6c1334960
+?
+)
+
+	
+runtime/malloc.go
+:
+1747
+ +
+0x25
+ fp=
+0xc0007a9d48
+ sp=
+0xc0007a9d20 
+pc=0x7ff6c0d16b25
+internal/runtime/maps.NewMap(
+0x7ff6c12fd260, 0x0, 
+0xc00004bf08?, 
+0x1000000000000)
+	internal/runtime/maps/map.go
+:262 +0x32 fp=0xc0007a9da0 
+sp=0xc0007a9d48 
+pc=0x7ff6c0d03e72
+runtime.makemap(0x7ff6c17f280
+0?, 0xc0002cf040?, 
+0xc0007a9df8?)
+	runtime/map_swiss.go:71 
++0x29 fp=0xc0007a9dd0 
+sp=0xc0007a9da0 
+pc=0x7ff6c0d75369
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.f
+unc1(0x2)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:175 
++0x7df fp=0xc0007a9fc8 
+sp=0xc0007a9dd0 
+pc=0x7ff6c112481f
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.g
+owrap1()
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:253 
++0x23 fp=0xc0007a9fe0 
+sp=0xc0007a9fc8 
+pc=0x7ff6c1124003
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0007a9fe8 
+sp=0xc0007a9fe0 
+pc=0x7ff6c0d7f221
+created by github.com/evanw/e
+sbuild/internal/graph.CloneLi
+nkerGraph in goroutine 638
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:153 
++0x212
+
+goroutine 1 gp=0xc0000021c0 
+m=nil [semacquire]:
+runtime.gopark(0xc000331ac8?,
+ 0x7ff6c0d27b7c?, 0x20?, 
+0x39?, 0x1?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000331a88 
+sp=0xc000331a68 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0x7ff6c17
+aadb8, 0x0, 0x0, 0x0, 0x13)
+	runtime/sema.go:192 +0x22f 
+fp=0xc000331af0 
+sp=0xc000331a88 
+pc=0x7ff6c0d574ef
+runtime.semacquire(...)
+	runtime/sema.go:143
+runtime.gcStart({0x1bca1b1010
+8?, 0xc000331c43?, 
+0xc0dd6dd9?})
+	runtime/mgc.go:682 +0x19a 
+fp=0xc000331be8 
+sp=0xc000331af0 
+pc=0x7ff6c0d1f0fa
+runtime.mallocgcSmallNoscan(0
+x4000?, 0x0?, 0x0?)
+	runtime/malloc.go:1346 
++0x2a5 fp=0xc000331c40 
+sp=0xc000331be8 
+pc=0x7ff6c0d15e65
+runtime.mallocgc(0x480, 0x0, 
+0x0)
+	runtime/malloc.go:1059 
++0xc5 fp=0xc000331c70 
+sp=0xc000331c40 
+pc=0x7ff6c0d75065
+runtime.growslice(0x7ff6c17f2
+800, 0xc000164000?, 0x4000?, 
+0x4000?, 0x7ff6c12d0ce0?)
+	runtime/slice.go:264 +0x5c9 
+fp=0xc000331ce0 
+sp=0xc000331c70 
+pc=0x7ff6c0d79289
+main.runService(0x1)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:153 
++0x626 fp=0xc000331e08 
+sp=0xc000331ce0 
+pc=0x7ff6c121e2e6
+main.main()
+	github.com/evanw/esbuild/cmd
+/esbuild/main.go:252 +0xb75 
+fp=0xc000331f50 
+sp=0xc000331e08 
+pc=0x7ff6c121c835
+runtime.main()
+	runtime/proc.go:285 +0x27d 
+fp=0xc000331fe0 
+sp=0xc000331f50 
+pc=0x7ff6c0d4365d
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000331fe8 
+sp=0xc000331fe0 
+pc=0x7ff6c0d7f221
+
+goroutine 2 gp=0xc0000028c0 
+m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 
+0x0?, 0x0?, 0x0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000055fa8 
+sp=0xc000055f88 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.forcegchelper()
+	runtime/proc.go:373 +0xb8 
+fp=0xc000055fe0 
+sp=0xc000055fa8 
+pc=0x7ff6c0d43978
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000055fe8 
+sp=0xc000055fe0 
+pc=0x7ff6c0d7f221
+created by runtime.init.7 in 
+goroutine 1
+	runtime/proc.go:361 +0x1a
+
+goroutine 3 gp=0xc000002c40 
+m=nil [GC sweep wait]:
+runtime.gopark(0x1?, 0x0?, 
+0x0?, 0x0?, 0x0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000057f80 
+sp=0xc000057f60 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.bgsweep(0xc000028080)
+	runtime/mgcsweep.go:323 
++0xdf fp=0xc000057fc8 
+sp=0xc000057f80 
+pc=0x7ff6c0d2ac9f
+runtime.gcenable.gowrap1()
+	runtime/mgc.go:212 +0x25 
+fp=0xc000057fe0 
+sp=0xc000057fc8 
+pc=0x7ff6c0d1eca5
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000057fe8 
+sp=0xc000057fe0 
+pc=0x7ff6c0d7f221
+created by runtime.gcenable 
+in goroutine 1
+	runtime/mgc.go:212 +0x66
+
+goroutine 4 gp=0xc000002e00 
+m=nil [GC scavenge wait]:
+runtime.gopark(0x1e49458?, 
+0x48ed30?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000067f78 
+sp=0xc000067f58 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.(*scavengerState).par
+k(0x7ff6c17aa300)
+	runtime/mgcscavenge.go:425 
++0x49 fp=0xc000067fa8 
+sp=0xc000067f78 
+pc=0x7ff6c0d28729
+runtime.bgscavenge(0xc0000280
+80)
+	runtime/mgcscavenge.go:658 
++0x59 fp=0xc000067fc8 
+sp=0xc000067fa8 
+pc=0x7ff6c0d28cd9
+runtime.gcenable.gowrap2()
+	runtime/mgc.go:213 +0x25 
+fp=0xc000067fe0 
+sp=0xc000067fc8 
+pc=0x7ff6c0d1ec45
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc
+000067fe8 sp=0xc000067fe0 
+pc=0x7ff6c0d7f221
+created by runtime.gcenable 
+in goroutine 1
+	runtime/mgc.go:213 +0xa5
+
+goroutine 5 gp=0xc000003180 
+m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x0?, 
+0x0?, 0x0?, 0x0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000069e20 
+sp=0xc000069e00 
+pc=0x7ff6c0d772ce
+runtime.runFinalizers()
+	runtime/mfinal.go:210 
++0x107 fp=0xc000069fe0 
+sp=0xc000069e20 
+pc=0x7ff6c0d1dbe7
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000069fe8 
+sp=0xc000069fe0 
+pc=0x7ff6c0d7f221
+created by 
+runtime.createfing in 
+goroutine 1
+	runtime/mfinal.go:172 +0x3d
+
+goroutine 6 gp=0xc000003340 
+m=nil [cleanup wait]:
+runtime.gopark(0x0?, 0x0?, 
+0x0?, 0x0?, 0x0?)
+	runtime/proc.go:
+460 +0xce fp=0xc000063f68 
+sp=0xc000063f48 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.(*cleanupQueue).deque
+ue(0x7ff6c17aa5e0)
+	runtime/mcleanup.go:439 
++0xc5 fp=0xc000063fa0 
+sp=0xc000063f68 
+pc=0x7ff6c0d1afc5
+runtime.runCleanups()
+	runtime/mcleanup.go:635 
++0x45 fp=0xc000063fe0 
+sp=0xc000063fa0 
+pc=0x7ff6c0d1b685
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000063fe8 
+sp=0xc000063fe0 
+pc=0x7ff6c0d7f221
+created by 
+runtime.(*cleanupQueue).creat
+eGs in goroutine 1
+	runtime/mcleanup.go:589 
++0xa5
+
+goroutine 7 gp=0xc000003500 
+m=nil [chan receive]:
+runtime.gopark(0x1246?, 
+0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000059ee8 
+sp=0xc000059ec8 
+pc=0x7ff6c0d772ce
+runtime.chanrecv(0xc00002a1c0
+, 0xc000059fb0, 0x1)
+	runtime/chan.go:667 +0x473 
+fp=0xc000059f60 
+sp=0xc000059ee8 
+pc=0x7ff6c0d0e593
+runtime.chanrecv2(0xc00005c03
+8?, 0xc0003c3800?)
+	runtime/chan.go:514 +0x12 
+fp=0xc000059f88 
+sp=0xc000059f60 
+pc=0x7ff6c0d0e112
+main.runService.func1()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:98 +0x45 
+fp=0xc000059fe0 
+sp=0xc000059f88 
+pc=0x7ff6c121e4e5
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000059fe8 
+sp=0xc000059fe0 
+pc=0x7ff6c0d7f221
+created by main.runService 
+in goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:97 +0x1db
+
+goroutine 8 gp=0xc0000036c0 
+m=nil [sleep]:
+runtime.gopark(0x5bfa93bfd710
+?, 0xc0005a1d68?, 0x40?, 
+0xc5?, 0x7ff6c0d77b0f?
+)
+	runtime/proc.go:460 +0xce 
+fp=0xc000065f48 
+sp=0xc000065f28 
+pc=0x7ff6c0d772ce
+time.Sleep(0x3b9aca00)
+	runtime/time.go:363 +0x167 
+fp=0xc000065fa0 
+sp=0xc000065f48 
+pc=0x7ff6c0d7b367
+main.runService.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:124 
++0x48 fp=0xc000065fe0 
+sp=0xc000065fa0 
+pc=0x7ff6c121e3c8
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000065fe8 sp=
+0xc000065fe0 
+pc=0x7ff6c0d7f221
+created by main.runService 
+in goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:122 
++0x30c
+
+goroutine 666 
+gp=0xc000003880 m=nil 
+[semacquire]:
+runtime.gopark(0xc0000cfb00?,
+ 0x7ff6c0d27b7c?, 0x20?, 
+0x39?, 0x1?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0000cfac0 
+sp=0xc0000cfaa0 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0x7ff6c17
+aadb8, 0x0, 0x0, 0x0, 0x13)
+	runtime/sema.go:192 +0x22f 
+fp=0xc0000cfb28 
+sp=0xc0000cfac0 
+pc=0x7ff6c0d574ef
+runtime.semacquire(...)
+	runtime/sema.go:143
+runtime.gcStart({0x1bca1b1010
+8?, 0x7ff6c0d2791f?, 
+0x3880?})
+	runtime/mgc.go:682 +0x19a 
+fp=0xc0000cfc20 
+sp=0xc0000cfb28
+ pc=0x7ff6c0d1f0fa
+runtime.mallocgcSmallNoscan(0
+x7ff6c0d23dea?, 
+0x400c0000cfce0?, 0x20?)
+	runtime/malloc.go:1346 
++0x2a5 fp=0xc0000cfc78 
+sp=0xc0000cfc20 
+pc=0x7ff6c0d15e65
+runtime.mallocgc(0xd0, 
+0x7ff6c130f1c0, 0x1)
+	runtime/malloc.go:1059 
++0xc5 fp=0xc0000cfca8 
+sp=0xc0000cfc78 
+pc=0x7ff6c0d75065
+runtime.newarray(0x7ff6c17ab5
+c0?, 0xc0000aea80?)
+	runtime/malloc.go:1797 
++0x45 fp=0xc0000cfcd0 
+sp=0xc0000cfca8 
+pc=0x7ff6c0d75225
+
+internal/runtime/maps.newarra
+y(0x20?, 0x7ff6c1352480?)
+	runtime/malloc.go:1821 
++0x13 fp=0xc0000cfcf0 
+sp=0xc0000cfcd0 
+pc=0x7ff6c0d752d3
+internal/runtime/maps.newGrou
+ps(...)
+	internal/runtime/maps/group.
+go:316
+
+internal/runtime/maps.(*table
+).reset(0xc0008f5900, 
+0x7ff6c12fd260, 0x10)
+	internal/runtime/maps/table.
+go:104 +0x3d fp=0xc0000cfd18 
+sp=0xc0000cfcf0 
+pc=0x7ff6c0d05cdd
+internal/runtime/maps.newTabl
+e(0x7ff6c12fd260, 0xa, 0x0, 
+0x0)
+	internal/runtime/maps/table.
+go:95 +0x8f fp=0xc0000cfd48 
+sp=0xc0000cfd18 
+pc=0x7ff6c0d05c2f
+internal/runtime/maps.NewMap(
+0x7ff6c12fd260, 0x9, 
+0x7ff6c0d17273?, 
+0x1000000000000)
+	internal/runtime/maps/map.go
+:318 +0x1b9 fp=0xc0000cfda0 
+sp=
+0xc0000cfd48 
+pc=0x7ff6c0d03ff9
+runtime.makemap(0x7ff6c12fd26
+0?, 0xc000962660?, 
+0x5700000000?)
+	runtime/map_swiss.go:71 
++0x29 fp=0xc0000cfdd0 
+sp=0xc0000cfda0 
+pc=0x7ff6c0d75369
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.f
+unc1(0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:175 
++0x7df fp=0xc0000cffc8 
+sp=0xc0000cfdd0 
+pc=0x7ff6c112481f
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.g
+owrap1()
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:253 
++0x23 fp=0xc0000cffe0 
+sp=0xc0000cffc8 
+pc=0x7ff6c1124003
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0000cffe8 
+sp=0xc0000cffe0 
+pc=0x7ff6c0d7f221
+created by github.com/evanw/e
+sbuild/internal/graph.CloneLi
+nkerGraph in goroutine 649
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:153 
++0x212
+
+goroutine 23 gp=0xc0001fa000 
+m=8 mp=0xc0005a1808 [
+GC mark termination]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:478 
++0x8 fp=0xc00016fe98 
+sp=0xc00016fe88 
+pc=0x7ff6c0d7d208
+runtime.forEachP(...)
+	runtime/proc.go:2115
+runtime.gcMarkDone()
+	runtime/mgc.go:914 +0x159 
+fp=0xc00016ff38 
+sp=0xc00016fe98 
+pc=0x7ff6c0d1f8f9
+runtime.gcBgMarkWorker(0xc000
+211f80)
+	runtime/mgc.go:1600 +0x365 
+fp=0xc00016ffc8 
+sp=0xc00016ff38 
+pc=0x7ff6c0d21565
+runtime.gcBgMarkStartWorkers.
+gowrap1()
+	runtime/mgc.go:1373 +0x25 
+fp=0xc00016ffe0 
+sp=0xc00016ffc8 
+pc=0x7ff6c0d211c5
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc00016ffe8 
+sp=0xc00016ffe0 
+pc=0x7ff6c0d7f221
+created by 
+runtime.gcBgMarkStartWorkers 
+in goroutine 45
+	runtime/mgc.go:1373 +0x105
+
+goroutine 626 
+gp=0xc0001fa380 m=nil [chan 
+receive]:
+runtime.gopark(0xc0001ae120?,
+ 0x1400f6c0d75065?, 0x8?, 
+0x2d?, 0x1bca1b10ed0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000419b08 
+sp=0xc000419ae8 
+pc=0x7ff6c0d772ce
+runtime.chanrecv(0xc00002aee0
+, 0xc000419f00, 0x1)
+	runtime/chan.go:667 +0x473 
+fp=0xc000419b80 
+sp=0xc000419b08 
+pc=0x7ff6c0d0e593
+runtime.chanrecv1(0x0?, 0x0?)
+	runtime/chan.go:509 +0x12 
+fp=0xc000419ba8 
+sp=0xc000419b80 
+pc=0x7ff6c0d0e0f2
+github.com/evanw/esbuild/inte
+rnal/bundler.(*scanner).scanA
+llDependencies(0xc000715b08)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:2178
+ +0x255 fp=0xc00041a078 
+sp=0xc000419ba8 
+pc=0x7ff6c113a2f5
+github.com/evanw/esbuild/inte
+rnal/bundler.ScanBundle(_, 
+{_, _, _, _, _, _}, {_, _}, 
+0xc000088f60
+, 
+...
+)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1501
+ +0xbdc fp=0xc00041a670 
+sp=0xc00041a078 
+pc=0x7ff6c1132abc
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 0x0, 0x0, 
+0xc000185860, 0x0, 0x3, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1801 
++0x13c5 fp=0xc00041b980 
+sp=0xc00041a670 
+pc=0x7ff6c11e3fc5
+
+github.com/evanw/esbuild/pkg/
+api.Transform
+(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0xc00045b770?, 
+0x24, 0xc000034e40)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc00041bf60 
+sp=0xc00041b980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc00041bfe0 
+sp=0xc00041bf60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc00041bfe8 
+sp=0xc00041bfe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 22 gp=0xc0001fa540 
+m=nil [GC worker (idle)]:
+runtime.gopark(0x5bfa22b550f4
+?, 0x1?, 0xf8?, 0x77?, 
+0x700000009?)
+	runtime/proc.go:460 +0xce 
+fp=0xc00016bf38 
+sp=0xc00016bf18 
+pc=0x7ff6c0d772ce
+runtime.gcBgMarkWorker(0xc000
+211f80)
+	runtime/mgc.go:1463 +0xeb 
+fp=0xc00016bfc8 
+sp=0xc00016bf38 
+pc=0x7ff6c0d212eb
+runtime.gcBgMarkStartWorkers.
+gowrap1()
+	runtime/mgc.go:1373 +0x25 
+fp=0xc00016bfe0 
+sp=0xc00016bfc8 
+pc=0x7ff6c0d211c5
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc00016bfe8 
+sp=0xc00016bfe0 
+pc=0x7ff6c0d7f221
+created by 
+runtime.gcBgMarkStartWorkers 
+in goroutine 45
+	runtime/mgc.go:1373 +0x105
+
+goroutine 24 gp=0xc0001fa8c0 
+m=nil [GC worker (idle)]:
+runtime.gopark(0x5bf84c077024
+?, 0x1?, 0xa0?, 0x7f?, 
+0x7ff6c0d7b367?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0000f7f38 
+sp=0xc0000f7f18 
+pc=0x7ff6c0d772ce
+runtime.gcBgMarkWorker(0xc000
+211f80)
+	runtime/mgc.go:1463 +0xeb 
+fp=0xc0000f7fc8 
+sp=0xc0000f7f38 
+pc=0x7ff6c0d212eb
+runtime.gcBgMarkStartWorkers.
+gowrap1()
+	runtime/mgc.go:1373 +0x25 
+fp=0xc0000f7fe0 
+sp=0xc0000f7fc8 
+pc=0x7ff6c0d211c5
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0000f7fe8 
+sp=0xc0000f7fe0 
+pc=0x7ff6c0d7f221
+created by 
+runtime.gcBgMarkStartWorkers 
+in goroutine 45
+	runtime/mgc.go:1373 +0x105
+
+goroutine 25 gp=0xc0001faa80 
+m=nil [GC worker (idle)]:
+runtime.gopark(
+0x5bfa83b80108?, 
+0xc0002a6a00?, 0x1c?, 0xa?, 
+0x0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc00016df38 
+sp=0xc00016df18 
+pc=0x7ff6c0d772ce
+runtime.gcBgMarkWorker(0xc000
+211f80)
+	runtime/mgc.go:1463 +0xeb 
+fp=0xc00016dfc8 
+sp=0xc00016df38 
+pc=0x7ff6c0d212eb
+runtime.gcBgMarkStartWorkers.
+gowrap1()
+	runtime/mgc.go:1373 +0x25 
+fp=0xc00016dfe0 
+sp=0xc00016dfc8 
+pc=0x7ff6c0d211c5
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc00016dfe8 
+sp=0xc00016dfe0 
+pc=0x7ff6c0d7f221
+created by 
+runtime.gcBgMarkStartWorkers 
+in goroutine 45
+	runtime/mgc.go:1373 +0x105
+
+goroutine 690 
+gp=0xc0001fafc0 m=nil 
+[runnable]:
+runtime.gcTrigger.test({0x0?,
+ 0x0?, 0x0?})
+	runtime/mgc.go:616 +0xdc 
+fp=0xc000571d58 
+sp=0xc000571d50 
+pc=0x7ff6c0d1ef3c
+runtime.mallocgcSmallScanNoHe
+ader(0x1f0, 0x7ff6c1334960)
+	runtime/malloc.go:1436 
++0x2cf fp=0xc000571db8 
+sp=0xc000571d58 
+pc=0x7ff6c0d161af
+runtime.mallocgc(0x1f0, 
+0x7ff6c1334960, 0x1)
+	runtime/malloc.go:1066 
++0xa5 fp=0xc000571de8 
+sp=0xc000571db8 
+pc=0x7ff6c0d75045
+runtime.newobject(0xc0001ad08
+d?)
+	runtime/malloc.go:1747 
++0x25 fp=0xc000571e10 
+sp=0xc000571de8 
+pc=0x7ff6c0d16b25
+github.com/evanw/esbuild/inte
+rnal/bundler.parseFile({{0x7f
+f6c146a830, 0xc000250880}, 
+{0xc00015a690, 0xc00095e8b8, 
+0xc00095e9f0, 0xc0000b54c0, 
+0x6, 0xc0000d7140}, 
+0xc00013d688, 0xc000495200, 
+...})
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:288 
++0x15d2 fp=0xc000573608 
+sp=0xc000571e10 
+pc=0x7ff6c1127b72
+github.com/evanw/esbuild/inte
+rnal/bundler.(*scanner).maybe
+ParseFile.gowrap1()
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1626
+ +0x2fa fp=0xc000573fe0 
+sp=0xc000573608 
+pc=0x7ff6c1134a9a
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000573fe8 
+sp=0xc000573fe0 
+pc=0x7ff6c0d7f221
+created by github.com/evanw/e
+sbuild/internal/bundler.(*sca
+nner).maybeParseFile in 
+goroutine 651
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1626
+ +0xd85
+
+goroutine 627 
+gp=0xc0001fb180 m=nil 
+[sync.WaitGroup.Wait]:
+runtime.gopark(0xc000459a70?,
+ 0x7ff6c0d16125?, 0xa0?, 
+0xc5?, 0x7ff6c0d15ad3?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000459a10 
+sp=0xc0004599f0 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0xc000716
+5b8, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x22f 
+fp=0xc000459a78 
+sp=0xc000459a10 
+pc=0x7ff6c0d574ef
+sync.runtime_SemacquireWaitGr
+oup(0xc000313350?, 0x80?)
+	runtime/sema.go:114 +0x2e 
+fp=0xc000459ab0 
+sp=0xc000459a78 
+pc=0x7ff6c0d7852e
+sync.(*WaitGroup).Wait(0xc000
+7165b0)
+	sync/waitgroup.go:206 +0x85 
+fp=0xc000459ad8 
+sp=0xc000459ab0 
+pc=0x7ff6c0d97505
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph({
+0xc000955680, 0x2, 0x2}, 
+{0xc000716570, 0x2, 0x2}, 
+{0xc0002ebdb8?, 0x1?, 0x1?}, 
+0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:255 
++0x3a5 fp=0xc000459ce0 
+sp=0xc000459ad8 
+pc=0x7ff6c1123745
+github.com/evanw/esbuild/inte
+rnal/linker.Link(0xc00067ec08
+, 0x0, {0xc00063b3a0, 
+0xc0003132c0, 0xc0002ebcf8, 
+0xc0002096c0, 0x6, 
+0xc00009f470}, 
+{0x7ff6c146a830, 
+0xc00074c100}, ...)
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go:254 
++0x5a5 fp=0xc00045a088 
+sp=0xc000459ce0 
+pc=0x7ff6c118e385
+github.com/evanw/esbuild/inte
+rnal/bundler.(*Bundle).Compil
+e(0xc0001c9808, 
+{0xc00047f0a0, 0xc0002ebce0, 
+0xc0002ebcf8, 0xc0002096c0, 
+0x6, 0xc00009f470}, 0x0, 
+0x0, 0x7ff6c13b4a98)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:3028
+ +0x9c3 fp=0xc00045a670 
+sp=0xc00045a088 
+pc=0x7ff6c11444e3
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 0x0, 0x0, 
+0xc00009f410, 0x0, 0x3, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1806 
++0x1485 fp=0xc00045b980 
+sp=0xc00045a670 
+pc=0x7ff6c11e4085
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0x0?, 0x25, 
+0xc0000350e0)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc00045bf60 
+sp=0xc00045b980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc00045bfe0 
+sp=0xc00045bf60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc00045bfe8 
+sp=0xc00045bfe0 
+pc=0x7ff6c0d7f221
+created
+ by main.(*serviceType).handl
+eIncomingPacket in goroutine 
+1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 668 
+gp=0xc000086e00 m=nil 
+[semacquire]:
+runtime.gopark(0xc0003e7bb8?,
+ 0x7ff6c0d27b7c?, 0x20?, 
+0x39?, 0x5?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0003e7b78 
+sp=0xc0003e7b58 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0x7ff6c17
+aadb8, 0x0, 0x0, 0x0, 0x13)
+	runtime/sema.go:192 +0x22f 
+fp=0xc0003e7be0 
+sp=0xc0003e7b78 
+pc=0x7ff6c0d574ef
+runtime.semacquire(...)
+	
+runtime/sema.go:143
+runtime.gcStart({0x1bca1b1010
+8?, 0xc000086e6c?, 0x10000?})
+	runtime/mgc.go:682 +0x19a 
+fp=0xc0003e7cd8 
+sp=0xc0003e7be0 
+pc=0x7ff6c0d1f0fa
+runtime.mallocgcSmallScanHead
+er(0x10000?, 0x7ff6c1361820)
+	runtime/malloc.go:1530 
++0x2fe fp=0xc0003e7d30 
+sp=0xc0003e7cd8 
+pc=0x7ff6c0d1651e
+runtime.mallocgc(0x27c8, 
+0x7ff6c1361820, 0x1)
+	runtime/malloc.go:1068 
++0xac fp=0xc0003e7d60 
+sp=0xc0003e7d30 
+pc=0x7ff6c0d7504c
+runtime.growslice(0x7ff6c17f2
+800, 0xc00085c008?, 0x0?, 
+0xc000216008?, 
+0x7ff6c1361820)
+	runtime/slice.go:272 +0x55d 
+fp=0xc0003e7dd0 
+sp=0xc0003e7d60 
+pc=0x7ff6c0d7921d
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.f
+unc1(0x0)
+	
+github.com/evanw/esbuild/inte
+rnal/graph/graph.go:172 
++0x3da fp=0xc0003e7fc8 
+sp=0xc0003e7dd0 
+pc=0x7ff6c112441a
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.g
+owrap1()
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:253 
++0x23 fp=0xc0003e7fe0 
+sp=0xc0003e7fc8 
+pc=0x7ff6c1124003
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0003e7fe8 
+sp=0xc0003e7fe0 
+pc=0x7ff6c0d7f221
+created by github.com/evanw/e
+sbuild/internal/graph.CloneLi
+nkerGraph in goroutine 640
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:153 
++0x212
+
+goroutine 625 
+gp=0xc000086fc0 m=nil [
+semacquire]:
+runtime.gopark(0xc00035db70?,
+ 0x7ff6c0d27b7c?, 0x20?, 
+0x39?, 0x7ff6c0d17f76?)
+	runtime/proc.go:460 +0xce 
+fp=0xc00035db30 
+sp=0xc00035db10 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0x7ff6c17
+aadb8, 0x0, 0x0, 0x0, 0x13)
+	runtime/sema.go:192 +0x22f 
+fp=0xc00035db98 
+sp=0xc00035db30 
+pc=0x7ff6c0d574ef
+runtime.semacquire(...)
+	runtime/sema.go:143
+runtime.gcStart(
+{0x1bca1b10108?, 
+0x1bca1b1010a?, 0x70?})
+	runtime/mgc.go:682 +0x19a 
+fp=0xc00035dc90 
+sp=0xc00035db98 
+pc=0x7ff6c0d1f0fa
+runtime.mallocgcSmallScanNoHe
+ader(0x30, 0x7ff6c135ce20)
+	runtime/malloc.go:1437 
++0x2de fp=0xc00035dcf0 
+sp=0xc00035dc90 
+pc=0x7ff6c0d161be
+runtime.mallocgc(0x30, 
+0x7ff6c135ce20, 0x1)
+	runtime/malloc.go:1066 
++0xa5 fp=0xc00035dd20 
+sp=0xc00035dcf0 
+pc=0x7ff6c0d75045
+runtime.newobject(0xc00096093
+0?)
+	runtime/malloc.go:1747 
++0x25 fp=0xc00035dd48 
+sp=0xc00035dd20 
+pc=0x7ff6c0d16b25
+internal/runtime/maps.NewMap(
+0x7ff6c12fd260, 0x4, 
+0x7ff6c0d17273?, 
+0x1000000000000)
+	internal/runtime/maps/map.go
+:262 +0x32 fp=0xc00035dda0 
+sp=0xc00035dd48 
+pc=0x7ff6c0d03e72
+runtime.makemap(0x7ff6c12fd26
+0?, 
+0xc000933f50?, 0x2300000000?)
+	runtime/map_swiss.go:71 
++0x29 fp=0xc00035ddd0 
+sp=0xc00035dda0 
+pc=0x7ff6c0d75369
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.f
+unc1(0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:175 
++0x7df fp=0xc00035dfc8 
+sp=0xc00035ddd0 
+pc=0x7ff6c112481f
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.g
+owrap1()
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:253 
++0x23 fp=0xc00035dfe0 
+sp=0xc00035dfc8 
+pc=0x7ff6c1124003
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc00035dfe8 
+sp=0xc00035dfe0 pc=
+0x7ff6c0d7f221
+created by github.com/evanw/e
+sbuild/internal/graph.CloneLi
+nkerGraph in goroutine 639
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:153 
++0x212
+
+goroutine 600 
+gp=0xc000087500 m=3 
+mp=0xc00005f008 [running]:
+
+	goroutine running on other 
+thread; stack unavailable
+created by github.com/evanw/e
+sbuild/internal/linker.(*link
+erContext).generateChunksInPa
+rallel in goroutine 647
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go:618 
++0x3c5
+
+goroutine 659 
+gp=0xc000087880 m=nil 
+[semacquire]:
+runtime.gopark(0xc0004e4b48?,
+ 0x7ff6c0d27b7c?, 0x20?, 
+0x39?, 0x3?)
+	runtime/proc.go:
+460 +0xce fp=0xc0004e4b08 
+sp=0xc0004e4ae8 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0x7ff6c17
+aadb8, 0x0, 0x0, 0x0, 0x13)
+	runtime/sema.go:192 +0x22f 
+fp=0xc0004e4b70 
+sp=0xc0004e4b08 
+pc=0x7ff6c0d574ef
+runtime.semacquire(...)
+	runtime/sema.go:143
+runtime.gcStart({0x1bca1b1010
+8?, 0xc000087871?, 0x10000?})
+	runtime/mgc.go:682 +0x19a 
+fp=0xc0004e4c68 
+sp=0xc0004e4b70 
+pc=0x7ff6c0d1f0fa
+runtime.mallocgcSmallNoscan(0
+x400000001?, 0x100000294?, 
+0x4?)
+	runtime/malloc.go:1346 
++0x2a5 fp=0xc0004e4cc0 
+sp=0xc0004e4c68 
+pc=0x7ff6c0d15e65
+
+runtime.mallocgc(0x2bb9, 
+0x0, 0x0)
+	runtime/malloc.go:1059 
++0xc5 fp=0xc0004e4cf0 
+sp=0xc0004e4cc0 
+pc=0x7ff6c0d75065
+runtime.rawstring(...)
+	runtime/string.go:319
+runtime.rawstringtmp(0x3d1141
+4240011473?, 0x2bb9)
+	runtime/string.go:183 +0x3e 
+fp=0xc0004e4d18 
+sp=0xc0004e4cf0 
+pc=0x7ff6c0d5d15e
+runtime.concatstrings(0x60000
+00004?, {0xc0004e4da8?, 0x2, 
+0x13d00000004?})
+	runtime/string.go:54 +0xe5 
+fp=0xc0004e4d88 
+sp=0xc0004e4d18 
+pc=0x7ff6c0d5c925
+runtime.concatstring2(0x1?, 
+{0xc000969000?, 
+0x8056306274400d7d?}
+, {0x7ff6c13a8532?, 
+0x400000001?})
+	runtime/string.go:63 +0x4a 
+fp=0xc0004e4dd8 
+sp=0xc0004e4d88 
+pc=0x7ff6c0d5ca8a
+
+github.com/evanw/esbuild/inte
+rnal/runtime.Source(0x0)
+	github.com/evanw/esbuild/int
+ernal/runtime/runtime.go:349 
++0x205 fp=0xc0004e4e10 
+sp=0xc0004e4dd8 
+pc=0x7ff6c0fbf1a5
+github.com/evanw/esbuild/inte
+rnal/bundler.(*runtimeCache).
+parseRuntime(_, _)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:3332
+ +0xb6 fp=0xc0004e5858 
+sp=0xc0004e4e10 
+pc=0x7ff6c1147a36
+github.com/evanw/esbuild/inte
+rnal/bundler.ScanBundle.func2
+()
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1420
+ +0x87 fp=0xc0004e5fe0 
+sp=0xc0004e5858 
+pc=0x7ff6c1133347
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0004e5fe8 
+sp=0xc0004e5fe0 
+pc=0x7ff6c0d7f221
+created by github.com/evanw/e
+sbuild/internal/bundler.ScanB
+undle in goroutine 626
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1419
+ +0x97d
+
+
+goroutine 631 
+gp=0xc000272380 m=nil [chan 
+receive]:
+runtime.gopark(0xc0001afd40?,
+ 0x1400f6c0d75065?, 0x20?, 
+0x2d?, 0x1bca1b105a0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000779b08 
+sp=0xc000779ae8 
+pc=0x7ff6c0d772ce
+runtime.chanrecv(0xc0003565b0
+, 0xc000779f00, 0x1)
+	runtime/chan.go:667 +0x473 
+fp=0xc000779b80 
+sp=0xc000779b08 
+pc=0x7ff6c0d0e593
+runtime.chanrecv1(0x0?, 0x0
+?)
+	runtime/chan.go:509 +0x12 
+fp=0xc000779ba8 
+sp=0xc000779b80 
+pc=0x7ff6c0d0e0f2
+github.com/evanw/esbuild/inte
+rnal/bundler.(*scanner).scanA
+llDependencies(0xc00080c008)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:2178
+ +0x255 fp=0xc00077a078 
+sp=0xc000779ba8 
+pc=0x7ff6c113a2f5
+github.com/evanw/esbuild/inte
+rnal/bundler.ScanBundle(_, 
+{_, _, _, _, _, _}, {_, _}, 
+0xc00006cf60, ...)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1501
+ +0xbdc fp=0xc00077a670 
+sp=0xc00077a078 
+pc=0x7ff6c1132abc
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 
+0x0, 0x0, 0xc000700240, 0x0, 
+0x3, {0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1801 
++0x13c5 fp=0xc00077b980 
+sp=0xc00077a670 
+pc=0x7ff6c11e3fc5
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0xc00046de98?, 
+0x29, 0xc00026a2a0)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc00077bf60 
+sp=0xc00077b980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc00077bfe0 
+sp=0xc00077bf60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc00077bfe8 
+sp=0xc00077bfe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 629 
+gp=0xc000272a80 m=nil [chan 
+receive]:
+runtime.gopark(0xc000363e60?,
+ 0x1400f6c0d75065?, 0x88?, 
+0x34?, 0x1bca1b10a38?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0006cfb08 
+sp=0xc0006cfae8 
+pc=0x7ff6c0d772ce
+runtime.chanrecv(0xc000210000
+, 0xc0006cff00, 0x1)
+	runtime/chan.go:667 +0x473 
+fp=0xc0006cfb80 
+sp=0xc0006cfb08 
+pc=0x7ff6c0d0e593
+runtime.chanrecv1(0x0?, 0x0?)
+	runtime/chan.go:
+509
+ +
+0x12
+ fp=
+0xc0006cfba8 sp=0xc0006cfb80 
+pc=0x7ff6c0d0e0f2
+
+github.com/evanw/esbuild/inte
+rnal/bundler.(*scanner).scanA
+llDependencies(
+0xc0006c6488)
+
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:2178
+ +0x255 fp=0xc0006d0078
+ sp=
+0xc0006cfba8 
+pc=0x7ff6c113a2f5
+github.com/evanw/esbuild/inte
+rnal/bundler.ScanBundle(_, {_
+, _, _, _, _, _}, {_, _}, 
+0xc00063c0c0, ...)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1501
+ +0xbdc fp=0xc0006d0670 
+sp=0xc0006d0078 
+pc=0x7ff6c1132abc
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 0x0, 0x0, 
+0xc0006ba000, 0x0, 0x3, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1801 
++0x13c5 fp=0xc0006d1980 
+sp=0xc0006d0670 
+pc=0x7ff6c11e3fc5
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0x2200000000?, 
+0x27, 0xc00026a150)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc0006d1f60 
+sp=0xc0006d1980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc0006d1fe0 
+sp=0xc0006d1f60 
+pc=0x7ff6c1222e37
+
+runtime.goexit
+(
+{
+}
+)
+
+	
+runtime/asm_amd64.s
+:
+1693
+ +0x1 fp=0xc0006d1fe8 sp=
+0xc0006d1fe0 
+pc=0x7ff6c0d7f221
+
+created by 
+main.(*serviceType).handleInc
+omingPacket in goroutine 1
+
+	
+github.com/evanw/esbuild/cmd/
+esbuild/service.go:240 
++0x1772
+
+goroutine 898 
+gp=0xc0001fb6c0 m=nil 
+[runnable]:
+
+github.com/evanw/esbuild/inte
+rnal/linker.(*linkerContext).
+scanImportsAndExports.gowrap2
+()
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go:1576 
+fp=0xc000b5bfe0 
+sp=0xc000b5bfd8 
+pc=0x7ff6c119e100
+runtime.goexit(
+{
+}
+)
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000b5bfe8 
+sp=0xc000b5bfe0 
+pc=0x7ff6c0d7f221
+created by github.com/evanw/e
+sbuild/internal/linker.(*link
+erContext).scanImportsAndExpo
+rts in goroutine 653
+
+	
+github.com/evanw/esbuild/inte
+rnal/linker/linker.go:1576 
++0x16fd
+
+goroutine 598 
+gp=0xc0001fbc00 m=nil 
+[semacquire]:
+runtime.gopark(0xc0004f4b48?,
+ 0x7ff6c0d27b7c?, 0x20?, 
+0x39?, 0x3?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0004f4b08 
+sp=0xc0004f4ae8 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0x7ff6c17
+aadb8, 0x0, 0x0, 0x0, 0x13)
+	runtime/sema.go:192 +0x22f 
+fp=0xc0004f4b70 
+sp=0xc0004f4b08 
+pc=0x7ff6c0d574ef
+runtime.semacquire(...)
+	runtime/sema.go:143
+runtime.gcStart({0x1bca1b105a
+0?, 0xc0001fbc71?, 0x73b5?})
+	runtime/mgc.go:682 +0x19a 
+fp=0xc0004f4c68 
+sp=0xc0004f4b70 
+pc=0x7ff6c0d1f0fa
+runtime.mallocgcSmallNoscan(0
+x2d40?, 0x0?, 0x0?)
+	runtime/malloc.go:1346 
++0x2a5 fp=0xc0004f4cc0 
+sp=0xc0004f4c68 
+pc=0x7ff6c0d15e65
+runtime.mallocgc(0x2d40, 
+0x0, 0x0)
+	runtime/malloc.go:1059 
++0xc5 fp=0xc0004f4cf0 
+sp=0xc0004f4cc0 
+pc=0x7ff6c0d75065
+runtime.rawstring(...)
+	runtime/string.go:319
+runtime.rawstringtmp(0x0?, 
+0x2d40)
+	runtime/string.go:183 +0x3e 
+fp=0xc0004f4d18 
+sp=0xc0004f4cf0 
+pc=0x7ff6c0d5d15e
+runtime.concatstrings(0x0?, 
+{0xc0004f4da8?, 0x2, 0x0?})
+	runtime/string.go:54 +0xe5 
+fp=0xc0004f4d88 
+sp=0xc0004f4d18 
+pc=0x7ff6c0d5c925
+runtime.concatstring2(0x0?, 
+{0xc000886000?, 0x0?}, 
+{0x7ff6c13a7c30?, 0x0?})
+	runtime/string.go:63 +0x4a 
+fp=0xc0004f4dd8 
+sp=0xc0004f4d88 
+pc=0x7ff6c0d5ca8a
+github.com/evanw/esbuild/inte
+rnal/runtime.Source(0x0)
+	github.com/evanw/esbuild/int
+ernal/runtime/runtime.go:371 
++0x265 fp=0xc0004f4e10 
+sp=0xc0004f4dd8 
+pc=0x7ff6c0fbf205
+github.com/evanw/esbuild/inte
+rnal/bundler.(*runtimeCache).
+parseRuntime(_, _)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:3332
+ +0xb6 fp=0xc0004f5858 
+sp=0xc0004f4e10 
+pc=0x7ff6c1147a36
+github.com/evanw/esbuild/inte
+rnal/bundler.ScanBundle.func2
+()
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1420
+ +0x87 fp=0xc0004f5fe0 
+sp=0xc0004f5858 
+pc=0x7ff6c1133347
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0004f5fe8 
+sp=0xc0004f5fe0 
+pc=0x7ff6c0d7f221
+created by github.com/evanw/e
+sbuild/internal/bundler.ScanB
+undle in goroutine 629
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1419
+ +0x97d
+
+goroutine 634 
+gp=0xc0005376c0 m=nil [chan 
+receive]:
+runtime.gopark(0xc0004957a0?,
+ 0x1400f6c0d75065?, 0x88?, 
+0x7?, 0x1bca1b105a0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000653b08 
+sp=0xc000653ae8 
+pc=0x7ff6c0d772ce
+runtime.chanrecv(0xc000bb3110
+, 0xc000653f00, 0x1)
+	runtime/chan.go:667 +0x473 
+fp=0xc000653b80 
+sp=0xc000653b08 
+pc=0x7ff6c0d0e593
+runtime.chanrecv1(0x0?, 0x0?)
+	runtime/chan.go:509 +0x12 
+fp=0xc000653ba8 
+sp=0xc000653b80 
+pc=0x7ff6c0d0e0f2
+github.com/evanw/esbuild/inte
+rnal/bundler.(*scanner).scanA
+llDependencies(0xc000712d88)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:2178
+ +0x255 fp=0xc000654078 
+sp=0xc000653ba8 
+pc=0x7ff6c113a2f5
+github.com/evanw/esbuild/inte
+rnal/bundler.ScanBundle(_, 
+{_, _, _, _, _, _}, {_, _}, 
+0xc000362b40, ...)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1501
+ +0xbdc fp=0xc000654670 
+sp=0xc000654078 
+pc=0x7ff6c1132abc
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 0x0, 0x0, 
+0xc000700210, 0x0, 0x3, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1801 
++0x13c5 fp=0xc000655980 
+sp=0xc000654670 
+pc=0x7ff6c11e3fc5
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0xc0001f2030?, 
+0x2c, 0xc00026a540)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc000655f60 
+sp=0xc000655980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc000655fe0 
+sp=0xc000655f60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000655fe8 
+sp=0xc000655fe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 635 
+gp=0xc000537a40 m=nil [chan 
+receive]:
+runtime.gopark(0xc000088000?,
+ 0x1400f6c0d75065?, 0x20?, 
+0xf?, 0x1bca1b10108?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0007b5b08 
+sp=0xc0007b5ae8 
+pc=0x7ff6c0d772ce
+runtime.chanrecv(0xc000bb3180
+, 0xc0
+007b5f00
+, 
+0x1
+)
+
+	
+runtime/chan.go
+:
+667 +0x473 fp=0xc0007b5b80 
+sp=0xc0007b5b08 
+pc=0x7ff6c0d0e593
+
+runtime.chanrecv1
+(
+0x0
+?, 
+0x0
+?)
+	runtime/chan.go:509 +0x12 
+fp=
+0xc0007b5ba8
+ sp=0xc0007b5b80 
+pc=0x7ff6c0d0e0f2
+github.com/evanw/esbuild/inte
+rnal/bundler.(*scanner).scanA
+llDependencies
+(
+0xc000713688
+)
+
+	
+github.com/evanw/esbuild/inte
+rnal/bundler/bundler.go:2178 
++0x255 fp=0xc0007b6078 
+sp=0xc0007b5ba8 
+pc=0x7ff6c113a2f5
+
+github.com/evanw/esbuild/inte
+rnal/bundler.ScanBundle
+(
+_
+, 
+{
+_
+, _, _, _, _
+, 
+_
+}
+, 
+{
+_
+, 
+_
+}
+, 
+0xc000362c00
+, 
+...
+)
+
+	
+github.com/evanw/esbuild/inte
+rnal/bundler/bundler.go
+:
+1501 +0xbdc fp=0xc0007b6670 
+sp=
+0xc0007b6078
+ pc=
+0x7ff6c1132abc
+
+
+github.com/evanw/esbuild/pkg/
+api.transformImpl
+(
+{
+_
+, 
+_
+}
+, 
+{0x0, 0x0, 0x0, 
+0xc0003f76e0, 0x0, 0x3, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1801 
++0x13c5 fp=0xc0007b7980 
+sp=0xc0007b6670
+ pc=0x7ff6c11e3fc5
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0xc000738e70?, 
+0x2d, 0xc00026a600)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc0007b7f60 
+sp=0xc0007b7980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc0007b7fe0 
+sp=0xc0007b7f60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0007b7fe8 
+sp=0xc0007b7fe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 636 
+gp=0xc0005361c0 m=nil [chan 
+receive]:
+runtime.gopark(0x10000?, 
+0x1400c0001ae060?, 0x20?, 
+0x2d?, 0x1bca1b105a0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0005a9b08 
+sp=0xc0005a9ae8 
+pc=0x7ff6c0d772ce
+runtime.chanrecv(0xc000356310
+, 0xc0005a9f00, 0x1)
+	runtime/chan.go:667 +0x473 
+fp=0xc0005a9b80 
+sp=0xc0005a9b08 
+pc=0x7ff6c0d0e593
+runtime.chanrecv1(0x0?, 0x0?)
+	runtime/chan.go:509 +0x12 
+fp=0xc0005a9ba8 
+sp=0xc0005a9b80 
+pc=0x7ff6c0d0e0f2
+github.com/evanw/esbuild/inte
+rnal/bundler.(*scanner).scanA
+llDependencies(0xc0001f6908)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:2178
+ +0x255 fp=0xc0005aa078 
+sp=0xc0005a9ba8 
+pc=0x7ff6c113a2f5
+github.com/evanw/esbuild/inte
+rnal/bundler.ScanBundle(_, 
+{_, _, _, _, _, _}, {_, _}, 
+0xc00006c1e0, ...)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:1501
+ +0xbdc fp=0xc0005aa670 
+sp=0xc0005aa078 
+pc=0x7ff6c1132abc
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 0x0, 0x0, 
+0xc00048e480, 0x0, 0x0, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1801 
++0x13c5 fp=0xc0005ab980 
+sp=0xc0005aa670 
+pc=0x7ff6c11e3fc5
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0x0?, 0x2e, 
+0xc00026a720)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc0005abf60 
+sp=0xc0005ab980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc0005abfe0 
+sp=0xc0005abf60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0005abfe8 
+sp=0xc0005abfe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 638 
+gp=0xc000536c40 m=nil 
+[sync.WaitGroup.Wait]:
+runtime.gopark(0xc0008a9a70?,
+ 0x7ff6c0d16125?, 0x60?, 
+0xd5?, 0xc0008a9a58?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0008a9a10 
+sp=0xc0008a99f0 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0xc000afa
+b08, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x22f 
+fp=0xc0008a9a78 
+sp=0xc0008a9a10 
+pc=0x7ff6c0d574ef
+sync.runtime_SemacquireWaitGr
+oup(0xc000b40090?, 0x40?)
+	runtime/sema.go:114 +0x2e 
+fp=0xc0008a9ab0 
+sp=0xc0008a9a78 
+pc=0x7ff6c0d7852e
+sync.(*WaitGroup).Wait(0xc000
+afab00)
+	sync/waitgroup.go:206 +0x85 
+fp=0xc0008a9ad8 
+sp=0xc0008a9ab0 
+pc=0x7ff6c0d97505
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph({
+0xc0005fea08, 0x5, 0x5}, 
+{0xc00019b8a0, 0x5, 0x8}, 
+{0xc0006e9cb0?, 0x1?, 0x3?}, 
+0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:255 
++0x3a5 fp=0xc0008a9ce0 
+sp=0xc0008a9ad8 
+pc=0x7ff6c1123745
+github.com/evanw/esbuild/inte
+rnal/linker.Link(0xc000b3e008
+, 0x0, {0xc000afe240, 
+0xc000ad1f68, 0xc0006e9728, 
+0xc0006b9920, 0x6, 
+0xc0003cf1d0}, 
+{0x7ff6c146a830, 
+0xc0006c1d80}, ...)
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go:254 
++0x5a5 fp=0xc0008aa088 
+sp=0xc0008a9ce0 
+pc=0x7ff6c118e385
+github.com/evanw/esbuild/inte
+rnal/bundler.(*Bundle).Compil
+e(0xc0008b0408, 
+{0xc00033f110, 0xc0006e9710, 
+0xc0006e9728, 0xc0006b9920, 
+0x6, 0xc0003cf1d0}, 0x0, 
+0x0, 0x7ff6c13b4a98)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:3028
+ +0x9c3 fp=0xc0008aa670 
+sp=0xc0008aa088 
+pc=0x7ff6c11444e3
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 0x0, 0x0, 
+0xc0007700c0, 0x0, 0x0
+, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1806 
++0x1485 fp=0xc0008ab980 
+sp=0xc0008aa670 
+pc=0x7ff6c11e4085
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0x6c4341532c414
+141?, 0x30, 0xc00026a8d0)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc0008abf60 
+sp=0xc0008ab980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc0008abfe0 
+sp=0xc0008abf60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0008abfe8 
+sp=0xc0008abfe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 639 
+gp=0xc000536fc0 m=nil 
+[sync.WaitGroup.Wait]:
+runtime.gopark(0xc000391a70?,
+ 0x7ff6c0d16125?, 0xc0?, 
+0xe0?, 0xc000391a58?)
+	runtime/proc.go:460 +0xce 
+fp=0xc000391a10 
+sp=0xc0003919f0 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0xc000239
+858, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x22f 
+fp=0xc000391a78 
+sp=0xc000391a10 
+pc=0x7ff6c0d574ef
+sync.runtime_SemacquireWaitGr
+oup(0xc00048a318?, 0xc0?)
+	runtime/sema.go:114 +0x2e 
+fp=0xc000391ab0 
+sp=0xc000391a78 
+pc=0x7ff6c0d7852e
+sync.(*WaitGroup).Wait(0xc000
+239850)
+	sync/waitgroup.go:206 +0x85 
+fp=0xc000391ad8 
+sp=0xc000391ab0 
+pc=0x7ff6c0d97505
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph({
+0xc0005f4508, 0x5, 0x5}, 
+{0xc00024c780, 0x5, 0x8}, 
+{0xc0004b4a50?, 0x1?, 0x3?}, 
+0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:255 
++0x3a5 fp=0xc000391ce0 
+sp=0xc000391ad8 
+pc=0x7ff6c1123745
+github.com/evanw/esbuild/inte
+rnal/linker.Link(0xc000005008
+, 0x0, {0xc0000b8cc0, 
+0xc00048a1b0, 0xc0004b40c0, 
+0xc0003080e0, 0x6, 
+0xc0002e01b0}, 
+{0x7ff6c146a830, 
+0xc0003fa980}, ...)
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go:254 
++0x5a5 fp=0xc000392088 
+sp=0xc000391ce0 
+pc=0x7ff6c118e385
+github.com/evanw/esbuild/inte
+rnal/bundler.(*Bundle).Compil
+e(0xc000bb7008, 
+{0xc00047e000, 0xc0004b4090, 
+0xc0004b40c0, 0xc0003080e0, 
+0x6, 0xc0002e01b0}, 0x0, 
+0x0, 0x7ff6c13b4a98)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:3028
+ +0x9c3 fp=0xc000392670 
+sp=0xc000392088 
+pc=0x7ff6c11444e3
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 0x0, 0x0, 
+0xc0002e00c0, 0x0, 0x0, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1806 
++0x1485 fp=0xc000393980 
+sp=0xc000392670 
+pc=0x7ff6c11e4085
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0x8?, 0x31, 
+0xc00026a990)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc000393f60 
+sp=0xc000393980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc000393fe0 
+sp=0xc000393f60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc000393fe8 
+sp=0xc000393fe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 640 
+gp=0xc000537c00 m=nil 
+[sync.WaitGroup.Wait]:
+runtime.gopark(0xc0003b9a70?,
+ 0x7ff6c0d160f4?, 0xe0?, 
+0x81?, 0x1bca1b10ed0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0003b9a10 
+sp=0xc0003b99f0 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0xc00020c
+0e8, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x22f 
+fp=0xc0003b9a78 
+sp=0xc0003b9a10 
+pc=0x7ff6c0d574ef
+sync.runtime_SemacquireWaitGr
+oup(0xc00095e798?, 0x0?)
+	runtime/sema.go:114 +0x2e 
+fp=0xc0003b9ab0 
+sp=0xc0003b9a78 
+pc=0x7ff6c0d7852e
+sync.(*WaitGroup).Wait(0xc000
+20c0e0)
+	sync/waitgroup.go:206 +0x85 
+fp=0xc0003b9ad8 
+sp=0xc0003b9ab0 
+pc=0x7ff6c0d97505
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph({
+0xc0000b2a08, 0x5, 0x5}, 
+{0xc0000221e0, 0x5, 0x8}, 
+{0xc000544cc0?, 0x1?, 0x3?}, 
+0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:255 
++0x3a5 fp=0xc0003b9ce0 
+sp=0xc0003b9ad8 
+pc=0x7ff6c1123745
+github.com/evanw/esbuild/inte
+rnal/linke
+r.Link
+(
+0xc0000c5808, 0x0, 
+{0xc0000b5460, 0xc00095e4f8, 
+0xc000544738, 0xc0000b9b80, 
+0x6, 0xc000505290}, 
+{0x7ff6c146a830, 
+0xc00030eb80}, ...)
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go:254 
++0x5a5 fp=0xc0003ba088 
+sp=0xc0003b9ce0 
+pc=0x7ff6c118e385
+github.com/evanw/esbuild/inte
+rnal/bundler.(*Bundle).Compil
+e(0xc000005c08, 
+{0xc00033eaf0, 0xc000544720, 
+0xc000544738, 0xc0000b9b80, 
+0x6, 0xc000505290}, 0x0, 
+0x0, 0x7ff6c13b4a98)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:3028
+ +0x9c3 fp=0xc0003ba670 
+sp=0xc0003ba088 
+pc=0x7ff6c11444e3
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 0x0, 0x0, 
+0xc000505230, 0x0, 0x0, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1806 
++0x1485 fp=0xc0003bb980 
+sp=0xc0003ba670 
+pc=0x7ff6c11e4085
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0xad?, 0x32, 
+0xc00026ac00)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc0003bbf60 
+sp=0xc0003bb980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc0003bbfe0 
+sp=0xc0003bbf60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0003bbfe8 
+sp=0xc0003bbfe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 727 
+gp=0xc000537dc0 m=nil 
+[semacquire]:
+runtime.gopark(0xc0002e3bb8?,
+ 0x7ff6c0d27b7c?, 0x20?, 
+0x39?, 0x5?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0002e3b78 
+sp=0xc0002e3b58 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0x7ff6c17
+aadb8, 0x0, 0x0, 0x0, 0x13)
+	runtime/sema.go:192 +0x22f 
+fp=0xc0002e3be0 
+sp=0xc0002e3b78 
+pc=0x7ff6c0d574ef
+runtime.semacquire(...)
+	runtime/sema.go:143
+runtime.gcStart({0x1bca1b1010
+8?, 0xc000537d6c?, 0x10000?})
+	runtime/mgc.go:682 +0x19a 
+fp=0xc0002e3cd8 
+sp=0xc0002e3be0 
+pc=0x7ff6c0d1f0fa
+runtime.mallocgcSmallScanHead
+er(0x10000?, 0x7ff6c1361820)
+	runtime/malloc.go:1530 
++0x2fe fp=0xc0002e3d30 
+sp=0xc0002e3cd8 
+pc=0x7ff6c0d1651e
+runtime.mallocgc(0x27c8, 
+0x7ff6c1361820, 0x1)
+	runtime/malloc.go:1068 
++0xac fp=0xc0002e3d60 
+sp=0xc0002e3d30 
+pc=0x7ff6c0d7504c
+runtime.growslice(0x7ff6c17f2
+800, 0xc00084c008?, 0x0?, 
+0xc000490008?, 
+0x7ff6c1361820)
+	runtime/slice.go:272 +0x55d 
+fp=0xc0002e3dd0 
+sp=0xc0002e3d60 
+pc=0x7ff6c0d7921d
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.f
+unc1(0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:172 
++0x3da fp=0xc0002e3fc8 
+sp=0xc0002e3dd0 
+pc=0x7ff6c112441a
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.g
+owrap1()
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:253 
++0x23 fp=0xc0002e3fe0 
+sp=0xc0002e3fc8 
+pc=0x7ff6c1124003
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0002e3fe8 
+sp=0xc0002e3fe0 
+pc=0x7ff6c0d7f221
+created by github.com/evanw/e
+sbuild/internal/graph.CloneLi
+nkerGraph in goroutine 646
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:153 
++0x212
+
+goroutine 642 
+gp=0xc0002721c0 m=nil 
+[sync.WaitGroup.Wait]:
+runtime.gopark(0xc00040ba70?,
+ 0x7ff6c0d16125?, 0xa0?, 
+0x51?, 0x7ff6c0d15ad3?)
+	runtime/proc.go:460 +0xce 
+fp=0xc00040ba10 
+sp=0xc00040b9f0 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0xc000716
+558, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x22f 
+fp=0xc00040ba78 
+sp=0xc00040ba10 
+pc=0x7ff6c0d574ef
+sync.runtime_SemacquireWaitGr
+oup(0xc0003131d0?, 0xc0?)
+	runtime/sema.go:114 +0x2e 
+fp=0xc00040bab0 
+sp=0xc00040ba78 
+pc=0x7ff6c0d7852e
+sync.(*WaitGroup).Wait(0xc000
+716550)
+	sync/waitgroup.go:206 +0x85 
+fp=0xc00040bad8 
+sp=0xc00040bab0 
+pc=0x7ff6c0d97505
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph({
+0xc000954960, 0x2, 0x2}, 
+{0xc000716508, 0x2, 0x2}, 
+{0xc00095e708?, 0x1?, 0x1?}, 
+0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:255 
++0x3a5 fp=0xc00040bce0 
+sp=0xc00040bad8 
+pc=0x7ff6c1123745
+github.com/evanw/esbuild/inte
+rnal/linker.Link(0xc00067e808
+, 0x0, {0xc00063b360, 
+0xc0003130b0, 0xc00095e5e8, 
+0xc0000b4020, 0x6, 
+0xc0001f0090}, {
+0x7ff6c146a830
+, 0xc000250040}, ...)
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go:254 
++0x5a5 fp=0xc00040c088 
+sp=0xc00040bce0 
+pc=0x7ff6c118e385
+github.com/evanw/esbuild/inte
+rnal/bundler.(*Bundle).Compil
+e(0xc0000c4008, 
+{0xc00015a000, 0xc00095e5d0, 
+0xc00095e5e8, 0xc0000b4020, 
+0x6, 0xc0001f0090}, 
+0x0, 0x0, 
+0x7ff6c13b4a98)
+
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:3028
+ +0x9c3
+ fp=0xc00040c670
+ sp=0xc00040c088
+ pc=0x7ff6c11444e3
+
+github.com/evanw/esbuild/pkg/
+api.transformImpl
+({
+_, 
+_}
+, {
+0x0, 
+0x0, 
+0x0, 0xc00026bec0, 
+0x0, 
+0x3, {
+0x0, 
+0x0}
+, ...
+})
+
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1806 +0x1485
+ fp=
+0xc00040d980 sp=0xc00040c670 
+pc=0x7ff6c11e4085
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0x0?, 0x34, 
+0xc00026ad50)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc00040df60 
+sp=0xc00040d980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+
+	
+github.com/evanw/esbuild/cmd/
+esbuild/service.go:242 +0x57 
+fp=0xc00040dfe0 
+sp=0xc00040df60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc00040dfe8 
+sp=0xc00040dfe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+
+
+	
+github.com/evanw/esbuild/cmd/
+esbuild/service.go
+:240 +0x1772
+
+goroutine 892 
+gp=0xc000272e00 m=nil 
+[runnable]:
+
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph.g
+owrap1()
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:153 
+fp=0xc000255fe0 
+sp=0xc000255fd8 
+pc=0x7ff6c1123fe0
+runtime.goexit({}
+)
+
+	runtime/asm_amd64.s:1693 
++0x1
+ fp=
+0xc000255fe8
+ sp=
+0xc000255fe0
+ pc=
+0x7ff6c0d7f221
+
+
+created by 
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph
+ in goroutine 
+638
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:153 
++0x212
+
+goroutine 646 
+gp=0xc000273880 m=nil 
+[sync.WaitGroup.Wait]:
+
+runtime.gopark
+(0xc0003b1a70?, 
+0x7ff6c0d16125
+?, 0x20?, 0x3f?, 
+0x7ff6c0d15a12?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0003b1a10 
+sp=0xc0003b19f0 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0xc00046d
+838, 
+0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x22f 
+fp=0xc0003b1a78 
+sp=0xc0003b1a10 
+pc=0x7ff6c0d574ef
+
+sync.runtime_SemacquireWaitGr
+oup
+(0xc000312408?, 0x80?)
+	runtime/sema.go:114 +0x2e 
+fp=0xc0003b1ab0 
+sp=0xc0003b1a78 
+pc=0x7ff6c0d7852e
+sync.(*WaitGroup).Wait(0xc000
+46d830)
+	sync/waitgroup.go:206 +0x85 
+fp=0xc0003b1ad8 
+sp=0xc0003b1ab0 
+pc=0x7ff6c0d97505
+
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph({
+0xc0003bf860, 0x2, 0x2}, 
+{0xc00046d7e8, 0x2, 0x2}, 
+{0xc000544360?, 0x1?, 0x1?}, 
+0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:255 +
+0x3a5
+ fp=0xc0003b1ce0 
+sp=0xc0003b1ad8 
+pc=0x7ff6c1123745
+github.com/evanw/esbuild/inte
+rnal/linker.Link(0xc00067e008
+, 0x0, {0xc00063ae00, 
+0xc000312390, 0xc0005441f8, 
+0xc0000b80e0, 0x6, 
+0xc000504180}, 
+{0x7ff6c146a830, 
+0xc00030e140}, ...)
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go
+:
+254
+ +0x5a5 fp=0xc0003b2088 
+sp=0xc0003b1ce0
+ pc=
+0x7ff6c118e385
+
+github.com/evanw/esbuild/inte
+rnal/bundler.(*Bundle).Compil
+e(
+0xc000004408, 
+{0xc00033e7e0, 0xc0005441c8, 
+0xc0005441f8, 
+0xc0000b80e0
+, 0x6, 0xc000504180}, 0x0
+, 
+0x0
+, 
+0x7ff6c13b4a98
+)
+	
+github.com/evanw/esbuild/inte
+rnal/bundler/bundler.go
+:
+3028
+ +
+0x9c3
+ fp=
+0xc0003b2670
+ sp=
+0xc0003b2088
+ pc=
+0x7ff6c11444e3
+
+
+github.com/evanw/esbuild/pkg/
+api.transformImpl
+(
+{
+_
+, 
+_
+}
+, 
+{
+0x0
+, 
+0x0
+, 
+0x0
+, 
+0xc000504120
+, 
+0x0
+, 
+0x3
+, 
+{
+0x0
+, 
+0x0
+}
+, 
+...
+}
+)
+
+	
+github.com/evanw/esbuild/pkg/
+api/api_impl.go
+:1806 +0x1485 
+fp=0xc0003b3980 
+sp=0xc0003b2670 
+pc=0x7ff6c11e4085
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0x25ad4?, 
+0x38, 0xc00026b260)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc0003b3f60 
+sp=0xc0003b3980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc0003b3fe0 
+sp=0xc0003b3f60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0003b3fe8 
+sp=0xc0003b3fe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 647 
+gp=0xc000273a40 m=nil 
+[sync.WaitGroup.Wait]:
+runtime.gopark(0xc0004d3978?,
+ 0x7ff6c0d16125?, 0x80?, 
+0xd9?, 0xc0000a8dc0?)
+	runtime/proc.go:460 +0xce 
+fp=0xc0004d3918 
+sp=0xc0004d38f8 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0xc000c38
+608, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x22f 
+fp=0xc0004d3980 
+sp=0xc0004d3918 
+pc=0x7ff6c0d574ef
+sync.runtime_SemacquireWaitGr
+oup(0x7ff6c1191820?, 0xc0?)
+	runtime/sema.go:114 +0x2e 
+fp=0xc0004d39b8 
+sp=0xc0004d3980 
+pc=0x7ff6c0d7852e
+sync.(*WaitGroup).Wait(0xc000
+c38600)
+	sync/waitgroup.go:206 +0x85 
+fp=0xc0004d39e0 
+sp=0xc0004d39b8 
+pc=0x7ff6c0d97505
+github.com/evanw/esbuild/inte
+rnal/linker.(*linkerContext).
+generateChunksInParallel(0xc0
+000a8dc0, {0x0, 0x0, 0x5?})
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go:624 
++0x417 fp=0xc0004d3ce0 
+sp=0xc0004d39e0 
+pc=0x7ff6c1191e77
+github.com/evanw/esbuild/inte
+rnal/linker.Link(0xc000acbc08
+, 0x0, {0xc000afe200, 
+0xc000ad1ec0, 0xc000009140, 
+0xc000290bc0, 0x6, 
+0xc00037f140}, 
+{0x7ff6c146a830, 
+0xc000964300}, ...)
+	github.com/evanw/esbuild/int
+ernal/linker/linker.go:349 
++0x11ea fp=0xc0004d4088 
+sp=0xc0004d3ce0 
+pc=0x7ff6c118efca
+github.com/evanw/esbuild/inte
+rnal/bundler.(*Bundle).Compil
+e(0xc0000dcc08, 
+{0xc0001960e0, 0xc000009128, 
+0xc000009140, 0xc000290bc0, 
+0x6, 0xc00037f140}, 0x0, 
+0x0, 0x7ff6c13b4a98)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:3028
+ +0x9c3 fp=0xc0004d4670 
+sp=0xc0004d4088 
+pc=0x7ff6c11444e3
+github.com/evanw/esbuild/pkg/
+api.transformImpl({_, _}, 
+{0x0, 0x0, 0x0, 
+0xc00037f0e0, 0x0, 0x3, 
+{0x0, 0x0}, ...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1806 
++0x1485 fp=0xc0004d5980 
+sp=0xc0004d4670 
+pc=0x7ff6c11e4085
+github.com/evanw/esbuild/pkg/
+api.Transform(...)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+main.(*serviceType).handleTra
+nsformRequest(0x53c19?, 
+0x39, 0xc00026b320)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:1179 
++0x378 fp=0xc0004d5f60 
+sp=0xc0004d5980 
+pc=0x7ff6c1229cf8
+main.(*serviceType).handleInc
+omingPacket.func3()
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:242 
++0x57 fp=0xc0004d5fe0 
+sp=0xc0004d5f60 
+pc=0x7ff6c1222e37
+runtime.goexit({})
+	runtime/asm_amd64.s:1693 
++0x1 fp=0xc0004d5fe8 
+sp=0xc0004d5fe0 
+pc=0x7ff6c0d7f221
+created by main.(*serviceType
+).handleIncomingPacket in 
+goroutine 1
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:240 
++0x1772
+
+goroutine 649 
+gp=0xc000273dc0 m=nil 
+[sync.WaitGroup.Wait]:
+runtime.gopark(0xc00047ba70?,
+ 0x7ff6c0d160f4?, 0x80?, 
+0xf6?, 0x7ff6c0d15a12?)
+	runtime/proc.go:460 +0xce 
+fp=0xc00047ba10 
+sp=0xc00047b9f0 
+pc=0x7ff6c0d772ce
+runtime.goparkunlock(...)
+	runtime/proc.go:466
+runtime.semacquire1(0xc00020c
+058, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x22f 
+fp=0xc00047ba78 
+sp=0xc00047ba10 
+pc=0x7ff6c0d574ef
+sync.runtime_SemacquireWaitGr
+oup(0xc00095e468?, 0xc0?)
+	runtime/sema.go:114 +0x2e 
+fp=0xc00047bab0 
+sp=0xc00047ba78 
+pc=0x7ff6c0d7852e
+sync.(*WaitGroup).Wait(0xc000
+20c050)
+	sync/waitgroup.go:206 +0x85 
+fp=0xc00047bad8 
+sp=0xc00047bab0 
+pc=0x7ff6c0d97505
+github.com/evanw/esbuild/inte
+rnal/graph.CloneLinkerGraph({
+0xc0001b74a0, 0x2, 0x2}, 
+{0xc00020c010, 0x2, 0x2}, 
+{0xc000008f30?, 0x1?, 0x1?}, 
+0x0)
+	github.com/evanw/esbuild/int
+ernal/graph/graph.go:255 
++0x3a5 fp=0xc00047bce0 
+sp=0xc00047bad8 
+pc=0x7ff6c1123745
+github.com/evanw/esbuild/inte
+rnal/linker.Link(0xc0000c5408
+, 0x0, {0xc0000b5440, 
+0xc00095e2a0, 0xc000008ea0, 
+0xc000290280, 0x6, 0xc
+00037e540
+}
+, 
+{
+0x7ff6c146a830
+, 
+0xc000964140
+}
+, 
+...
+)
+
+	
+github.com/evanw/esbuild/inte
+rnal/linker/linker.go
+:
+254
+ +
+0x5a5
+ fp=
+0xc00047c088
+ sp=
+0xc00047bce0
+ pc=
+0x7ff6c118e385
+
+
+github.com/evanw/esbuild/inte
+rnal/bundler.(*Bundle).Compil
+e
+(
+0xc0000dc008
+, 
+{
+0xc000196000
+, 
+0xc000008e88
+, 
+0xc000008ea0
+, 
+0xc000290280
+, 
+0x6, 0xc00037e540
+}, 0x0
+, 0x0, 0x7ff6c13b4a98)
+	github.com/evanw/esbuild/int
+ernal/bundler/bundler.go:3028
+ +0x9c3 fp=
+0xc00047c670 sp=0xc00047c088
+ pc=0x7ff6c11444e3
+
+github.com/evanw/esbuild/pkg/
+api.transformImpl
+({_, _}, {
+0x0, 0x0, 0x0
+, 0xc00037e4e0, 
+0x0, 0x3
+, {0x0, 0x0}, 
+...})
+	github.com/evanw/esbuild/pkg
+/api/api_impl.go:1806
+ +0x1485 fp=0xc00047d980 
+sp=0xc00047c670 
+pc=0x7ff6c11e4085
+
+github.com/evanw/esbuild/pkg/
+api.Transform(...
+)
+	github.com/evanw/esbuild/pkg
+/api/api.go:477
+
+main.(*serviceType).handleTra
+nsformRequest(0x0
+?, 0x3b, 0xc00026b6e0)
+	github.com/evanw/esbuild/cmd
+/esbuild/service.go:
+1179 +0x378
+ fp=0xc00047df60 
+sp=0xc00047d980 pc=
+0x7ff6c1229cf8
+
+main.(*serviceType).handleInc
+omingPacket.func3()
+

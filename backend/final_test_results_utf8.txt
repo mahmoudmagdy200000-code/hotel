@@ -1,0 +1,13 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Domain -> C:\Users\Workstation\hotel\backend\artifacts\bin\Domain\debug\CleanArchitecture.Domain.dll
+  Application -> C:\Users\Workstation\hotel\backend\artifacts\bin\Application\debug\CleanArchitecture.Application.dll
+  Infrastructure -> C:\Users\Workstation\hotel\backend\artifacts\bin\Infrastructure\debug\CleanArchitecture.Infrastructure.dll
+  Application.UnitTests -> C:\Users\Workstation\hotel\backend\artifacts\bin\Application.UnitTests\debug\CleanArchitecture.Application.UnitTests.dll
+Test run for C:\Users\Workstation\hotel\backend\artifacts\bin\Application.UnitTests\debug\CleanArchitecture.Application.UnitTests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    38, Skipped:     0, Total:    38, Duration: 345 ms - CleanArchitecture.Application.UnitTests.dll (net10.0)

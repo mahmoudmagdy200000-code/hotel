@@ -1,0 +1,17 @@
+﻿
+> hotel-frontend@0.0.0 build
+> tsc -b && vite build
+
+src/api/types/reservations.ts(1,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/api/types/rooms.ts(9,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/app/providers/QueryProvider.tsx(2,10): error TS1484: 'ReactNode' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/features/reception/hooks/useParsePendingRequest.ts(9,21): error TS6133: 'data' is declared but its value is never read.
+src/hooks/rooms/useRooms.ts(3,15): error TS6196: 'CreateRoomCommand' is declared but never used.
+src/hooks/rooms/useRoomTypes.ts(3,15): error TS6196: 'CreateRoomTypeCommand' is declared but never used.
+src/pages/ReceptionSearch.tsx(23,1): error TS6133: 'formatCurrency' is declared but its value is never read.
+src/pages/ReceptionSearch.tsx(41,30): error TS6133: 'isError' is declared but its value is never read.
+src/pages/ReceptionSearch.tsx(41,39): error TS6133: 'error' is declared but its value is never read.
+src/pages/reservations/ReservationCreate.tsx(7,52): error TS6133: 'CardFooter' is declared but its value is never read.
+src/pages/reservations/ReservationCreate.tsx(17,5): error TS6133: 'Phone' is declared but its value is never read.
+src/pages/reservations/ReservationCreate.tsx(24,1): error TS6133: 'Badge' is declared but its value is never read.
+src/pages/reservations/ReservationCreate.tsx(25,41): error TS2724: '"@/api/types/reservations"' has no exported member named 'ReservationLineCommand'. Did you mean 'CreateReservationLineCommand'?

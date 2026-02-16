@@ -1,0 +1,131 @@
+﻿On branch master
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    ../.agent/rules/front.md
+	modified:   CURSOR_FRONTEND_PHASES_VITE_HOTEL_PMS.md
+	modified:   README.md
+	modified:   package-lock.json
+	modified:   package.json
+	deleted:    src/App.css
+	deleted:    src/App.tsx
+	modified:   src/index.css
+	modified:   src/main.tsx
+	modified:   tsconfig.app.json
+	modified:   vite.config.ts
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	../.agent/rules/DATE_CONTRACT_POLICY.md
+	../.agent/rules/FRONTEND_BACKEND_READINESS.md
+	../.agent/rules/HOTEL_FRONTEND_MASTER_PHASES_UNIFIED_v2_UPDATED.md
+	.env
+	.env.example
+	FRONTEND_BACKEND_READINESS.md
+	PHASE_1_COMPLETE.md
+	PHASE_2_PROGRESS.md
+	build_errors.txt
+	build_errors_utf8.txt
+	build_output.txt
+	build_output_2.txt
+	build_output_2_utf8.txt
+	build_output_3.txt
+	build_output_3_utf8.txt
+	build_output_4.txt
+	build_output_utf8.txt
+	build_tail_utf8.txt
+	components.json
+	current_errors.txt
+	final_check_errors.txt
+	full_build_output.txt
+	full_build_output_utf8.txt
+	git_status.txt
+	postcss.config.cjs
+	src/api/
+	src/app/
+	src/components/
+	src/features/
+	src/hooks/
+	src/i18n/
+	src/layouts/
+	src/lib/
+	src/pages/
+	src/router/
+	src/types/
+	tailwind.config.ts
+	tsc_errors.txt
+	tsc_errors_real.txt
+	tsc_errors_real_utf8.txt
+	tsc_output.txt
+	tsc_tail_utf8.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+git : warning: in the 
+working copy of 
+'hotel-frontend/README.md', 
+LF will be replaced by CRLF 
+the next time Git touches it
+At line:1 char:35
++ ... > git_status.txt 2>&1; 
+git diff --stat >> 
+git_status.txt 2>&1; Get-Co 
+...
++                            
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (warning  
+  : in the... Git touches    
+ it:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+warning: in the working copy 
+of 'hotel-frontend/package-lo
+ck.json', LF will be 
+replaced by CRLF the next 
+time Git touches it
+
+warning: in the working copy 
+of 'hotel-frontend/package.js
+on', LF will be replaced by 
+CRLF the next time Git 
+touches it
+
+warning: in the working copy 
+of 'hotel-frontend/src/index.
+css', LF will be replaced by 
+CRLF the next time Git 
+touches it
+
+warning: in the working copy 
+of 'hotel-frontend/src/main.t
+sx', LF will be replaced by 
+CRLF the next time Git 
+touches it
+
+warning: in the working copy 
+of 'hotel-frontend/tsconfig.a
+pp.json', LF will be 
+replaced by CRLF the next 
+time Git touches it
+
+warning: in the working copy 
+of 'hotel-frontend/vite.confi
+g.ts', LF will be replaced 
+by CRLF the next time Git 
+touches it
+
+ .agent/rules/front.md                              |    6 -
+ .../CURSOR_FRONTEND_PHASES_VITE_HOTEL_PMS.md       |   79 +
+ hotel-frontend/README.md                           |  250 +-
+ hotel-frontend/package-lock.json                   | 2930 ++++++++++++++++++--
+ hotel-frontend/package.json                        |   21 +-
+ hotel-frontend/src/App.css                         |   42 -
+ hotel-frontend/src/App.tsx                         |   35 -
+ hotel-frontend/src/index.css                       |  113 +-
+ hotel-frontend/src/main.tsx                        |    3 +-
+ hotel-frontend/tsconfig.app.json                   |   27 +-
+ hotel-frontend/vite.config.ts                      |    6 +
+ 11 files changed, 3120 insertions(+), 392 deletions(-)

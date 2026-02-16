@@ -1,0 +1,1 @@
+﻿src/api/types/reservations.ts(1,13): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.

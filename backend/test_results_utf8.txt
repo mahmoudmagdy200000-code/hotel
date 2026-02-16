@@ -1,0 +1,127 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Domain -> C:\Users\Workstation\hotel\backend\artifacts\bin\Domain\debug\CleanArchitecture.Domain.dll
+  Application -> C:\Users\Workstation\hotel\backend\artifacts\bin\Application\debug\CleanArchitecture.Application.dll
+  Infrastructure -> C:\Users\Workstation\hotel\backend\artifacts\bin\Infrastructure\debug\CleanArchitecture.Infrastructure.dll
+  Application.UnitTests -> C:\Users\Workstation\hotel\backend\artifacts\bin\Application.UnitTests\debug\CleanArchitecture.Application.UnitTests.dll
+Test run for C:\Users\Workstation\hotel\backend\artifacts\bin\Application.UnitTests\debug\CleanArchitecture.Application.UnitTests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+dotnet : [xUnit.net 
+00:00:01.22]     CleanArchite
+cture.Application.UnitTests.P
+dfParsing.PdfExtractionRulesT
+ests.ExtractGuestName_Booking
+ComFormat_ReturnsFullName 
+[FAIL]
+At line:1 char:1
++ dotnet test tests/Applicati
+on.UnitTests/Application.Unit
+Tests.csproj  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: ([xUnit.  
+  net 00:0...FullName [FAI   
+ L]:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+  Failed CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractGuestName_BookingComFormat_ReturnsFullName [104 ms]
+  Error Message:
+   NUnit.Framework.AssertionException : Expected result to be the same string, but they differ at index 0:
+   Γåô (actual)
+  "Name: John MichaelΓÇª"
+  "John Michael Smith"
+   Γåæ (expected).
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message)
+   at FluentAssertions.Primitives.StringEqualityStrategy.AssertForEquality(AssertionChain assertionChain, String subject, String expected)
+   at FluentAssertions.Primitives.StringValidator.Validate(String subject, String expected)
+   at FluentAssertions.Primitives.StringAssertions`1.Be(String expected, String because, Object[] becauseArgs)
+   at CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractGuestName_BookingComFormat_ReturnsFullName() in C:\Users\Workstation\hotel\backend\tests\Application.UnitTests\PdfParsing\PdfExtractionRulesTests.cs:line 64
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.27]     C
+leanArchitecture.Application.
+UnitTests.PdfParsing.PdfExtra
+ctionRulesTests.ExtractTotalP
+rice_AgodaFormat_ReturnsEuroA
+mount [FAIL]
+
+
+[xUnit.net 00:00:01.28]     C
+leanArchitecture.Application.
+UnitTests.PdfParsing.PdfExtra
+ctionRulesTests.ExtractBookin
+gNumber_BookingComFormat_Retu
+rnsConfirmationNumber [FAIL]
+
+
+[xUnit.net 00:00:01.29]     C
+leanArchitecture.Application.
+UnitTests.PdfParsing.PdfExtra
+ctionRulesTests.ExtractRoomsC
+ount_BookingComFormat_Returns
+One [FAIL]
+
+
+  Failed CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractTotalPrice_AgodaFormat_ReturnsEuroAmount [40 ms]
+  Error Message:
+   NUnit.Framework.AssertionException : Expected amount to be 330.00M, but found 285.00M (difference of -45.00).
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Numeric.NumericAssertionsBase`3.Be(T expected, String because, Object[] becauseArgs)
+   at CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractTotalPrice_AgodaFormat_ReturnsEuroAmount() in C:\Users\Workstation\hotel\backend\tests\Application.UnitTests\PdfParsing\PdfExtractionRulesTests.cs:line 188
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractBookingNumber_BookingComFormat_ReturnsConfirmationNumber [9 ms]
+  Error Message:
+   NUnit.Framework.AssertionException : Expected result to be the same string, but they differ at index 0:
+   Γåô (actual)
+  "CONFIRMATION"
+  "4598271234"
+   Γåæ (expected).
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message)
+   at FluentAssertions.Primitives.StringEqualityStrategy.AssertForEquality(AssertionChain assertionChain, String subject, String expected)
+   at FluentAssertions.Primitives.StringValidator.Validate(String subject, String expected)
+   at FluentAssertions.Primitives.StringAssertions`1.Be(String expected, String because, Object[] becauseArgs)
+   at CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractBookingNumber_BookingComFormat_ReturnsConfirmationNumber() in C:\Users\Workstation\hotel\backend\tests\Application.UnitTests\PdfParsing\PdfExtractionRulesTests.cs:line 77
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractRoomsCount_BookingComFormat_ReturnsOne [14 ms]
+  Error Message:
+   NUnit.Framework.AssertionException : Expected result to be 1, but found 3.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Numeric.NumericAssertionsBase`3.Be(T expected, String because, Object[] becauseArgs)
+   at CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractRoomsCount_BookingComFormat_ReturnsOne() in C:\Users\Workstation\hotel\backend\tests\Application.UnitTests\PdfParsing\PdfExtractionRulesTests.cs:line 117
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     4, Passed:    34, Skipped:     0, Total:    38, Duration: 348 ms - CleanArchitecture.Application.UnitTests.dll (net10.0)

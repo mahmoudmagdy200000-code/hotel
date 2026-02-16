@@ -1,0 +1,5 @@
+﻿
+> hotel-frontend@0.0.0 build
+> tsc -b && vite build
+
+src/pages/reservations/ReservationCreate.tsx(23,41): error TS6196: 'CreateReservationLineCommand' is declared but never used.

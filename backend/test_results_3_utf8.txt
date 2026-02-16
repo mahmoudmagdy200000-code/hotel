@@ -1,0 +1,34 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Domain -> C:\Users\Workstation\hotel\backend\artifacts\bin\Domain\debug\CleanArchitecture.Domain.dll
+  Application -> C:\Users\Workstation\hotel\backend\artifacts\bin\Application\debug\CleanArchitecture.Application.dll
+  Infrastructure -> C:\Users\Workstation\hotel\backend\artifacts\bin\Infrastructure\debug\CleanArchitecture.Infrastructure.dll
+  Application.UnitTests -> C:\Users\Workstation\hotel\backend\artifacts\bin\Application.UnitTests\debug\CleanArchitecture.Application.UnitTests.dll
+Test run for C:\Users\Workstation\hotel\backend\artifacts\bin\Application.UnitTests\debug\CleanArchitecture.Application.UnitTests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:02.33]     CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractBookingNumber_BookingComFormat_ReturnsConfirmationNumber [FAIL]
+  Failed CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractBookingNumber_BookingComFormat_ReturnsConfirmationNumber [255 ms]
+  Error Message:
+   NUnit.Framework.AssertionException : Expected result to be the same string, but they differ at index 0:
+   â†“ (actual)
+  "CONFIRMATION"
+  "4598271234"
+   â†‘ (expected).
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message)
+   at FluentAssertions.Primitives.StringEqualityStrategy.AssertForEquality(AssertionChain assertionChain, String subject, String expected)
+   at FluentAssertions.Primitives.StringValidator.Validate(String subject, String expected)
+   at FluentAssertions.Primitives.StringAssertions`1.Be(String expected, String because, Object[] becauseArgs)
+   at CleanArchitecture.Application.UnitTests.PdfParsing.PdfExtractionRulesTests.ExtractBookingNumber_BookingComFormat_ReturnsConfirmationNumber() in C:\Users\Workstation\hotel\backend\tests\Application.UnitTests\PdfParsing\PdfExtractionRulesTests.cs:line 77
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     1, Passed:    37, Skipped:     0, Total:    38, Duration: 641 ms - CleanArchitecture.Application.UnitTests.dll (net10.0)

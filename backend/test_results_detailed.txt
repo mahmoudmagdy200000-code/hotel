@@ -1,0 +1,41 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Domain -> C:\Users\Workstation\hotel\backend\artifacts\bin\Domain\debug\CleanArchitecture.Domain.dll
+  ServiceDefaults -> C:\Users\Workstation\hotel\backend\artifacts\bin\ServiceDefaults\debug\CleanArchitecture.ServiceDefaults.dll
+  Application -> C:\Users\Workstation\hotel\backend\artifacts\bin\Application\debug\CleanArchitecture.Application.dll
+  Infrastructure -> C:\Users\Workstation\hotel\backend\artifacts\bin\Infrastructure\debug\CleanArchitecture.Infrastructure.dll
+  Web -> C:\Users\Workstation\hotel\backend\artifacts\bin\Web\debug\CleanArchitecture.Web.dll
+  NSwag command line tool for .NET Core Net100, toolchain v14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))
+  Visit http://NSwag.org for more information.
+  NSwag bin directory: C:\Users\Workstation\.nuget\packages\nswag.msbuild\14.6.2\tools\Net100
+  
+  Executing file 'config.nswag' with variables 'Configuration=Debug'...
+  Launcher directory: C:\Users\Workstation\.nuget\packages\nswag.msbuild\14.6.2\tools\Net100
+  warn: LuckyPennySoftware.MediatR.License[0]
+        You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+  Done.
+  
+  Duration: 00:00:19.1195968
+  Application.FunctionalTests -> C:\Users\Workstation\hotel\backend\artifacts\bin\Application.FunctionalTests\debug\CleanArchitecture.Application.FunctionalTests.dll
+Test run for C:\Users\Workstation\hotel\backend\artifacts\bin\Application.FunctionalTests\debug\CleanArchitecture.Application.FunctionalTests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+C:\Users\Workstation\hotel\backend\artifacts\bin\Application.FunctionalTests\debug\CleanArchitecture.Application.FunctionalTests.dll
+NUnit Adapter 5.2.0.0: Test execution started
+Running selected tests in C:\Users\Workstation\hotel\backend\artifacts\bin\Application.FunctionalTests\debug\CleanArchitecture.Application.FunctionalTests.dll
+   NUnit3TestExecutor discovered 7 of 7 NUnit test cases using Current Discovery mode, Non-Explicit run
+  Passed CancelAndNoShow_AllowedOnlyFromConfirmed [4 s]
+NUnit Adapter 5.2.0.0: Test execution complete
+  Passed CheckIn_ShouldReturn400_WhenDateDoesNotMatch [223 ms]
+  Passed CheckIn_ShouldUpdateStatus_WhenDateMatchesAndConfirmed [342 ms]
+  Passed CheckOut_ShouldUpdateStatus_WhenDateMatchesAndCheckedIn [200 ms]
+  Passed Idempotency_ShouldReturnSuccess_WhenReapplyingSameAction [235 ms]
+  Passed InvalidTransition_ShouldReturn409 [169 ms]
+  Passed ShouldReturn401WhenUnauthenticated [86 ms]
+
+Test Run Successful.
+Total tests: 7
+     Passed: 7
+ Total time: 15.7549 Seconds

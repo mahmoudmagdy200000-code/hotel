@@ -1,0 +1,12 @@
+﻿
+> hotel-frontend@0.0.0 build
+> tsc -b && vite build
+
+src/app/providers/QueryProvider.tsx(2,10): error TS1484: 'ReactNode' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/features/reception/hooks/useParsePendingRequest.ts(9,21): error TS6133: 'data' is declared but its value is never read.
+src/hooks/rooms/useRooms.ts(3,15): error TS6196: 'CreateRoomCommand' is declared but never used.
+src/pages/reservations/ReservationCreate.tsx(23,41): error TS6196: 'CreateReservationLineCommand' is declared but never used.
+src/pages/reservations/ReservationDetails.tsx(89,115): error TS2345: Argument of type 'ReservationStatus' is not assignable to parameter of type '1 | 2 | 3'.
+  Type '5' is not assignable to type '1 | 2 | 3'.
+src/pages/reservations/ReservationsList.tsx(54,16): error TS7053: Element implicitly has an 'any' type because expression of type 'ReservationStatus' can't be used to index type '{ readonly Draft: 1; readonly Confirmed: 2; readonly CheckedIn: 3; readonly CheckedOut: 4; readonly Cancelled: 5; readonly NoShow: 6; }'.
+  Property '1' does not exist on type '{ readonly Draft: 1; readonly Confirmed: 2; readonly CheckedIn: 3; readonly CheckedOut: 4; readonly Cancelled: 5; readonly NoShow: 6; }'.
