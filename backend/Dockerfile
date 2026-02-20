@@ -1,5 +1,5 @@
 # .NET 10 optimized Dockerfile for Hotel PMS deployment (Inside backend folder)
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy solution and project files first to leverage Docker layer caching
@@ -23,7 +23,7 @@ WORKDIR "/src/src/Web"
 RUN dotnet publish "Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
 # Set required environment variables and expose port
