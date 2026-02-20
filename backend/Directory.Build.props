@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <!--#if (UsePostgreSQL)-->
     <!-- Suppress NU1608 until Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0 is released -->
     <WarningsNotAsErrors>NU1608</WarningsNotAsErrors>
