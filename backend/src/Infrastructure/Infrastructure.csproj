@@ -12,7 +12,7 @@
     <!--#if (!UseApiOnly)-->
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
     <!--#endif-->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" />
     <PackageReference Include="Tesseract" />
     <PackageReference Include="UglyToad.PdfPig" />
   </ItemGroup>

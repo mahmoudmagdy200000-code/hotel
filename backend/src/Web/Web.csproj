@@ -7,7 +7,8 @@
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <!--#endif-->
     <RootNamespace>CleanArchitecture.Web</RootNamespace>
-    <AssemblyName>CleanArchitecture.Web</AssemblyName>
+    <AssemblyName>hotel</AssemblyName>
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -67,7 +68,7 @@
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
-  <Target Name="NSwag" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Debug' And '$(SkipNSwag)' != 'True' ">
+  <Target Name="NSwag" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Debug' And '$(SkipNSwag)' != 'True' And '$(SkipNSwag)' == 'ForceRun' ">
     <Exec ConsoleToMSBuild="true" ContinueOnError="true" WorkingDirectory="$(ProjectDir)" EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="$(NSwagExe_Net100) run config.nswag /variables:Configuration=$(Configuration)">
       <Output TaskParameter="ExitCode" PropertyName="NSwagExitCode" />
       <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" />
@@ -78,7 +79,7 @@
   </Target>
 
   <!--#if (!UseApiOnly)-->
-  <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
+  <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish" Condition="false">
     <!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
     <!--#if (UseAngular)-->

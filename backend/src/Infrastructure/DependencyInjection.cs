@@ -1,4 +1,6 @@
-﻿using CleanArchitecture.Application.Common.Interfaces;
+﻿using System;
+using CleanArchitecture.Application.Common.Interfaces;
+
 using CleanArchitecture.Domain.Constants;
 using CleanArchitecture.Infrastructure.Data;
 using CleanArchitecture.Infrastructure.Data.Interceptors;
@@ -16,7 +18,19 @@ public static class DependencyInjection
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString("CleanArchitectureDb");
+        
+        // Resolve environment variable placeholders if present
+        if (connectionString != null && connectionString.Contains("${"))
+        {
+            connectionString = connectionString
+                .Replace("${DB_SERVER}", Environment.GetEnvironmentVariable("DB_SERVER") ?? "localhost")
+                .Replace("${DB_DATABASE}", Environment.GetEnvironmentVariable("DB_DATABASE") ?? "hotel")
+                .Replace("${DB_USER}", Environment.GetEnvironmentVariable("DB_USER") ?? "root")
+                .Replace("${DB_PASSWORD}", Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "");
+        }
+
         Guard.Against.Null(connectionString, message: "Connection string 'CleanArchitectureDb' not found.");
+
 
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
@@ -24,7 +38,10 @@ public static class DependencyInjection
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-            options.UseSqlite(connectionString);
+            options.UseMySql(
+                connectionString,
+                ServerVersion.AutoDetect(connectionString)
+            );
             options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 

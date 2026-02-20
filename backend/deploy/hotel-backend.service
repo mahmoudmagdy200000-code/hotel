@@ -1,0 +1,22 @@
+[Unit]
+Description=Hotel PMS Backend API (.NET 10)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=notify
+WorkingDirectory=/var/www/hotel-backend
+ExecStart=/root/.dotnet/dotnet /var/www/hotel-backend/CleanArchitecture.Web.dll
+Restart=always
+RestartSec=10
+SyslogIdentifier=hotel-backend
+User=www-data
+Group=www-data
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://localhost:5000
+Environment=DOTNET_ROOT=/root/.dotnet
+KillSignal=SIGINT
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target

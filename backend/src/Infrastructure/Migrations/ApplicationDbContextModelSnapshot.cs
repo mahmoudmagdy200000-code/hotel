@@ -3,19 +3,16 @@ using System;
 using CleanArchitecture.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace CleanArchitecture.Infrastructure.Data.Migrations
+namespace CleanArchitecture.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260124072726_AddReservationAuditFields")]
-    partial class AddReservationAuditFields
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
@@ -59,14 +56,148 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                     b.ToTable("ActivityLogs", (string)null);
                 });
 
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.Branch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Branches", (string)null);
+                });
+
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.BranchListing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Channel")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("BranchListings");
+                });
+
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.Expense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CurrencyCode")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CurrencyOther")
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Vendor")
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("BusinessDate");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("CurrencyCode");
+
+                    b.ToTable("Expenses", (string)null);
+                });
+
             modelBuilder.Entity("CleanArchitecture.Domain.Entities.Reservation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal>("BalanceDue")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue(0m);
+
                     b.Property<string>("BookingNumber")
                         .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BranchId")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("CancelledAt")
@@ -99,10 +230,43 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                         .HasColumnType("TEXT")
                         .IsFixedLength();
 
+                    b.Property<int>("CurrencyCode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("CurrencyOther")
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeleteReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DeletedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeletedByEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeletedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("GuestName")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("HotelName")
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("TEXT");
@@ -124,6 +288,11 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                     b.Property<bool>("PaidAtArrival")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("PaymentMethod")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("Phone")
                         .HasMaxLength(30)
                         .HasColumnType("TEXT");
@@ -142,6 +311,10 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
 
                     b.HasIndex("BookingNumber");
 
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("IsDeleted");
+
                     b.HasIndex("Source");
 
                     b.HasIndex("Status");
@@ -149,6 +322,55 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                     b.HasIndex("CheckInDate", "CheckOutDate");
 
                     b.ToTable("Reservations", (string)null);
+                });
+
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.ReservationAuditEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ActorEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ActorRole")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ActorUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("OccurredAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ReservationId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SnapshotJson")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorEmail");
+
+                    b.HasIndex("OccurredAtUtc");
+
+                    b.HasIndex("ReservationId");
+
+                    b.ToTable("ReservationAuditEvents", (string)null);
                 });
 
             modelBuilder.Entity("CleanArchitecture.Domain.Entities.ReservationLine", b =>
@@ -206,6 +428,9 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("TEXT");
 
@@ -239,12 +464,14 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoomNumber")
-                        .IsUnique();
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("RoomTypeId");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("BranchId", "RoomNumber")
+                        .IsUnique();
 
                     b.ToTable("Rooms", (string)null);
                 });
@@ -254,6 +481,9 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Capacity")
                         .HasColumnType("INTEGER");
@@ -286,7 +516,9 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("BranchId", "Name")
                         .IsUnique();
 
                     b.ToTable("RoomTypes", (string)null);
@@ -299,6 +531,9 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -431,11 +666,9 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProviderDisplayName")
@@ -473,11 +706,9 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Value")
@@ -488,13 +719,53 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.BranchListing", b =>
+                {
+                    b.HasOne("CleanArchitecture.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.Expense", b =>
+                {
+                    b.HasOne("CleanArchitecture.Domain.Entities.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.Reservation", b =>
+                {
+                    b.HasOne("CleanArchitecture.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.ReservationAuditEvent", b =>
+                {
+                    b.HasOne("CleanArchitecture.Domain.Entities.Reservation", "Reservation")
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Reservation");
+                });
+
             modelBuilder.Entity("CleanArchitecture.Domain.Entities.ReservationLine", b =>
                 {
                     b.HasOne("CleanArchitecture.Domain.Entities.Reservation", "Reservation")
                         .WithMany("Lines")
                         .HasForeignKey("ReservationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("CleanArchitecture.Domain.Entities.Room", "Room")
                         .WithMany()
@@ -517,6 +788,12 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Domain.Entities.Room", b =>
                 {
+                    b.HasOne("CleanArchitecture.Domain.Entities.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("CleanArchitecture.Domain.Entities.RoomType", "RoomType")
                         .WithMany()
                         .HasForeignKey("RoomTypeId")
@@ -524,6 +801,15 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("RoomType");
+                });
+
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.RoomType", b =>
+                {
+                    b.HasOne("CleanArchitecture.Domain.Entities.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -12,12 +12,24 @@ builder.AddWebServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     await app.InitialiseDatabaseAsync();
 }
 else
 {
+    // Try to init DB in production too (for first deployment)
+    try 
+    {
+        await app.InitialiseDatabaseAsync();
+    }
+    catch (Exception ex)
+    {
+        // Log but continue if it fails (might be permissions)
+        Console.WriteLine($"DB Init failed: {ex.Message}");
+    }
+
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
