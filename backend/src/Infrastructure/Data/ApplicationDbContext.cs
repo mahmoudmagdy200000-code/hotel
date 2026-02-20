@@ -46,14 +46,25 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         builder.Entity<Expense>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
         builder.Entity<BranchListing>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
 
-        // Configure default string length for MySQL compatibility
+        // Configure default string length for MySQL compatibility (only for keys/indexes)
         foreach (var entity in builder.Model.GetEntityTypes())
         {
             foreach (var property in entity.GetProperties())
             {
-                if (property.ClrType == typeof(string) && (property.GetMaxLength() == null))
+                if (property.ClrType == typeof(string))
                 {
-                    property.SetMaxLength(255);
+                    var isKeyOrIndex = entity.GetKeys().Any(k => k.Properties.Contains(property)) ||
+                                       entity.GetIndexes().Any(i => i.Properties.Contains(property)) ||
+                                       entity.GetForeignKeys().Any(fk => fk.Properties.Contains(property));
+
+                    if (isKeyOrIndex)
+                    {
+                        var maxLength = property.GetMaxLength();
+                        if (maxLength == null || maxLength > 255)
+                        {
+                            property.SetMaxLength(255);
+                        }
+                    }
                 }
             }
         }
