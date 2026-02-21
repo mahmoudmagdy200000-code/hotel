@@ -25,7 +25,7 @@ import {
 
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, RefreshCw, CheckCircle2, XCircle, Clock, FileSearch, CalendarRange, AlertTriangle, Upload, Loader2, Trash2, Eye, CheckCheck } from 'lucide-react';
+import { AlertCircle, RefreshCw, CheckCircle2, XCircle, Clock, FileSearch, CalendarRange, AlertTriangle, Upload, Loader2, Trash2, Eye, CheckCheck, Hash, Hotel } from 'lucide-react';
 import { cn, formatCurrency, extractErrorMessage } from '@/lib/utils';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -361,9 +361,9 @@ const PendingRequests = () => {
                             <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-white shadow-sm flex-1 sm:w-48 text-xs font-bold">
                                 <SelectValue placeholder={t('reception.select_listing')} />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-slate-200">
+                            <SelectContent>
                                 {listings?.map(listing => (
-                                    <SelectItem key={listing.id} value={listing.id} className="text-xs font-bold">
+                                    <SelectItem key={listing.id} value={listing.id}>
                                         {listing.name}
                                     </SelectItem>
                                 ))}
@@ -602,9 +602,9 @@ const PendingRequests = () => {
                                                     <Hotel className="w-3 h-3" />
                                                     {item.hotelName || t('common.unknown_hotel')}
                                                 </div>
-                                                {hasExtractedData && item.totalAmount > 0 && (
+                                                {hasExtractedData && (item.totalAmount ?? 0) > 0 && (
                                                     <div className="text-xs font-black text-blue-600">
-                                                        {formatCurrency(item.totalAmount, item.currency || 'USD')}
+                                                        {formatCurrency(item.totalAmount ?? 0, item.currency || 'USD')}
                                                     </div>
                                                 )}
                                             </div>
@@ -714,7 +714,7 @@ const PendingRequests = () => {
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right font-black text-slate-900">
-                                            {hasExtractedData && item.totalAmount > 0 ? formatCurrency(item.totalAmount, item.currency || 'USD') : '—'}
+                                            {hasExtractedData && (item.totalAmount ?? 0) > 0 ? formatCurrency(item.totalAmount ?? 0, item.currency || 'USD') : '—'}
                                         </TableCell>
                                         <TableCell>
                                             {getHintBadge(item.availabilityHint?.bucket)}
