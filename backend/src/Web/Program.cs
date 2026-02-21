@@ -47,7 +47,8 @@ app.UseOpenApi(options => options.Path = "/api/specification.json");
 app.UseSwaggerUi(settings =>
 {
     settings.Path = "/api";
-    settings.DocumentPath = "specification.json";
+    // زود السلاش هنا كمان عشان الـ UI ميتوهش وهو بيدور على الملف
+    settings.DocumentPath = "/api/specification.json"; 
 });
 
 app.MapGet("/", () => Results.Redirect("/api"));
