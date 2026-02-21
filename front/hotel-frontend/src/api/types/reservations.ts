@@ -62,6 +62,7 @@ export interface ReservationLineDto {
 
 export interface ReservationDto {
     id: number;
+    bookingNumber?: string | null;
     guestName: string;
     phone?: string | null;
     checkInDate: string; // ISO date string yyyy-MM-dd

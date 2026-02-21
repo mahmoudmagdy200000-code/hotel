@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { DateRange } from "react-day-picker";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -13,28 +13,58 @@ import {
     TableHeader,
     TableRow
 } from '@/components/ui/table';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     Search,
     Filter,
     ChevronRight,
     Plus,
-    AlertCircle
+    AlertCircle,
+    Hash,
+    CalendarDays,
+    RefreshCw
 } from 'lucide-react';
 import { ReservationStatus } from '@/api/types/reservations';
-import { formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
-const STATUS_VARIANTS: Record<ReservationStatus, "default" | "secondary" | "destructive" | "outline"> = {
-    [ReservationStatus.Draft]: "outline",
-    [ReservationStatus.Confirmed]: "default",
-    [ReservationStatus.CheckedIn]: "secondary",
-    [ReservationStatus.CheckedOut]: "outline",
-    [ReservationStatus.Cancelled]: "destructive",
-    [ReservationStatus.NoShow]: "destructive",
+
+
+const StatusBadge = ({ status }: { status: ReservationStatus }) => {
+    const { t } = useTranslation();
+    let style = "bg-slate-50 text-slate-400 border-slate-100";
+    let label = "Unknown";
+
+    switch (status) {
+        case ReservationStatus.Confirmed:
+            style = "bg-blue-50 text-blue-600 border-blue-100";
+            label = t('status.confirmed', 'Confirmed');
+            break;
+        case ReservationStatus.Draft:
+            style = "bg-slate-100 text-slate-600 border-slate-200";
+            label = t('status.draft', 'Draft');
+            break;
+        case ReservationStatus.CheckedIn:
+            style = "bg-emerald-50 text-emerald-600 border-emerald-100";
+            label = t('status.checked_in', 'Checked In');
+            break;
+        case ReservationStatus.CheckedOut:
+            style = "bg-purple-50 text-purple-600 border-purple-100";
+            label = t('status.checked_out', 'Checked Out');
+            break;
+        case ReservationStatus.Cancelled:
+        case ReservationStatus.NoShow:
+            style = "bg-rose-50 text-rose-600 border-rose-100";
+            label = status === ReservationStatus.Cancelled ? t('status.cancelled', 'Cancelled') : t('status.no_show', 'No Show');
+            break;
+    }
+
+    return (
+        <span className={`inline-flex px-1.5 py-0.5 rounded-sm font-black text-[9px] uppercase tracking-widest border ${style}`}>
+            {label}
+        </span>
+    );
 };
 
 const ReservationsList = () => {
@@ -48,7 +78,7 @@ const ReservationsList = () => {
     const fromDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : '';
     const toDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : '';
 
-    const { data: reservations, isLoading, isError, error } = useReservationsList({
+    const { data: reservations, isLoading, isError, error, refetch } = useReservationsList({
         status: status === 'all' ? undefined : status,
         from: fromDate || undefined,
         to: toDate || undefined,
@@ -56,145 +86,218 @@ const ReservationsList = () => {
         includeLines: true
     });
 
-    const getStatusLabel = (status: ReservationStatus) => {
-        switch (status) {
-            case ReservationStatus.Draft: return t('status.draft', 'Draft');
-            case ReservationStatus.Confirmed: return t('status.confirmed', 'Confirmed');
-            case ReservationStatus.CheckedIn: return t('status.checked_in', 'Checked In');
-            case ReservationStatus.CheckedOut: return t('status.checked_out', 'Checked Out');
-            case ReservationStatus.Cancelled: return t('status.cancelled', 'Cancelled');
-            case ReservationStatus.NoShow: return t('status.no_show', 'No Show');
-            default: return status;
-        }
-    };
-
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                    {t('reservations.title', 'Reservations')}
-                </h1>
-                <Button onClick={() => navigate('/reservations/new')} className="bg-slate-900">
-                    <Plus className="w-4 h-4 me-2" />
-                    {t('reservations.new', 'New Reservation')}
-                </Button>
+        <div className="space-y-6 pb-20 sm:pb-0">
+            {/* Header: Core Navigation & Status */}
+            <div className="flex flex-row items-center justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
+                        {t('reservations.title', 'Reservations')}
+                    </h1>
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                        <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
+                        {reservations?.length || 0} {t('common.total', 'Total')}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Button
+                        onClick={() => navigate('/reservations/new')}
+                        className="hidden sm:flex h-9 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-4 rounded-xl shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+                    >
+                        <Plus className="w-3.5 h-3.5 me-2" />
+                        {t('reservations.new', 'New Reservation')}
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full hover:bg-slate-100 transition-transform active:scale-95 flex-shrink-0"
+                        onClick={() => refetch()}
+                        disabled={isLoading}
+                    >
+                        <RefreshCw className={cn("h-4 w-4 text-slate-400", isLoading && "animate-spin")} />
+                    </Button>
+                </div>
             </div>
 
-            {/* Filters Bar */}
-            <Card className="border-none shadow-sm">
-                <CardContent className="p-4">
-                    <div className="flex flex-wrap items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <Filter className="w-4 h-4 text-slate-400" />
+            {/* Filters Bar: Compact & Collapsible-lite */}
+            <div className="bg-slate-50 p-2 rounded-2xl border border-slate-100 space-y-2">
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                    <div className="relative w-full sm:flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                        <Input
+                            placeholder={t('common.search_placeholder', 'Search guest or booking...')}
+                            className="pl-9 h-10 rounded-xl border-slate-200 bg-white shadow-sm text-xs font-bold"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:w-40">
+                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 pointer-events-none" />
                             <select
-                                className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
+                                className="w-full h-10 pl-8 pr-4 rounded-xl border border-slate-200 bg-white shadow-sm text-[10px] font-black uppercase tracking-widest appearance-none focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value === 'all' ? 'all' : Number(e.target.value) as ReservationStatus)}
                             >
                                 <option value="all">{t('common.all_statuses', 'All Statuses')}</option>
                                 <option value={ReservationStatus.Draft}>{t('status.draft', 'Draft')}</option>
                                 <option value={ReservationStatus.Confirmed}>{t('status.confirmed', 'Confirmed')}</option>
-                                <option value={ReservationStatus.CheckedIn}>{t('status.checked_in', 'Checked In')}</option>
-                                <option value={ReservationStatus.CheckedOut}>{t('status.checked_out', 'Checked Out')}</option>
+                                <option value={ReservationStatus.CheckedIn}>{t('status.check_in', 'In')}</option>
+                                <option value={ReservationStatus.CheckedOut}>{t('status.check_out', 'Out')}</option>
                                 <option value={ReservationStatus.Cancelled}>{t('status.cancelled', 'Cancelled')}</option>
                                 <option value={ReservationStatus.NoShow}>{t('status.no_show', 'No Show')}</option>
                             </select>
                         </div>
-
-                        <div className="h-4 w-px bg-slate-200 hidden sm:block" />
-
                         <DatePickerWithRange
                             date={dateRange}
                             setDate={setDateRange}
-                            className="w-[240px]"
+                            className="flex-1 sm:w-auto"
                         />
-
-                        <div className="flex-grow" />
-
-                        <div className="relative w-full sm:w-64">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-                            <Input
-                                placeholder={t('common.search_placeholder', 'Search guest or booking...')}
-                                className="pl-9 h-9"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            {/* Reservations Table */}
-            <Card className="border-none shadow-sm overflow-hidden">
-                <Table>
-                    <TableHeader className="bg-slate-50">
-                        <TableRow>
-                            <TableHead>{t('reservations.guest', 'Guest')}</TableHead>
-                            <TableHead>{t('reservations.check_in', 'Check In')}</TableHead>
-                            <TableHead>{t('reservations.check_out', 'Check Out')}</TableHead>
-                            <TableHead>{t('reservations.total', 'Total')}</TableHead>
-                            <TableHead>{t('reservations.status', 'Status')}</TableHead>
-                            <TableHead className="w-10"></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            Array(5).fill(0).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell colSpan={6}><Skeleton className="h-12 w-full" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : isError ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="h-32 text-center text-red-500">
-                                    {error instanceof Error ? error.message : t('common.error_loading', 'Error loading reservations')}
-                                </TableCell>
-                            </TableRow>
-                        ) : reservations?.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="h-32 text-center text-slate-500">
-                                    {t('reservations.no_results', 'No reservations found.')}
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            reservations?.map((res) => (
-                                <TableRow
+            {/* List View: Mobile Cards / Desktop Table */}
+            <div className="space-y-4">
+                {isLoading ? (
+                    <div className="grid grid-cols-1 gap-3">
+                        {Array(5).fill(0).map((_, i) => (
+                            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+                        ))}
+                    </div>
+                ) : isError ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-rose-500 bg-rose-50/50 rounded-2xl border border-rose-100">
+                        <AlertCircle className="w-8 h-8 mb-2" />
+                        <span className="font-bold text-sm">{error instanceof Error ? error.message : t('common.error_loading')}</span>
+                    </div>
+                ) : reservations?.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-slate-400 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <Filter className="w-8 h-8 mb-2 opacity-20" />
+                        <span className="font-bold text-xs uppercase tracking-widest">{t('reservations.no_results', 'No results found')}</span>
+                    </div>
+                ) : (
+                    <>
+                        {/* Mobile: List Cards */}
+                        <div className="grid grid-cols-1 gap-3 sm:hidden">
+                            {reservations?.map((res) => (
+                                <div
                                     key={res.id}
-                                    className={`cursor-pointer group ${res.totalAmount === 0 ? 'bg-amber-50/50 hover:bg-amber-100/50 border-l-4 border-l-amber-500' : 'hover:bg-slate-50'}`}
+                                    className={cn(
+                                        "bg-white border border-slate-100 rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-all hover:border-blue-200 group relative overflow-hidden",
+                                        res.totalAmount === 0 && "border-l-4 border-l-amber-400"
+                                    )}
                                     onClick={() => navigate(`/reservations/${res.id}`)}
                                 >
-                                    <TableCell>
-                                        <div className="font-semibold text-slate-900 flex items-center gap-2">
-                                            {res.guestName}
-                                            {res.totalAmount === 0 && (
-                                                <span title={t('reservations.missing_price', 'Missing Price')}>
-                                                    <AlertCircle className="w-4 h-4 text-amber-600" />
-                                                </span>
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="min-w-0 flex-1 space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tight">
+                                                    {res.guestName}
+                                                </h3>
+                                                <StatusBadge status={res.status} />
+                                            </div>
+
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                                                    <Hash className="w-3 h-3" />
+                                                    <span>{res.bookingNumber || t('common.pending')}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600/80">
+                                                    <CalendarDays className="w-3 h-3" />
+                                                    <span>
+                                                        {format(parseISO(res.checkInDate), 'MMM d')} → {format(parseISO(res.checkOutDate), 'MMM d')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                                            <div className={cn(
+                                                "font-black text-xs",
+                                                res.totalAmount === 0 ? "text-rose-500" : "text-slate-900"
+                                            )}>
+                                                {res.totalAmount === 0 ? t('reservations.no_price', 'Price not set') : formatCurrency(res.totalAmount, res.currency)}
+                                            </div>
+                                            <ChevronRight className="w-4 h-4 text-slate-200 group-hover:text-blue-500 transition-colors" />
+                                        </div>
+                                    </div>
+                                    {res.totalAmount === 0 && (
+                                        <div className="mt-2 py-1 px-2 bg-amber-50 rounded-lg flex items-center gap-1.5">
+                                            <AlertCircle className="w-3 h-3 text-amber-600" />
+                                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-tight">{t('reservations.missing_price')}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop: Premium Table */}
+                        <div className="hidden sm:block rounded-2xl border border-slate-100 shadow-sm overflow-hidden bg-white">
+                            <Table>
+                                <TableHeader className="bg-slate-50/50">
+                                    <TableRow className="border-b border-slate-100 font-black text-[10px] uppercase tracking-tighter text-slate-400">
+                                        <TableHead className="px-6 py-4">{t('reservations.guest', 'Guest')}</TableHead>
+                                        <TableHead className="py-4">{t('reservations.booking_number', 'Booking #')}</TableHead>
+                                        <TableHead className="py-4">{t('reservations.check_in', 'Check In')}</TableHead>
+                                        <TableHead className="py-4">{t('reservations.check_out', 'Check Out')}</TableHead>
+                                        <TableHead className="py-4">{t('reservations.status', 'Status')}</TableHead>
+                                        <TableHead className="py-4 text-right">{t('reservations.total', 'Total')}</TableHead>
+                                        <TableHead className="px-6 py-4 text-right"></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {reservations?.map((res) => (
+                                        <TableRow
+                                            key={res.id}
+                                            className={cn(
+                                                "cursor-pointer group hover:bg-blue-50/30 transition-all border-b border-slate-100",
+                                                res.totalAmount === 0 && "bg-amber-50/30 hover:bg-amber-50/50"
                                             )}
-                                        </div>
-                                        <div className="text-xs text-slate-500">{res.phone || t('common.no_phone', 'No phone')}</div>
-                                    </TableCell>
-                                    <TableCell className="text-sm">{res.checkInDate}</TableCell>
-                                    <TableCell className="text-sm">{res.checkOutDate}</TableCell>
-                                    <TableCell>
-                                        <div className={`font-medium ${res.totalAmount === 0 ? 'text-red-500 font-bold' : ''}`}>
-                                            {res.totalAmount === 0 ? t('reservations.no_price', 'Price not set') : formatCurrency(res.totalAmount, res.currency)}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={STATUS_VARIANTS[res.status]} className="capitalize">
-                                            {getStatusLabel(res.status)}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-900 transition-colors" />
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </Card>
+                                            onClick={() => navigate(`/reservations/${res.id}`)}
+                                        >
+                                            <TableCell className="px-6 py-4">
+                                                <div className="font-black text-slate-900 uppercase tracking-tight">{res.guestName}</div>
+                                                <div className="text-[10px] font-bold text-slate-400 mt-0.5">{res.phone || t('common.no_phone')}</div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="bg-slate-100 px-2 py-1 rounded text-[10px] font-bold text-slate-600">
+                                                    {res.bookingNumber || '—'}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell className="text-xs font-bold text-slate-600">{res.checkInDate}</TableCell>
+                                            <TableCell className="text-xs font-bold text-slate-600">{res.checkOutDate}</TableCell>
+                                            <TableCell>
+                                                <StatusBadge status={res.status} />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className={cn(
+                                                    "font-black text-sm",
+                                                    res.totalAmount === 0 ? "text-rose-500" : "text-slate-900"
+                                                )}>
+                                                    {res.totalAmount === 0 ? t('reservations.no_price') : formatCurrency(res.totalAmount, res.currency)}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 text-right">
+                                                <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500 transition-all group-hover:translate-x-1 inline-block" />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* Floating Action Button (Mobile) */}
+            <Button
+                onClick={() => navigate('/reservations/new')}
+                className="sm:hidden fixed bottom-20 right-4 h-14 w-14 rounded-2xl bg-slate-900 text-white shadow-xl shadow-slate-900/20 active:scale-95 transition-all z-40 border-4 border-white/10"
+                size="icon"
+            >
+                <Plus className="w-7 h-7" />
+            </Button>
         </div>
     );
 };
