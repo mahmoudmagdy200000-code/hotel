@@ -258,10 +258,21 @@ const Dashboard = () => {
                             </Button>
                         </div>
 
-                        {/* Date Range Label */}
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right leading-tight">
-                            {dateRange.from} <span className="text-slate-200 mx-1">→</span> {dateRange.to}
-                            {data?.summary && <div className="text-slate-300 normal-case font-medium mt-0.5">{data.summary.nightsCount} {t('dashboard.nights')}</div>}
+                        {/* Date Range Label: Fixed to one line with better visual cues */}
+                        <div className="flex items-center justify-end flex-shrink-0">
+                            <div className="flex items-center gap-1.5 bg-slate-100/80 px-2.5 py-1.5 rounded-lg border border-slate-200/50 whitespace-nowrap overflow-hidden">
+                                <CalendarDays className="w-3 h-3 text-slate-400" />
+                                <div className="text-[10px] font-black text-slate-500 uppercase tracking-tighter flex items-center gap-1">
+                                    <span>{dateRange.from}</span>
+                                    <span className="text-slate-300">→</span>
+                                    <span>{dateRange.to}</span>
+                                    {data?.summary && (
+                                        <span className="ms-1 ps-1.5 border-s border-slate-200 text-slate-400 normal-case font-bold">
+                                            {data.summary.nightsCount}n
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -330,56 +341,61 @@ const Dashboard = () => {
                         )}
                     </div>
 
-                    {/* Daily Series Table */}
+                    {/* Daily Series Table: Redefined for Premium Experience */}
                     <Card className="border border-slate-100 shadow-sm overflow-hidden">
-                        <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-                            <CardTitle className="text-sm font-black flex items-center gap-2 text-slate-900 uppercase tracking-widest">
-                                <BarChart3 className="w-4 h-4 text-slate-400" />
+                        <CardHeader className="bg-slate-50/30 border-b border-slate-100 py-3">
+                            <CardTitle className="text-[10px] font-black flex items-center gap-2 text-slate-500 uppercase tracking-widest leading-none">
+                                <BarChart3 className="w-3.5 h-3.5 text-blue-500" />
                                 {t('dashboard.daily_breakdown')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">
                             {isLoading ? (
-                                <div className="p-4 space-y-4">
+                                <div className="p-4 space-y-3">
                                     {Array.from({ length: 5 }).map((_, i) => (
-                                        <Skeleton key={i} className="h-8 w-full rounded-md" />
+                                        <Skeleton key={i} className="h-9 w-full rounded-lg" />
                                     ))}
                                 </div>
                             ) : data?.byDay && data.byDay.length > 0 ? (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-xs">
+                                <div className="overflow-x-auto selection:bg-blue-50">
+                                    <table className="w-full text-xs border-collapse">
                                         <thead>
-                                            <tr className="bg-slate-50/30 text-slate-500 font-bold uppercase tracking-tighter">
-                                                <th className="text-left py-3 px-4">{t('dashboard.date')}</th>
-                                                <th className="text-right py-3 px-4">{t('dashboard.occupied')}</th>
-                                                <th className="text-right py-3 px-4">{t('dashboard.total_rooms')}</th>
-                                                <th className="text-right py-3 px-4">{t('dashboard.occupancy_rate')}</th>
-                                                <th className="text-right py-3 px-4">{t('dashboard.revenue')}</th>
-                                                <th className="text-right py-3 px-4">{t('dashboard.adr')}</th>
-                                                <th className="text-right py-3 px-4">{t('dashboard.revpar')}</th>
+                                            <tr className="bg-slate-50/50 text-slate-400 font-black uppercase tracking-tighter border-b border-slate-100">
+                                                <th className="text-left py-3.5 px-6 sticky left-0 bg-slate-50/50 backdrop-blur z-10">{t('dashboard.date')}</th>
+                                                <th className="text-right py-3.5 px-4">{t('dashboard.occupied')}</th>
+                                                <th className="text-right py-3.5 px-4">{t('dashboard.total_rooms')}</th>
+                                                <th className="text-center py-3.5 px-4">{t('dashboard.occupancy_rate')}</th>
+                                                <th className="text-right py-3.5 px-4">{t('dashboard.revenue')}</th>
+                                                <th className="text-right py-3.5 px-4">{t('dashboard.adr')}</th>
+                                                <th className="text-right py-3.5 px-6">{t('dashboard.revpar')}</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100">
+                                        <tbody className="divide-y divide-slate-50">
                                             {data.byDay.map((day: DashboardSeriesPointDto) => (
-                                                <tr key={day.date} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="py-3 px-4 font-bold text-slate-900">{day.date}</td>
-                                                    <td className="py-3 px-4 text-right text-slate-700">{day.occupiedRooms}</td>
-                                                    <td className="py-3 px-4 text-right text-slate-400">{day.totalRooms}</td>
-                                                    <td className="py-3 px-4 text-right">
-                                                        <span className={`inline-flex px-1.5 py-0.5 rounded-sm font-black text-[10px] uppercase ${day.occupancyRate >= 0.8 ? 'bg-emerald-100 text-emerald-700' :
-                                                            day.occupancyRate >= 0.5 ? 'bg-amber-100 text-amber-700' :
-                                                                'bg-slate-100 text-slate-500'
+                                                <tr key={day.date} className="hover:bg-blue-50/30 transition-all group">
+                                                    <td className="py-3.5 px-6 font-bold text-slate-900 sticky left-0 bg-white group-hover:bg-blue-50/30 backdrop-blur transition-colors">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                                            {day.date}
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3.5 px-4 text-right text-slate-700 font-medium">{day.occupiedRooms}</td>
+                                                    <td className="py-3.5 px-4 text-right text-slate-400">{day.totalRooms}</td>
+                                                    <td className="py-3.5 px-4 text-center">
+                                                        <span className={`inline-flex items-center justify-center min-w-[48px] px-1.5 py-0.5 rounded font-black text-[9px] uppercase tracking-tighter ${day.occupancyRate >= 0.8 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                                                day.occupancyRate >= 0.5 ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                                                                    'bg-slate-50 text-slate-400 border border-slate-100'
                                                             }`}>
                                                             {formatPercent(day.occupancyRate)}
                                                         </span>
                                                     </td>
-                                                    <td className="py-3 px-4 text-right text-slate-900 font-bold">
+                                                    <td className="py-3.5 px-4 text-right text-slate-900 font-black">
                                                         {formatCurrency(day.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
                                                     </td>
-                                                    <td className="py-3 px-4 text-right text-slate-500 font-medium">
+                                                    <td className="py-3.5 px-4 text-right text-slate-500 font-bold">
                                                         {formatCurrency(day.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
                                                     </td>
-                                                    <td className="py-3 px-4 text-right text-slate-500 font-medium">
+                                                    <td className="py-3.5 px-6 text-right text-slate-500 font-bold bg-slate-50/5">
                                                         {formatCurrency(day.revPar, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
                                                     </td>
                                                 </tr>
@@ -388,43 +404,43 @@ const Dashboard = () => {
                                     </table>
                                 </div>
                             ) : (
-                                <div className="h-40 flex flex-col items-center justify-center text-slate-400 gap-2">
-                                    <BarChart3 className="w-8 h-8 opacity-20" />
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">{t('dashboard.no_data_for_range')}</p>
+                                <div className="h-32 flex flex-col items-center justify-center text-slate-300 gap-2">
+                                    <BarChart3 className="w-8 h-8 opacity-10" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest">{t('dashboard.no_data_for_range')}</p>
                                 </div>
                             )}
                         </CardContent>
                     </Card>
 
-                    {/* Room Type Breakdown */}
+                    {/* Room Type Breakdown: Enhanced Presentation */}
                     {data?.byRoomType && data.byRoomType.length > 0 && (
                         <Card className="border border-slate-100 shadow-sm overflow-hidden">
-                            <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-                                <CardTitle className="text-sm font-black flex items-center gap-2 text-slate-900 uppercase tracking-widest">
-                                    <Building2 className="w-4 h-4 text-slate-400" />
+                            <CardHeader className="bg-slate-50/30 border-b border-slate-100 py-3">
+                                <CardTitle className="text-[10px] font-black flex items-center gap-2 text-slate-500 uppercase tracking-widest leading-none">
+                                    <Building2 className="w-3.5 h-3.5 text-purple-500" />
                                     {t('dashboard.by_room_type')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-xs">
+                                    <table className="w-full text-xs border-collapse">
                                         <thead>
-                                            <tr className="bg-slate-50/30 text-slate-500 font-bold uppercase tracking-tighter">
-                                                <th className="text-left py-3 px-4">{t('dashboard.room_type')}</th>
-                                                <th className="text-right py-3 px-4">{t('dashboard.sold_room_nights')}</th>
-                                                <th className="text-right py-3 px-4">{t('dashboard.revenue')}</th>
-                                                <th className="text-right py-3 px-4">{t('dashboard.adr')}</th>
+                                            <tr className="bg-slate-50/50 text-slate-400 font-black uppercase tracking-tighter border-b border-slate-100">
+                                                <th className="text-left py-3.5 px-6">{t('dashboard.room_type')}</th>
+                                                <th className="text-right py-3.5 px-4">{t('dashboard.sold_room_nights')}</th>
+                                                <th className="text-right py-3.5 px-4">{t('dashboard.revenue')}</th>
+                                                <th className="text-right py-3.5 px-6">{t('dashboard.adr')}</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100">
+                                        <tbody className="divide-y divide-slate-50">
                                             {data.byRoomType.map((rt) => (
-                                                <tr key={rt.roomTypeId} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="py-3 px-4 font-bold text-slate-900">{rt.roomTypeName || `Type #${rt.roomTypeId}`}</td>
-                                                    <td className="py-3 px-4 text-right text-slate-700">{rt.soldRoomNights}</td>
-                                                    <td className="py-3 px-4 text-right text-slate-900 font-bold">
+                                                <tr key={rt.roomTypeId} className="hover:bg-purple-50/30 transition-all">
+                                                    <td className="py-3.5 px-6 font-bold text-slate-900">{rt.roomTypeName || `Type #${rt.roomTypeId}`}</td>
+                                                    <td className="py-3.5 px-4 text-right text-slate-700 font-medium">{rt.soldRoomNights}</td>
+                                                    <td className="py-3.5 px-4 text-right text-slate-900 font-black">
                                                         {formatCurrency(rt.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
                                                     </td>
-                                                    <td className="py-3 px-4 text-right text-slate-500 font-medium">
+                                                    <td className="py-3.5 px-6 text-right text-slate-500 font-bold">
                                                         {formatCurrency(rt.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
                                                     </td>
                                                 </tr>
