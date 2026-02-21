@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { CalendarDays, Hash } from 'lucide-react';
 import type {
     ReservationAllocationPlanDto,
     ConfirmAllocationRequest
@@ -36,6 +35,7 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                     initialSelections[item.reservationId] = [];
                 }
             });
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelections(initialSelections);
         }
     }, [plan]);
@@ -64,13 +64,19 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
         onConfirm({ approvals });
     };
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (status: string, className?: string) => {
+        const base = "font-black text-[8px] sm:text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded border whitespace-nowrap ";
         switch (status) {
-            case 'Proposed': return <Badge className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" /> Ready</Badge>;
-            case 'NeedsManual': return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" /> Manual</Badge>;
-            case 'PriceUnknown': return <Badge variant="secondary"><AlertTriangle className="w-3 h-3 mr-1" /> Check Price</Badge>;
-            case 'NoRooms': return <Badge variant="destructive">No Rooms</Badge>;
-            default: return <Badge variant="outline">{status}</Badge>;
+            case 'Proposed':
+                return <span className={cn(base, "bg-emerald-50 text-emerald-600 border-emerald-100", className)}>{t('common.ready', 'Ready')}</span>;
+            case 'NeedsManual':
+                return <span className={cn(base, "bg-amber-50 text-amber-600 border-amber-100", className)}>{t('common.manual', 'Manual')}</span>;
+            case 'PriceUnknown':
+                return <span className={cn(base, "bg-blue-50 text-blue-600 border-blue-100", className)}>{t('reception.check_price', 'Price?')}</span>;
+            case 'NoRooms':
+                return <span className={cn(base, "bg-rose-50 text-rose-600 border-rose-100", className)}>No Rooms</span>;
+            default:
+                return <span className={cn(base, "bg-slate-50 text-slate-400 border-slate-100", className)}>{status}</span>;
         }
     };
 
@@ -96,14 +102,13 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                         <div className="text-center p-8 text-muted-foreground">No pending items selected.</div>
                     ) : (
                         <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Guest</TableHead>
-                                    <TableHead>Dates</TableHead>
-                                    <TableHead>Target Price</TableHead>
-                                    <TableHead className="min-w-[200px]">Room Selection</TableHead>
-                                    <TableHead>Difference</TableHead>
-                                    <TableHead className="w-[100px]">Status</TableHead>
+                            <TableHeader className="bg-slate-50/50">
+                                <TableRow className="border-b border-slate-100 uppercase tracking-tighter font-black text-[9px] sm:text-xs">
+                                    <TableHead className="px-2 sm:px-4 py-3">Guest & Details</TableHead>
+                                    <TableHead className="px-2 sm:px-4 py-3 hidden md:table-cell">Target Price</TableHead>
+                                    <TableHead className="px-2 sm:px-4 py-3 min-w-[110px] sm:min-w-[200px]">Assignment</TableHead>
+                                    <TableHead className="px-2 sm:px-4 py-3 hidden lg:table-cell">Diff</TableHead>
+                                    <TableHead className="px-2 sm:px-4 py-3 text-right">Status</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -115,42 +120,41 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                     const getRoomDetails = (rId: number) => item.candidateRooms.find(r => r.roomId === rId);
 
                                     return (
-                                        <TableRow key={item.reservationId}>
-                                            <TableCell className="align-top">
-                                                <div className="font-medium">{item.guestName}</div>
-                                                <div className="text-xs text-muted-foreground">{item.bookingNumber}</div>
-                                                {requestedCount > 1 && (
-                                                    <Badge variant="outline" className="mt-1 text-[10px] h-5 bg-slate-50">
-                                                        {requestedCount} Rooms
-                                                    </Badge>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="align-top">
-                                                <div className="text-sm">
-                                                    {item.checkInDate.split('T')[0]} <ArrowRight className="inline w-3 h-3" /> {item.checkOutDate.split('T')[0]}
+                                        <TableRow key={item.reservationId} className="group hover:bg-blue-50/20 transition-colors">
+                                            <TableCell className="align-top py-3 px-2 sm:px-4">
+                                                <div className="font-black text-slate-900 text-[10px] sm:text-sm uppercase tracking-tight truncate max-w-[80px] sm:max-w-none">
+                                                    {item.guestName}
+                                                </div>
+                                                <div className="flex items-center gap-1 mt-0.5 text-[8px] sm:text-[10px] font-bold text-slate-400">
+                                                    <Hash className="w-2 sm:w-3 h-2 sm:h-3" />
+                                                    <span>{item.bookingNumber}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 mt-1 text-[8px] sm:text-[10px] font-bold text-blue-600/80">
+                                                    <CalendarDays className="w-2 sm:w-3 h-2 sm:h-3" />
+                                                    <span>{item.checkInDate.split('T')[0]} → {item.checkOutDate.split('T')[0]}</span>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="align-top">
-                                                <div className="font-medium">
+                                            <TableCell className="align-top py-3 px-2 sm:px-4 hidden md:table-cell">
+                                                <div className="font-bold text-slate-900">
                                                     {item.targetNightlyPrice ? formatCurrency(item.targetNightlyPrice) : '—'}
                                                 </div>
                                                 {requestedCount > 1 && item.targetNightlyPrice && (
-                                                    <div className="text-xs text-muted-foreground">
-                                                        ({formatCurrency(item.targetNightlyPrice / requestedCount)} / room)
+                                                    <div className="text-[10px] text-slate-400 font-bold">
+                                                        ({formatCurrency(item.targetNightlyPrice / requestedCount)}/r)
                                                     </div>
                                                 )}
                                             </TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-col gap-2">
+                                            <TableCell className="align-top py-3 px-2 sm:px-4">
+                                                <div className="flex flex-col gap-1.5">
                                                     {Array.from({ length: requestedCount }).map((_, idx) => {
                                                         const currentRoomId = selectedRoomIds[idx];
                                                         return (
-                                                            <div key={idx} className="flex gap-2 items-center">
-                                                                {requestedCount > 1 && <span className="text-xs text-muted-foreground w-4">#{idx + 1}</span>}
+                                                            <div key={idx} className="flex gap-1 items-center">
+                                                                {requestedCount > 1 && <span className="text-[8px] font-black text-slate-300 w-3">#{idx + 1}</span>}
                                                                 {item.candidateRooms.length > 0 ? (
                                                                     <div className="relative w-full">
                                                                         <select
-                                                                            className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors md:text-sm"
+                                                                            className="w-full h-7 sm:h-9 rounded-lg border border-slate-200 bg-white px-2 py-0 text-[10px] sm:text-xs font-bold text-slate-700 shadow-sm focus:ring-1 focus:ring-blue-500 outline-none"
                                                                             value={currentRoomId || ''}
                                                                             onChange={(e) => handleRoomChange(item.reservationId, idx, parseInt(e.target.value))}
                                                                         >
@@ -159,24 +163,24 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                                                 const isSelectedElsewhere = selectedRoomIds.some((id, otherIdx) => id === room.roomId && otherIdx !== idx);
                                                                                 return (
                                                                                     <option key={room.roomId} value={room.roomId} disabled={isSelectedElsewhere}>
-                                                                                        {room.roomNumber} ({room.roomTypeName}) - {formatCurrency(room.roomPrice)}
+                                                                                        {room.roomNumber} - {formatCurrency(room.roomPrice)}
                                                                                     </option>
                                                                                 );
                                                                             })}
                                                                         </select>
                                                                     </div>
                                                                 ) : (
-                                                                    <span className="text-destructive text-sm font-medium">No available rooms</span>
+                                                                    <span className="text-rose-600 text-[10px] font-black uppercase tracking-tight">No Rooms</span>
                                                                 )}
                                                             </div>
                                                         );
                                                     })}
                                                     {item.warnings.map((w, i) => (
-                                                        <div key={i} className="text-destructive text-xs">{w}</div>
+                                                        <div key={i} className="text-rose-500 text-[8px] font-bold leading-none mt-1">{w}</div>
                                                     ))}
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="align-top">
+                                            <TableCell className="align-top py-3 px-2 sm:px-4 hidden lg:table-cell">
                                                 {selectedRoomIds.map((rId, idx) => {
                                                     const room = getRoomDetails(rId);
                                                     if (!room || !item.targetNightlyPrice) return null;
@@ -186,8 +190,8 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
 
                                                     return (
                                                         <div key={idx} className={cn(
-                                                            "text-sm font-medium h-9 flex items-center",
-                                                            diff > 0.01 ? "text-amber-600" : diff < -0.01 ? "text-emerald-600" : "text-slate-500"
+                                                            "text-[10px] font-black h-7 sm:h-9 flex items-center",
+                                                            diff > 0.01 ? "text-amber-600" : diff < -0.01 ? "text-emerald-600" : "text-slate-400"
                                                         )}>
                                                             {diff > 0 ? '+' : ''}
                                                             {formatCurrency(diff)}
@@ -195,7 +199,7 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                     );
                                                 })}
                                             </TableCell>
-                                            <TableCell className="align-top">
+                                            <TableCell className="align-top py-3 px-2 sm:px-4 text-right">
                                                 {(() => {
                                                     if (item.status !== 'Proposed') return getStatusBadge(item.status);
 
@@ -212,15 +216,21 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                         }
                                                     });
 
-                                                    if (!hasSelection) return <Badge variant="outline">Pending</Badge>;
+                                                    if (!hasSelection) return getStatusBadge('Pending');
 
-                                                    if (totalDiff > 0.01) {
-                                                        return <Badge className="bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">+{formatCurrency(totalDiff)} (Extra)</Badge>;
-                                                    } else if (totalDiff < -0.01) {
-                                                        return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-100">{formatCurrency(totalDiff)} (Save)</Badge>;
-                                                    } else {
-                                                        return <Badge className="bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-100">Exact Match</Badge>;
+                                                    if (Math.abs(totalDiff) < 0.01) {
+                                                        return <span className="bg-slate-50 text-slate-400 border-slate-100 font-black text-[8px] sm:text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded border">Match</span>;
                                                     }
+
+                                                    const isExtra = totalDiff > 0;
+                                                    return (
+                                                        <span className={cn(
+                                                            "font-black text-[8px] sm:text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded border whitespace-nowrap",
+                                                            isExtra ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                                        )}>
+                                                            {isExtra ? '+' : ''}{formatCurrency(totalDiff).replace('$', '')}
+                                                        </span>
+                                                    );
                                                 })()}
                                             </TableCell>
                                         </TableRow>
