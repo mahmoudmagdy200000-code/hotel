@@ -26,7 +26,6 @@ import {
     AlertCircle,
     ChevronLeft,
     ChevronRight,
-    Info,
 } from 'lucide-react';
 import { useDashboard } from '@/hooks/dashboard';
 import { formatCurrency } from '@/lib/utils';
@@ -66,7 +65,16 @@ const Dashboard = () => {
         currency: selectedCurrency,
     }), [dateRange, mode, selectedCurrency]);
 
-    const { data, isLoading, isError, error, refetch, isFetching } = useDashboard(params);
+    const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = useDashboard(params);
+
+    const lastUpdated = useMemo(() => {
+        if (!dataUpdatedAt) return t('common.never', 'Never');
+        return new Date(dataUpdatedAt).toLocaleTimeString();
+    }, [dataUpdatedAt, t]);
+
+    const handleRefresh = async () => {
+        await refetch();
+    };
 
     const handlePrevWeek = () => {
         const fromDate = new Date(dateRange.from);
@@ -111,311 +119,323 @@ const Dashboard = () => {
         {
             title: t('dashboard.total_rooms'),
             value: data.summary.totalRooms,
-            icon: <Building2 className="w-5 h-5 text-blue-600" />,
+            icon: <Building2 className="w-4 h-4 text-blue-600" />,
             bg: 'bg-blue-50',
         },
         {
             title: t('dashboard.sold_room_nights'),
             value: data.summary.soldRoomNights,
             subtitle: `${t('dashboard.of')} ${data.summary.supplyRoomNights} ${t('dashboard.supply')}`,
-            icon: <DoorClosed className="w-5 h-5 text-green-600" />,
-            bg: 'bg-green-50',
+            icon: <DoorClosed className="w-4 h-4 text-emerald-600" />,
+            bg: 'bg-emerald-50',
         },
         {
             title: t('dashboard.occupancy_rate'),
             value: formatPercent(data.summary.occupancyRateOverall),
-            icon: <TrendingUp className="w-5 h-5 text-purple-600" />,
+            icon: <TrendingUp className="w-4 h-4 text-purple-600" />,
             bg: 'bg-purple-50',
         },
         {
             title: t('dashboard.total_revenue'),
             value: formatCurrency(data.summary.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
-            icon: <DollarSign className="w-5 h-5 text-emerald-600" />,
+            icon: <DollarSign className="w-4 h-4 text-emerald-600" />,
             bg: 'bg-emerald-50',
         },
         {
             title: t('dashboard.adr'),
             value: formatCurrency(data.summary.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
-            icon: <BarChart3 className="w-5 h-5 text-amber-600" />,
+            icon: <BarChart3 className="w-4 h-4 text-amber-600" />,
             bg: 'bg-amber-50',
         },
         {
             title: t('dashboard.revpar'),
             value: formatCurrency(data.summary.revPar, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
-            icon: <CalendarDays className="w-5 h-5 text-rose-600" />,
+            icon: <CalendarDays className="w-4 h-4 text-rose-600" />,
             bg: 'bg-rose-50',
         },
     ] : [];
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
-                    {t('dashboard.title')}
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${mode === 'Actual' ? 'bg-slate-100 text-slate-700 border border-slate-200' : 'bg-blue-50 text-blue-700 border border-blue-100'
-                        }`}>
-                        {mode === 'Actual' ? t('dashboard.mode_realized', 'Realized Only') : t('dashboard.mode_operational', 'Operational / Forecast')}
-                    </span>
-                </h1>
+        <div className="space-y-6 pb-20 sm:pb-6">
+            {/* Header: Core Navigation & "Pulse" Status */}
+            <div className="flex flex-row items-center justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
+                        {t('dashboard.title')}
+                    </h1>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${mode === 'Actual' ? 'bg-slate-200 text-slate-600' : 'bg-blue-600 text-white'
+                            }`}>
+                            {mode === 'Actual' ? t('dashboard.mode_realized', 'Actual / Realized') : t('dashboard.mode_operational', 'Operational / Forecast')}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                            <span className={`w-1.5 h-1.5 rounded-full ${isFetching ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
+                            {lastUpdated}
+                        </div>
+                    </div>
+                </div>
 
-                {/* Date Range Controls */}
-                <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handlePrevWeek}
-                        disabled={isFetching}
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleToday}
-                        disabled={isFetching}
-                    >
-                        {t('dashboard.this_week')}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleNextWeek}
-                        disabled={isFetching}
-                    >
-                        <ChevronRight className="w-4 h-4" />
-                    </Button>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full hover:bg-slate-100 flex-shrink-0 transition-transform active:scale-95"
+                    onClick={handleRefresh}
+                    disabled={isFetching}
+                >
+                    <RefreshCw className={`w-5 h-5 text-slate-400 ${isFetching ? 'animate-spin' : ''}`} />
+                </Button>
+            </div>
 
-                    <div className="h-4 w-px bg-slate-300 mx-2" />
-
-                    {/* Mode Toggle with Policy Info */}
-                    <div className="flex items-center gap-2">
-                        <div className="flex rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+            {/* Thumb-Zone Controls (Mobile Optimized Floating Bar) */}
+            <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md py-3 -mx-4 px-4 sm:relative sm:top-auto sm:bg-transparent sm:py-0 sm:mx-0 sm:px-0 border-b lg:border-none border-slate-100 shadow-sm sm:shadow-none">
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar pb-1">
+                        {/* Mode Selector */}
+                        <div className="flex items-center p-1 bg-slate-100 border border-slate-200/50 rounded-xl">
                             <button
-                                className={`px-4 py-1.5 text-sm font-medium transition-all ${mode === 'Forecast'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-white text-slate-600 hover:bg-slate-50 border-r border-slate-200'
+                                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'Forecast'
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'text-slate-500 hover:text-slate-700'
                                     }`}
                                 onClick={() => setMode('Forecast')}
                             >
                                 {t('dashboard.forecast', 'Forecast')}
                             </button>
                             <button
-                                className={`px-4 py-1.5 text-sm font-medium transition-all ${mode === 'Actual'
-                                    ? 'bg-slate-800 text-white'
-                                    : 'bg-white text-slate-600 hover:bg-slate-50'
+                                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'Actual'
+                                    ? 'bg-slate-900 text-white shadow-md'
+                                    : 'text-slate-500 hover:text-slate-700'
                                     }`}
                                 onClick={() => setMode('Actual')}
-                                title={t('dashboard.actual_tooltip', "Actual metrics include checked-out reservations only (accounting-based).")}
                             >
-                                {t('dashboard.actual_realized', 'Actual (Realized)')}
+                                {t('dashboard.actual_realized', 'Actual')}
                             </button>
                         </div>
-                        <div className="group relative">
-                            <Info className="w-4 h-4 text-slate-400 cursor-help hover:text-slate-600 transition-colors" />
-                            <div className="invisible group-hover:visible absolute right-0 mt-2 w-64 p-4 bg-white border border-slate-200 rounded-xl shadow-2xl text-sm text-slate-600 z-50 pointer-events-none">
-                                <p className="font-bold text-slate-900 mb-2">{t('dashboard.metrics_policy', 'Accounting Metrics Policy')}</p>
-                                <div className="space-y-3 text-xs leading-relaxed">
-                                    <p>
-                                        <span className="font-bold text-slate-800 uppercase text-[10px] bg-slate-100 px-1 rounded mr-1">Actual</span>
-                                        {t('dashboard.actual_policy', 'Includes checked-out reservations only. Represents finalized, auditable revenue.')}
-                                    </p>
-                                    <p>
-                                        <span className="font-bold text-blue-700 uppercase text-[10px] bg-blue-50 px-1 rounded mr-1">Forecast</span>
-                                        {t('dashboard.forecast_policy', 'Includes confirmed + in-house + checked-out. Represents operational reality.')}
-                                    </p>
-                                </div>
-                            </div>
+
+                        {/* Currency Selector */}
+                        <div className="flex items-center p-1 bg-slate-100 border border-slate-200/50 rounded-xl">
+                            {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
+                                <button
+                                    key={code}
+                                    className={`px-3 py-1.5 text-[10px] font-black rounded-lg transition-all ${selectedCurrency === parseInt(code, 10)
+                                        ? 'bg-emerald-600 text-white shadow-md'
+                                        : 'text-slate-500 hover:text-slate-700'
+                                        }`}
+                                    onClick={() => handleCurrencyChange(parseInt(code, 10))}
+                                >
+                                    {label}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
-                    <div className="h-4 w-px bg-slate-300 mx-2" />
-
-                    {/* Currency Selector */}
-                    <div className="flex rounded-lg border border-slate-200 overflow-hidden shadow-sm">
-                        {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
+                    <div className="flex items-center justify-between gap-4">
+                        {/* Date Navigation */}
+                        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 rounded-lg"
+                                onClick={handlePrevWeek}
+                                disabled={isFetching}
+                            >
+                                <ChevronLeft className="w-4 h-4 text-slate-600" />
+                            </Button>
                             <button
-                                key={code}
-                                className={`px-3 py-1.5 text-xs font-bold transition-all ${selectedCurrency === parseInt(code, 10)
-                                    ? 'bg-emerald-600 text-white'
-                                    : 'bg-white text-slate-500 hover:bg-slate-50 border-r border-slate-100 last:border-r-0'
-                                    }`}
-                                onClick={() => handleCurrencyChange(parseInt(code, 10))}
+                                onClick={handleToday}
+                                className="px-3 py-1 text-[10px] font-black text-slate-800 uppercase tracking-widest hover:bg-slate-100 rounded-lg transition-colors"
                             >
-                                {label}
+                                {t('dashboard.this_week')}
                             </button>
-                        ))}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 rounded-lg"
+                                onClick={handleNextWeek}
+                                disabled={isFetching}
+                            >
+                                <ChevronRight className="w-4 h-4 text-slate-600" />
+                            </Button>
+                        </div>
+
+                        {/* Date Range Label */}
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right leading-tight">
+                            {dateRange.from} <span className="text-slate-200 mx-1">→</span> {dateRange.to}
+                            {data?.summary && <div className="text-slate-300 normal-case font-medium mt-0.5">{data.summary.nightsCount} {t('dashboard.nights')}</div>}
+                        </div>
                     </div>
-
-                    <div className="h-4 w-px bg-slate-200 mx-1" />
-
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => refetch()}
-                        disabled={isFetching}
-                    >
-                        <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-                    </Button>
                 </div>
             </div>
 
-            {/* Date Range Display */}
-            <div className="text-sm text-slate-500">
-                {dateRange.from} → {dateRange.to}
-                {data?.summary && ` (${data.summary.nightsCount} ${t('dashboard.nights')})`}
-            </div>
-
-            {/* Error State */}
-            {isError && (
-                <Card className="border-red-200 bg-red-50">
-                    <CardContent className="py-6">
-                        <div className="flex items-center gap-3 text-red-700">
-                            <AlertCircle className="w-5 h-5" />
-                            <span>{t('common.error_loading')}: {(error as Error)?.message || 'Unknown error'}</span>
-                            <Button variant="outline" size="sm" onClick={() => refetch()}>
+            {/* Content Area */}
+            {isError ? (
+                <Card className="border-rose-200 bg-rose-50/50">
+                    <CardContent className="py-8 text-center sm:text-left">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 text-rose-700">
+                            <div className="p-3 bg-rose-100 rounded-full">
+                                <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="font-bold text-lg leading-none">{t('common.error_loading')}</h3>
+                                <p className="text-sm text-rose-600/80">{(error as Error)?.message || 'Internal connection error'}</p>
+                            </div>
+                            <Button variant="outline" size="sm" onClick={() => refetch()} className="sm:ml-auto border-rose-200 hover:bg-rose-100 text-rose-700 font-bold uppercase tracking-widest text-[10px]">
                                 {t('common.retry')}
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
-            )}
+            ) : (
+                <>
+                    {/* KPI Cards: Critical 2x2 Grid for Mobile Pulse */}
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+                        {isLoading ? (
+                            Array.from({ length: 6 }).map((_, i) => (
+                                <Card key={i} className="border border-slate-100 shadow-sm h-28 sm:h-32">
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
+                                        <Skeleton className="h-2.5 w-16" />
+                                        <Skeleton className="h-7 w-7 rounded-lg" />
+                                    </CardHeader>
+                                    <CardContent className="p-3 pt-0">
+                                        <Skeleton className="h-7 w-20 mb-2" />
+                                        <Skeleton className="h-2.5 w-12" />
+                                    </CardContent>
+                                </Card>
+                            ))
+                        ) : (
+                            kpiCards.map((card, index) => (
+                                <Card key={index} className="border border-slate-100 shadow-sm transition-all hover:bg-slate-50/50 active:scale-[0.98] group">
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+                                        <CardTitle className="text-[10px] uppercase font-black text-slate-400 tracking-wider group-hover:text-slate-600 transition-colors">
+                                            {card.title}
+                                        </CardTitle>
+                                        <div className={`${card.bg} p-1.5 rounded-lg group-hover:shadow-sm transition-all`}>
+                                            {card.icon}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-3 pt-0">
+                                        <div className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">
+                                            {card.value || '0'}
+                                        </div>
+                                        {card.subtitle ? (
+                                            <p className="text-[10px] font-bold text-slate-400 truncate mt-1.5">
+                                                {card.subtitle}
+                                            </p>
+                                        ) : (
+                                            <div className="h-[14px]" />
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ))
+                        )}
+                    </div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                {isLoading ? (
-                    // Skeleton loading
-                    Array.from({ length: 6 }).map((_, i) => (
-                        <Card key={i} className="border-none shadow-sm">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <Skeleton className="h-4 w-24" />
-                                <Skeleton className="h-9 w-9 rounded-lg" />
-                            </CardHeader>
-                            <CardContent>
-                                <Skeleton className="h-8 w-20 mb-2" />
-                                <Skeleton className="h-3 w-16" />
-                            </CardContent>
-                        </Card>
-                    ))
-                ) : (
-                    kpiCards.map((card, index) => (
-                        <Card key={index} className="border-none shadow-sm hover:shadow-md transition-shadow">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-slate-600">
-                                    {card.title}
+                    {/* Daily Series Table */}
+                    <Card className="border border-slate-100 shadow-sm overflow-hidden">
+                        <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                            <CardTitle className="text-sm font-black flex items-center gap-2 text-slate-900 uppercase tracking-widest">
+                                <BarChart3 className="w-4 h-4 text-slate-400" />
+                                {t('dashboard.daily_breakdown')}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            {isLoading ? (
+                                <div className="p-4 space-y-4">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <Skeleton key={i} className="h-8 w-full rounded-md" />
+                                    ))}
+                                </div>
+                            ) : data?.byDay && data.byDay.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs">
+                                        <thead>
+                                            <tr className="bg-slate-50/30 text-slate-500 font-bold uppercase tracking-tighter">
+                                                <th className="text-left py-3 px-4">{t('dashboard.date')}</th>
+                                                <th className="text-right py-3 px-4">{t('dashboard.occupied')}</th>
+                                                <th className="text-right py-3 px-4">{t('dashboard.total_rooms')}</th>
+                                                <th className="text-right py-3 px-4">{t('dashboard.occupancy_rate')}</th>
+                                                <th className="text-right py-3 px-4">{t('dashboard.revenue')}</th>
+                                                <th className="text-right py-3 px-4">{t('dashboard.adr')}</th>
+                                                <th className="text-right py-3 px-4">{t('dashboard.revpar')}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {data.byDay.map((day: DashboardSeriesPointDto) => (
+                                                <tr key={day.date} className="hover:bg-slate-50 transition-colors">
+                                                    <td className="py-3 px-4 font-bold text-slate-900">{day.date}</td>
+                                                    <td className="py-3 px-4 text-right text-slate-700">{day.occupiedRooms}</td>
+                                                    <td className="py-3 px-4 text-right text-slate-400">{day.totalRooms}</td>
+                                                    <td className="py-3 px-4 text-right">
+                                                        <span className={`inline-flex px-1.5 py-0.5 rounded-sm font-black text-[10px] uppercase ${day.occupancyRate >= 0.8 ? 'bg-emerald-100 text-emerald-700' :
+                                                            day.occupancyRate >= 0.5 ? 'bg-amber-100 text-amber-700' :
+                                                                'bg-slate-100 text-slate-500'
+                                                            }`}>
+                                                            {formatPercent(day.occupancyRate)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3 px-4 text-right text-slate-900 font-bold">
+                                                        {formatCurrency(day.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                                    </td>
+                                                    <td className="py-3 px-4 text-right text-slate-500 font-medium">
+                                                        {formatCurrency(day.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                                    </td>
+                                                    <td className="py-3 px-4 text-right text-slate-500 font-medium">
+                                                        {formatCurrency(day.revPar, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="h-40 flex flex-col items-center justify-center text-slate-400 gap-2">
+                                    <BarChart3 className="w-8 h-8 opacity-20" />
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">{t('dashboard.no_data_for_range')}</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Room Type Breakdown */}
+                    {data?.byRoomType && data.byRoomType.length > 0 && (
+                        <Card className="border border-slate-100 shadow-sm overflow-hidden">
+                            <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                                <CardTitle className="text-sm font-black flex items-center gap-2 text-slate-900 uppercase tracking-widest">
+                                    <Building2 className="w-4 h-4 text-slate-400" />
+                                    {t('dashboard.by_room_type')}
                                 </CardTitle>
-                                <div className={`${card.bg} p-2 rounded-lg`}>
-                                    {card.icon}
-                                </div>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-slate-900">
-                                    {card.value}
+                            <CardContent className="p-0">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs">
+                                        <thead>
+                                            <tr className="bg-slate-50/30 text-slate-500 font-bold uppercase tracking-tighter">
+                                                <th className="text-left py-3 px-4">{t('dashboard.room_type')}</th>
+                                                <th className="text-right py-3 px-4">{t('dashboard.sold_room_nights')}</th>
+                                                <th className="text-right py-3 px-4">{t('dashboard.revenue')}</th>
+                                                <th className="text-right py-3 px-4">{t('dashboard.adr')}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {data.byRoomType.map((rt) => (
+                                                <tr key={rt.roomTypeId} className="hover:bg-slate-50 transition-colors">
+                                                    <td className="py-3 px-4 font-bold text-slate-900">{rt.roomTypeName || `Type #${rt.roomTypeId}`}</td>
+                                                    <td className="py-3 px-4 text-right text-slate-700">{rt.soldRoomNights}</td>
+                                                    <td className="py-3 px-4 text-right text-slate-900 font-bold">
+                                                        {formatCurrency(rt.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                                    </td>
+                                                    <td className="py-3 px-4 text-right text-slate-500 font-medium">
+                                                        {formatCurrency(rt.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
-                                {card.subtitle && (
-                                    <p className="text-xs text-slate-500 mt-1">
-                                        {card.subtitle}
-                                    </p>
-                                )}
                             </CardContent>
                         </Card>
-                    ))
-                )}
-            </div>
-
-            {/* Daily Series Table */}
-            <Card className="border-none shadow-sm">
-                <CardHeader>
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-slate-800">
-                        <BarChart3 className="w-5 h-5 text-slate-400" />
-                        {t('dashboard.daily_breakdown')}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="space-y-3">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                                <Skeleton key={i} className="h-10 w-full" />
-                            ))}
-                        </div>
-                    ) : data?.byDay && data.byDay.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-slate-200">
-                                        <th className="text-left py-3 px-4 font-medium text-slate-600">{t('dashboard.date')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('dashboard.occupied')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('dashboard.total_rooms')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('dashboard.occupancy_rate')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('dashboard.revenue')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('dashboard.adr')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('dashboard.revpar')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.byDay.map((day: DashboardSeriesPointDto) => (
-                                        <tr key={day.date} className="border-b border-slate-100 hover:bg-slate-50">
-                                            <td className="py-3 px-4 font-medium text-slate-900">{day.date}</td>
-                                            <td className="py-3 px-4 text-right text-slate-700">{day.occupiedRooms}</td>
-                                            <td className="py-3 px-4 text-right text-slate-500">{day.totalRooms}</td>
-                                            <td className="py-3 px-4 text-right">
-                                                <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${day.occupancyRate >= 0.8 ? 'bg-green-100 text-green-700' :
-                                                    day.occupancyRate >= 0.5 ? 'bg-amber-100 text-amber-700' :
-                                                        'bg-slate-100 text-slate-600'
-                                                    }`}>
-                                                    {formatPercent(day.occupancyRate)}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 px-4 text-right text-slate-700">{formatCurrency(day.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}</td>
-                                            <td className="py-3 px-4 text-right text-slate-500">{formatCurrency(day.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}</td>
-                                            <td className="py-3 px-4 text-right text-slate-500">{formatCurrency(day.revPar, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="h-32 flex items-center justify-center text-slate-400">
-                            {t('dashboard.no_data_for_range')}
-                        </div>
                     )}
-                </CardContent>
-            </Card>
-
-            {/* Room Type Breakdown (optional) */}
-            {data?.byRoomType && data.byRoomType.length > 0 && (
-                <Card className="border-none shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="text-lg font-semibold flex items-center gap-2 text-slate-800">
-                            <Building2 className="w-5 h-5 text-slate-400" />
-                            {t('dashboard.by_room_type')}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-slate-200">
-                                        <th className="text-left py-3 px-4 font-medium text-slate-600">{t('dashboard.room_type')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('dashboard.sold_room_nights')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('dashboard.revenue')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('dashboard.adr')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.byRoomType.map((rt) => (
-                                        <tr key={rt.roomTypeId} className="border-b border-slate-100 hover:bg-slate-50">
-                                            <td className="py-3 px-4 font-medium text-slate-900">{rt.roomTypeName || `Type #${rt.roomTypeId}`}</td>
-                                            <td className="py-3 px-4 text-right text-slate-700">{rt.soldRoomNights}</td>
-                                            <td className="py-3 px-4 text-right text-slate-700">{formatCurrency(rt.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}</td>
-                                            <td className="py-3 px-4 text-right text-slate-500">{formatCurrency(rt.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </CardContent>
-                </Card>
+                </>
             )}
         </div>
     );
