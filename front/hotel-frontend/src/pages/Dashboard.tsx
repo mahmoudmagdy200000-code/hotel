@@ -229,45 +229,45 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-1 sm:gap-4 flex-nowrap">
                         {/* Date Navigation */}
-                        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+                        <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded-xl p-0.5 shadow-sm flex-shrink-0">
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0 rounded-lg"
+                                className="h-7 w-7 p-0 rounded-lg"
                                 onClick={handlePrevWeek}
                                 disabled={isFetching}
                             >
-                                <ChevronLeft className="w-4 h-4 text-slate-600" />
+                                <ChevronLeft className="w-3.5 h-3.5 text-slate-600" />
                             </Button>
                             <button
                                 onClick={handleToday}
-                                className="px-3 py-1 text-[10px] font-black text-slate-800 uppercase tracking-widest hover:bg-slate-100 rounded-lg transition-colors"
+                                className="px-2 py-1 text-[9px] font-black text-slate-800 uppercase tracking-tighter hover:bg-slate-50 rounded-lg transition-colors"
                             >
                                 {t('dashboard.this_week')}
                             </button>
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0 rounded-lg"
+                                className="h-7 w-7 p-0 rounded-lg"
                                 onClick={handleNextWeek}
                                 disabled={isFetching}
                             >
-                                <ChevronRight className="w-4 h-4 text-slate-600" />
+                                <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
                             </Button>
                         </div>
 
-                        {/* Date Range Label: Fixed to one line with better visual cues */}
-                        <div className="flex items-center justify-end flex-shrink-0">
-                            <div className="flex items-center gap-1.5 bg-slate-100/80 px-2.5 py-1.5 rounded-lg border border-slate-200/50 whitespace-nowrap overflow-hidden">
-                                <CalendarDays className="w-3 h-3 text-slate-400" />
-                                <div className="text-[10px] font-black text-slate-500 uppercase tracking-tighter flex items-center gap-1">
-                                    <span>{dateRange.from}</span>
+                        {/* Date Range Label: Aggressively compact for mobile single-line pulse */}
+                        <div className="flex items-center justify-end flex-1 min-w-0">
+                            <div className="flex items-center gap-1 bg-slate-100/80 px-2 py-1.5 rounded-lg border border-slate-200/50 whitespace-nowrap overflow-hidden max-w-full">
+                                <CalendarDays className="w-3 h-3 text-slate-400 hidden xs:block" />
+                                <div className="text-[9px] font-black text-slate-500 uppercase tracking-tighter flex items-center gap-0.5">
+                                    <span className="text-slate-900">{dateRange.from.substring(5)}</span>
                                     <span className="text-slate-300">→</span>
-                                    <span>{dateRange.to}</span>
+                                    <span className="text-slate-900">{dateRange.to.substring(5)}</span>
                                     {data?.summary && (
-                                        <span className="ms-1 ps-1.5 border-s border-slate-200 text-slate-400 normal-case font-bold">
+                                        <span className="ms-1 ps-1 border-s border-slate-200 text-slate-400 font-bold lowercase">
                                             {data.summary.nightsCount}n
                                         </span>
                                     )}
@@ -383,8 +383,8 @@ const Dashboard = () => {
                                                     <td className="py-3.5 px-4 text-right text-slate-400">{day.totalRooms}</td>
                                                     <td className="py-3.5 px-4 text-center">
                                                         <span className={`inline-flex items-center justify-center min-w-[48px] px-1.5 py-0.5 rounded font-black text-[9px] uppercase tracking-tighter ${day.occupancyRate >= 0.8 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                                                                day.occupancyRate >= 0.5 ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                                                                    'bg-slate-50 text-slate-400 border border-slate-100'
+                                                            day.occupancyRate >= 0.5 ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                                                                'bg-slate-50 text-slate-400 border border-slate-100'
                                                             }`}>
                                                             {formatPercent(day.occupancyRate)}
                                                         </span>
