@@ -106,16 +106,40 @@ public class ApplicationDbContextInitialiser
         var owner = new ApplicationUser { UserName = "owner@localhost", Email = "owner@localhost" };
         if (_userManager.Users.All(u => u.UserName != owner.UserName))
         {
+            var branchForOwner = await _context.Branches.FirstOrDefaultAsync(b => b.Name == "Branch A");
+            owner.BranchId = branchForOwner?.Id;
             await _userManager.CreateAsync(owner, "Owner1!");
             await _userManager.AddToRolesAsync(owner, new [] { Roles.Owner });
+        }
+        else
+        {
+            var existingOwner = await _userManager.FindByNameAsync(owner.UserName);
+            if (existingOwner != null && existingOwner.BranchId == null)
+            {
+                var branchForOwner = await _context.Branches.FirstOrDefaultAsync(b => b.Name == "Branch A");
+                existingOwner.BranchId = branchForOwner?.Id;
+                await _userManager.UpdateAsync(existingOwner);
+            }
         }
 
         // Default Receptionist
         var receptionist = new ApplicationUser { UserName = "receptionist@localhost", Email = "receptionist@localhost" };
         if (_userManager.Users.All(u => u.UserName != receptionist.UserName))
         {
+            var branchForReceptionist = await _context.Branches.FirstOrDefaultAsync(b => b.Name == "Branch A");
+            receptionist.BranchId = branchForReceptionist?.Id;
             await _userManager.CreateAsync(receptionist, "Receptionist1!");
             await _userManager.AddToRolesAsync(receptionist, new [] { Roles.Receptionist });
+        }
+        else
+        {
+            var existingReceptionist = await _userManager.FindByNameAsync(receptionist.UserName);
+            if (existingReceptionist != null && existingReceptionist.BranchId == null)
+            {
+                var branchForReceptionist = await _context.Branches.FirstOrDefaultAsync(b => b.Name == "Branch A");
+                existingReceptionist.BranchId = branchForReceptionist?.Id;
+                await _userManager.UpdateAsync(existingReceptionist);
+            }
         }
 
         // Default data
