@@ -160,18 +160,32 @@ const ReceptionToday = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                    {t('reception.reception_today', 'Reception Today')}
-                </h1>
+            {/* Header: Core Navigation & Status */}
+            <div className="flex flex-row items-center justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
+                        {t('reception.reception_today', 'Reception Today')}
+                    </h1>
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                        <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
+                        {businessDate === selectedDate ? t('common.today', 'Today') : selectedDate}
+                    </div>
+                </div>
+
                 <div className="flex items-center gap-2">
                     <DatePicker
                         date={isDateValid ? parseISO(selectedDate) : undefined}
                         setDate={(d) => setSelectedDate(d ? format(d, 'yyyy-MM-dd') : '')}
-                        className="w-[180px]"
+                        className="w-[140px] h-9 text-xs font-bold border-slate-200"
                     />
-                    <Button variant="outline" size="icon" onClick={() => refetch()} title={t('common.retry')}>
-                        <RefreshCw className="h-4 w-4" />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full hover:bg-slate-100 transition-transform active:scale-95 flex-shrink-0"
+                        onClick={() => refetch()}
+                        disabled={isLoading}
+                    >
+                        <RefreshCw className={`h-4 w-4 text-slate-400 ${isLoading ? 'animate-spin' : ''}`} />
                     </Button>
                 </div>
             </div>
@@ -187,82 +201,100 @@ const ReceptionToday = () => {
                 </div>
             ) : data ? (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
+                    {/* Metrics Grid: Professional Horizontal Pulse Grid */}
+                    <div className="grid grid-cols-3 gap-3">
+                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-blue-50/20">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+                                <CardTitle className="text-[9px] sm:text-[10px] uppercase font-black text-slate-400 tracking-wider">
                                     {t('reception.arrivals', 'Arrivals')}
                                 </CardTitle>
-                                <LogIn className="h-4 w-4 text-muted-foreground" />
+                                <div className="p-1 sm:p-1.5 bg-blue-100 rounded-lg text-blue-600">
+                                    <LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                </div>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{data.summary.arrivalsCount}</div>
+                            <CardContent className="p-3 pt-0">
+                                <div className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">
+                                    {data.summary.arrivalsCount}
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
+
+                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-amber-50/20">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+                                <CardTitle className="text-[9px] sm:text-[10px] uppercase font-black text-slate-400 tracking-wider">
                                     {t('reception.departures', 'Departures')}
                                 </CardTitle>
-                                <LogOut className="h-4 w-4 text-muted-foreground" />
+                                <div className="p-1 sm:p-1.5 bg-amber-100 rounded-lg text-amber-600">
+                                    <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                </div>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{data.summary.departuresCount}</div>
+                            <CardContent className="p-3 pt-0">
+                                <div className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">
+                                    {data.summary.departuresCount}
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
+
+                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-emerald-50/20">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+                                <CardTitle className="text-[9px] sm:text-[10px] uppercase font-black text-slate-400 tracking-wider">
                                     {t('reception.in_house', 'In House')}
                                 </CardTitle>
-                                <Home className="h-4 w-4 text-muted-foreground" />
+                                <div className="p-1 sm:p-1.5 bg-emerald-100 rounded-lg text-emerald-600">
+                                    <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                </div>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{data.summary.inHouseCount}</div>
+                            <CardContent className="p-3 pt-0">
+                                <div className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">
+                                    {data.summary.inHouseCount}
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
 
                     <Tabs defaultValue="arrivals" className="w-full">
-                        <TabsList className="grid w-full grid-cols-4 max-w-[500px]">
-                            <TabsTrigger value="arrivals">
-                                {t('reception.arrivals', 'Arrivals')}
-                                <span className="ms-1 text-xs bg-slate-200 px-1.5 rounded-full text-slate-700">
-                                    {data.summary.arrivalsCount}
-                                </span>
-                            </TabsTrigger>
-                            <TabsTrigger value="departures">
-                                {t('reception.departures', 'Departures')}
-                                <span className="ms-1 text-xs bg-slate-200 px-1.5 rounded-full text-slate-700">
-                                    {data.summary.departuresCount}
-                                </span>
-                            </TabsTrigger>
-                            <TabsTrigger value="in_house">
-                                {t('reception.in_house', 'In House')}
-                                <span className="ms-1 text-xs bg-slate-200 px-1.5 rounded-full text-slate-700">
-                                    {data.summary.inHouseCount}
-                                </span>
-                            </TabsTrigger>
-                            <TabsTrigger value="rooms">
-                                {t('reception.rooms', 'Rooms')}
-                            </TabsTrigger>
-                        </TabsList>
+                        {/* Sticky Tabs Navigation */}
+                        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md py-3 -mx-4 px-4 sm:relative sm:top-auto sm:bg-transparent sm:py-0 sm:mx-0 sm:px-0 border-b lg:border-none border-slate-100 mb-4">
+                            <TabsList className="flex items-center w-full bg-slate-100 p-1 rounded-xl h-auto">
+                                <TabsTrigger value="arrivals" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
+                                    {t('reception.arrivals')}
+                                    <span className="ms-1.5 px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[9px] font-black">
+                                        {data.summary.arrivalsCount}
+                                    </span>
+                                </TabsTrigger>
+                                <TabsTrigger value="departures" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
+                                    {t('reception.departures')}
+                                    <span className="ms-1.5 px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[9px] font-black">
+                                        {data.summary.departuresCount}
+                                    </span>
+                                </TabsTrigger>
+                                <TabsTrigger value="in_house" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
+                                    {t('reception.in_house')}
+                                    <span className="ms-1.5 px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[9px] font-black">
+                                        {data.summary.inHouseCount}
+                                    </span>
+                                </TabsTrigger>
+                                <TabsTrigger value="rooms" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
+                                    {t('reception.rooms')}
+                                </TabsTrigger>
+                            </TabsList>
+                        </div>
 
-                        <TabsContent value="arrivals" className="mt-4">
+                        <TabsContent value="arrivals" className="mt-0">
                             <ReceptionTable
                                 data={data.arrivals}
                                 emptyMessage={t('reception.no_arrivals', 'No arrivals for this date.')}
                                 onAction={(type, res) => handleAction(type as string, res as ReceptionReservationItemDto)}
                             />
                         </TabsContent>
-                        <TabsContent value="departures" className="mt-4">
+                        <TabsContent value="departures" className="mt-0">
                             <ReceptionTable
                                 data={data.departures}
                                 emptyMessage={t('reception.no_departures', 'No departures for this date.')}
                                 onAction={(type, res) => handleAction(type as string, res as ReceptionReservationItemDto)}
                             />
                         </TabsContent>
-                        <TabsContent value="in_house" className="mt-4">
+                        <TabsContent value="in_house" className="mt-0">
                             <ReceptionTable
                                 data={data.inHouse}
                                 emptyMessage={t('reception.no_in_house', 'No guests in house.')}
