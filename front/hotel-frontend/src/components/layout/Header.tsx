@@ -29,9 +29,6 @@ const Header = ({ onMenuClick }: HeaderProps) => {
 
             {/* Center: Page title or search (can be enhanced later) */}
             <div className="flex-1 lg:ms-0 ms-4">
-                <h2 className="text-lg font-semibold text-slate-800">
-                    {t('header.welcome')}
-                </h2>
             </div>
 
             {/* Right: User actions */}
