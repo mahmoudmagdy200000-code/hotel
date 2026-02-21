@@ -321,67 +321,57 @@ const PendingRequests = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                    {t('reception.pending_requests', 'Pending PDF Requests')}
-                </h1>
-                <div className="flex items-center gap-3">
-                    <DatePickerWithRange
-                        date={dateRange}
-                        setDate={setDateRange}
-                        className="w-full md:w-auto"
-                    />
-                    <div className="flex items-center gap-2">
-                        {selectedIds.length > 0 && (
-                            <Button
-                                variant="secondary"
-                                className="h-10 px-4 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 shadow-sm"
-                                onClick={() => handleBatchParse()}
-                                disabled={batchParse.isPending}
-                            >
-                                {batchParse.isPending ? <Loader2 className="w-4 h-4 me-2 animate-spin" /> : <FileSearch className="w-4 h-4 me-2" />}
-                                {t('reception.parse_selected', 'Parse Selected ({{count}})', { count: selectedIds.length })}
-                            </Button>
-                        )}
-                        <Button
-                            variant="secondary"
-                            className="h-10 px-4 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 shadow-sm"
-                            onClick={handleParseAllPending}
-                            disabled={batchParse.isPending || !data?.items.some(i => i.parsingStatus === 'Pending' || i.parsingStatus === 'Failed')}
-                        >
-                            <RefreshCw className={cn("w-4 h-4 me-2", batchParse.isPending && "animate-spin")} />
-                            {t('reception.parse_all_pending', 'Parse All Pending')}
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            className="h-10 px-4 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 shadow-sm"
-                            onClick={handleConfirmAll}
-                            disabled={isLoading || getPlan.isPending || !data?.items.some(i => i.parsingStatus === 'Parsed')}
-                        >
-                            {getPlan.isPending ? (
-                                <Loader2 className="w-4 h-4 me-2 animate-spin" />
-                            ) : (
-                                <CheckCheck className="w-4 h-4 me-2" />
-                            )}
-                            {t('reception.confirm_all', 'Confirm All Parsed')}
-                        </Button>
-                        <div className="relative w-48">
-                            <Select value={selectedListingId} onValueChange={setSelectedListingId}>
-                                <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-white shadow-sm transition-all focus:ring-slate-900/5">
-                                    <SelectValue placeholder={t('reception.select_listing')} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {listings?.map(listing => (
-                                        <SelectItem key={listing.id} value={listing.id}>
-                                            {listing.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+            {/* Header: Core Navigation & Actions */}
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-row items-center justify-between gap-4">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
+                            {t('reception.pending_requests', 'Pending Requests')}
+                        </h1>
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
+                            {dateRange?.from?.toLocaleDateString() === today.toLocaleDateString() ? t('common.today', 'Today') : format(dateRange?.from || today, 'MMM d')}
+                            <span>→</span>
+                            {format(dateRange?.to || nextWeek, 'MMM d, yyyy')}
                         </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <DatePickerWithRange
+                            date={dateRange}
+                            setDate={setDateRange}
+                            className="hidden md:block w-auto"
+                        />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="rounded-full hover:bg-slate-100 transition-transform active:scale-95 flex-shrink-0"
+                            onClick={() => refetch()}
+                            disabled={isLoading}
+                        >
+                            <RefreshCw className={cn("h-4 w-4 text-slate-400", isLoading && "animate-spin")} />
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Main Action Bar: Compact & Responsive */}
+                <div className="flex flex-col sm:flex-row items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <Select value={selectedListingId} onValueChange={setSelectedListingId}>
+                            <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-white shadow-sm flex-1 sm:w-48 text-xs font-bold">
+                                <SelectValue placeholder={t('reception.select_listing')} />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-200">
+                                {listings?.map(listing => (
+                                    <SelectItem key={listing.id} value={listing.id} className="text-xs font-bold">
+                                        {listing.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                         <Button
                             variant="default"
-                            className="h-10 px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow-sm transition-all active:scale-95"
+                            className="h-10 px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow-sm transition-all active:scale-95 text-xs font-black uppercase tracking-widest"
                             onClick={() => {
                                 if (!selectedListingId) {
                                     toast.error(t('reception.listing_required'));
@@ -391,21 +381,35 @@ const PendingRequests = () => {
                             }}
                             disabled={uploadBatch.isPending || !selectedListingId}
                         >
-                            <Upload className={cn("w-4 h-4 me-2", uploadBatch.isPending && "animate-bounce")} />
-                            {uploadBatch.isPending ? t('common.uploading', 'Uploading...') : t('reception.upload_pdfs', 'Upload PDFs')}
-                        </Button>
-                        <input
-                            id="pdf-upload"
-                            type="file"
-                            accept=".pdf"
-                            multiple
-                            className="hidden"
-                            onChange={handleFileUpload}
-                        />
-                        <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-900 shadow-sm" onClick={() => refetch()} disabled={isLoading}>
-                            <RefreshCw className={cn("h-4 w-4 text-slate-500", isLoading && "animate-spin")} />
+                            <Upload className={cn("w-3.5 h-3.5 me-2", uploadBatch.isPending && "animate-bounce")} />
+                            {uploadBatch.isPending ? t('common.uploading') : t('reception.upload_pdfs')}
                         </Button>
                     </div>
+
+                    <div className="h-px w-full sm:h-6 sm:w-px bg-slate-200 sm:mx-1" />
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <Button
+                            variant="outline"
+                            className="h-10 px-4 rounded-xl border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest flex-1 sm:flex-none"
+                            onClick={handleParseAllPending}
+                            disabled={batchParse.isPending || !data?.items.some(i => i.parsingStatus === 'Pending' || i.parsingStatus === 'Failed')}
+                        >
+                            <RefreshCw className={cn("w-3.5 h-3.5 me-2", batchParse.isPending && "animate-spin")} />
+                            {t('reception.parse_all')}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="h-10 px-4 rounded-xl border-emerald-100 bg-emerald-50/50 text-emerald-700 hover:bg-emerald-100 text-xs font-black uppercase tracking-widest flex-1 sm:flex-none"
+                            onClick={handleConfirmAll}
+                            disabled={isLoading || getPlan.isPending || !data?.items.some(i => i.parsingStatus === 'Parsed')}
+                        >
+                            {getPlan.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCheck className="w-3.5 h-3.5 me-2" />}
+                            {t('reception.confirm_all_parsed')}
+                        </Button>
+                    </div>
+
+                    <input id="pdf-upload" type="file" accept=".pdf" multiple className="hidden" onChange={handleFileUpload} />
                 </div>
             </div>
 
@@ -471,278 +475,276 @@ const PendingRequests = () => {
                 </div>
             )}
 
-            {/* Totals Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Totals Summary: 2x2 Compact Mobile Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {isLoading ? (
-                    Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-xl" />)
+                    Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-2xl" />)
                 ) : data && (
                     <>
-                        <Card className="border-none shadow-sm">
-                            <CardHeader className="p-4 pb-0">
-                                <CardTitle className="text-xs font-medium text-slate-500 uppercase">{t('common.total', 'Total')}</CardTitle>
+                        <Card className="border border-slate-100 shadow-sm group bg-slate-50/20">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+                                <CardTitle className="text-[9px] uppercase font-black text-slate-400 tracking-wider">
+                                    {t('common.total')}
+                                </CardTitle>
+                                <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400">
+                                    <Clock className="h-3 w-3" />
+                                </div>
                             </CardHeader>
-                            <CardContent className="p-4 pt-1">
-                                <div className="text-2xl font-bold">{data.totals.count}</div>
+                            <CardContent className="p-3 pt-0">
+                                <div className="text-xl font-black text-slate-900 leading-none tracking-tight">
+                                    {data.totals.count}
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card className="border-none shadow-sm">
-                            <CardHeader className="p-4 pb-0">
-                                <CardTitle className="text-xs font-medium text-emerald-600 uppercase">{t('reception.safe', 'Safe')}</CardTitle>
+
+                        <Card className="border border-slate-100 shadow-sm group bg-emerald-50/20">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+                                <CardTitle className="text-[9px] uppercase font-black text-emerald-600 tracking-wider">
+                                    {t('reception.safe')}
+                                </CardTitle>
+                                <div className="p-1.5 bg-emerald-100 rounded-lg text-emerald-600">
+                                    <CheckCheck className="h-3 w-3" />
+                                </div>
                             </CardHeader>
-                            <CardContent className="p-4 pt-1">
-                                <div className="text-2xl font-bold">{data.totals.safeCount}</div>
+                            <CardContent className="p-3 pt-0">
+                                <div className="text-xl font-black text-slate-900 leading-none tracking-tight">
+                                    {data.totals.safeCount}
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card className="border-none shadow-sm">
-                            <CardHeader className="p-4 pb-0">
-                                <CardTitle className="text-xs font-medium text-amber-600 uppercase">{t('reception.tight', 'Tight')}</CardTitle>
+
+                        <Card className="border border-slate-100 shadow-sm group bg-amber-50/20">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+                                <CardTitle className="text-[9px] uppercase font-black text-amber-600 tracking-wider">
+                                    {t('reception.tight')}
+                                </CardTitle>
+                                <div className="p-1.5 bg-amber-100 rounded-lg text-amber-600">
+                                    <AlertTriangle className="h-3 w-3" />
+                                </div>
                             </CardHeader>
-                            <CardContent className="p-4 pt-1">
-                                <div className="text-2xl font-bold">{data.totals.tightCount}</div>
+                            <CardContent className="p-3 pt-0">
+                                <div className="text-xl font-black text-slate-900 leading-none tracking-tight">
+                                    {data.totals.tightCount}
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card className="border-none shadow-sm">
-                            <CardHeader className="p-4 pb-0">
-                                <CardTitle className="text-xs font-medium text-red-600 uppercase">{t('reception.overbook', 'Overbook')}</CardTitle>
+
+                        <Card className="border border-slate-100 shadow-sm group bg-rose-50/20">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+                                <CardTitle className="text-[9px] uppercase font-black text-rose-600 tracking-wider">
+                                    {t('reception.overbook')}
+                                </CardTitle>
+                                <div className="p-1.5 bg-rose-100 rounded-lg text-rose-600">
+                                    <XCircle className="h-3 w-3" />
+                                </div>
                             </CardHeader>
-                            <CardContent className="p-4 pt-1">
-                                <div className="text-2xl font-bold">{data.totals.overbookCount}</div>
+                            <CardContent className="p-3 pt-0">
+                                <div className="text-xl font-black text-slate-900 leading-none tracking-tight">
+                                    {data.totals.overbookCount}
+                                </div>
                             </CardContent>
                         </Card>
                     </>
                 )}
             </div>
 
-            <Card className="border-none shadow-sm overflow-hidden">
-                <Table>
-                    <TableHeader className="bg-slate-50">
-                        <TableRow>
-                            <TableHead className="w-10 px-4">
-                                <Checkbox
-                                    checked={data?.items.length ? selectedIds.length === data.items.length : false}
-                                    onChange={() => toggleSelectAll()}
-                                />
-                            </TableHead>
-                            <TableHead className="w-10"></TableHead>
-                            <TableHead>{t('reception.guest_info', 'Guest / Booking')}</TableHead>
-                            <TableHead>{t('reception.dates', 'Dates')}</TableHead>
-                            <TableHead className="text-center">{t('reception.rooms', 'Rooms')}</TableHead>
-                            <TableHead className="text-right">{t('common.total', 'Total')}</TableHead>
-                            <TableHead>{t('reception.availability', 'Availability')}</TableHead>
-                            <TableHead className="text-right">{t('common.actions', 'Actions')}</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            Array(5).fill(0).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell colSpan={7}><Skeleton className="h-12 w-full" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : data?.items.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="h-40 text-center text-slate-500">
-                                    <Clock className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                                    <div className="font-medium">{t('reception.no_pending', 'No pending requests found.')}</div>
-                                    <div className="text-sm">{t('reception.no_pending_desc', 'Try changing the date range or check back later.')}</div>
-                                </TableCell>
-                            </TableRow>
-                        ) : data?.items.map((item) => {
-                            const isParsingThis = parse.isPending && parse.variables === item.reservationId;
-                            const isConfirmingThis = confirm.isPending && confirm.variables === item.reservationId;
-                            const isDeletingThis = deletePending.isPending && deletePending.variables?.id === item.reservationId;
-                            const isPending = isParsingThis || isConfirmingThis || isDeletingThis;
+            {/* Request List: Mobile-First Cards & Premium Desktop Table */}
+            <div className="space-y-4">
+                {/* Mobile: List Cards */}
+                <div className="grid grid-cols-1 gap-3 md:hidden">
+                    {data?.items.map((item) => {
+                        const isParsingThis = parse.isPending && parse.variables === item.reservationId;
+                        const isConfirmingThis = confirm.isPending && confirm.variables === item.reservationId;
+                        const isDeletingThis = deletePending.isPending && deletePending.variables?.id === item.reservationId;
+                        const isProcessing = isParsingThis || isConfirmingThis || isDeletingThis;
+                        const hasExtractedData = item.parsingStatus === 'Parsed' ||
+                            (item.parsingStatus === 'Failed' && item.guestName && item.guestName !== 'PDF Guest');
 
-                            const hasExtractedData = item.parsingStatus === 'Parsed' ||
-                                (item.parsingStatus === 'Failed' && item.guestName && item.guestName !== 'PDF Guest' && item.guestName !== 'Unknown');
+                        return (
+                            <div
+                                key={item.reservationId}
+                                className={cn(
+                                    "bg-white border-l-4 rounded-xl p-4 shadow-sm active:scale-[0.98] transition-all relative overflow-hidden",
+                                    item.availabilityHint?.bucket === 'Safe' ? "border-l-emerald-500" :
+                                        item.availabilityHint?.bucket === 'Tight' ? "border-l-amber-500" :
+                                            item.availabilityHint?.bucket === 'Overbook' ? "border-l-rose-500" : "border-l-slate-200",
+                                    isProcessing && "opacity-60 pointer-events-none"
+                                )}
+                            >
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="min-w-0 flex-1 space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <Checkbox
+                                                checked={selectedIds.includes(item.reservationId)}
+                                                onChange={() => toggleSelection(item.reservationId)}
+                                                className="rounded-lg h-5 w-5 border-slate-200"
+                                            />
+                                            <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tight">
+                                                {item.guestName && item.guestName !== 'PDF Guest' ? item.guestName : t('common.pending_extraction')}
+                                            </h3>
+                                            <div className="flex items-center gap-1">
+                                                {getParsingStatusIcon(item.parsingStatus)}
+                                            </div>
+                                        </div>
 
-                            return (
-                                <TableRow key={item.reservationId} className={cn("group hover:bg-slate-50/50 transition-colors", isPending && "opacity-50 pointer-events-none")}>
-                                    <TableCell className="px-4">
-                                        <Checkbox
-                                            checked={selectedIds.includes(item.reservationId)}
-                                            onChange={() => toggleSelection(item.reservationId)}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <div className="flex items-center gap-1.5" title={item.errorMessage || item.errorCode || item.parsingStatus}>
-                                                {getParsingStatusIcon(item.parsingStatus, item.errorCode)}
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center justify-between group/info">
+                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                                                    <Hash className="w-3 h-3" />
+                                                    <span>{item.bookingNumber}</span>
+                                                </div>
+                                                <div className="text-[10px] font-black text-slate-900">
+                                                    {item.checkIn} → {item.checkOut}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-[10px] text-slate-400 font-bold flex items-center gap-1.5">
+                                                    <Hotel className="w-3 h-3" />
+                                                    {item.hotelName || t('common.unknown_hotel')}
+                                                </div>
+                                                {hasExtractedData && item.totalAmount > 0 && (
+                                                    <div className="text-xs font-black text-blue-600">
+                                                        {formatCurrency(item.totalAmount, item.currency || 'USD')}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Actions (Mobile) */}
+                                    <div className="flex flex-col gap-2">
+                                        {item.parsingStatus === 'Parsed' ? (
+                                            <Button
+                                                size="icon"
+                                                className="h-10 w-10 bg-slate-900 text-white rounded-xl shadow-lg shadow-slate-100"
+                                                onClick={() => handleConfirm(item.reservationId, item.bookingNumber)}
+                                            >
+                                                <CheckCheck className="w-5 h-5" />
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                size="icon"
+                                                variant="outline"
+                                                className="h-10 w-10 border-slate-200 rounded-xl"
+                                                onClick={() => handleParse(item.reservationId, item.bookingNumber)}
+                                            >
+                                                {isParsingThis ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSearch className="w-4 h-4" />}
+                                            </Button>
+                                        )}
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-10 w-10 text-slate-300 hover:text-blue-500"
+                                            onClick={() => setViewingPdfId({ id: item.reservationId, number: item.bookingNumber })}
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                                {isParsingThis && (
+                                    <div className="absolute bottom-0 left-0 h-1 bg-amber-400 animate-[loading_1s_infinite]" />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Desktop: Premium Table */}
+                <div className="hidden md:block rounded-2xl border border-slate-100 shadow-sm overflow-hidden bg-white">
+                    <Table>
+                        <TableHeader>
+                            <tr className="bg-slate-50/50 text-slate-400 font-black uppercase tracking-tighter border-b border-slate-100">
+                                <TableHead className="w-10 px-6">
+                                    <Checkbox
+                                        checked={data?.items.length ? selectedIds.length === data.items.length : false}
+                                        onChange={() => toggleSelectAll()}
+                                    />
+                                </TableHead>
+                                <TableHead className="py-4">{t('reception.status')}</TableHead>
+                                <TableHead className="py-4">{t('reception.guest_info')}</TableHead>
+                                <TableHead className="py-4">{t('reception.dates')}</TableHead>
+                                <TableHead className="py-4 text-center">{t('reception.rooms')}</TableHead>
+                                <TableHead className="py-4 text-right">{t('common.total')}</TableHead>
+                                <TableHead className="py-4">{t('reception.availability')}</TableHead>
+                                <TableHead className="py-4 px-6 text-right">{t('common.actions')}</TableHead>
+                            </tr>
+                        </TableHeader>
+                        <TableBody>
+                            {data?.items.map((item) => {
+                                const isParsingThis = parse.isPending && parse.variables === item.reservationId;
+                                const isConfirmingThis = confirm.isPending && confirm.variables === item.reservationId;
+                                const isDeletingThis = deletePending.isPending && deletePending.variables?.id === item.reservationId;
+                                const isProcessing = isParsingThis || isConfirmingThis || isDeletingThis;
+                                const hasExtractedData = item.parsingStatus === 'Parsed' ||
+                                    (item.parsingStatus === 'Failed' && item.guestName && item.guestName !== 'PDF Guest');
+
+                                return (
+                                    <TableRow key={item.reservationId} className={cn("hover:bg-blue-50/30 transition-all group", isProcessing && "opacity-50")}>
+                                        <TableCell className="px-6">
+                                            <Checkbox
+                                                checked={selectedIds.includes(item.reservationId)}
+                                                onChange={() => toggleSelection(item.reservationId)}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-1.5">
+                                                {getParsingStatusIcon(item.parsingStatus)}
                                                 <span className={cn(
-                                                    "text-xs font-semibold",
-                                                    item.parsingStatus === 'Parsed' ? "text-emerald-700" :
-                                                        item.parsingStatus === 'Failed' ? "text-red-700" : "text-amber-700"
+                                                    "text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border",
+                                                    item.parsingStatus === 'Parsed' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                        item.parsingStatus === 'Failed' ? "bg-rose-50 text-rose-600 border-rose-100" : "bg-amber-50 text-amber-600 border-amber-100"
                                                 )}>
                                                     {item.parsingStatus}
                                                 </span>
                                             </div>
-                                            {item.parsingStatus === 'Failed' && (
-                                                <div className="mt-1 flex flex-col gap-0.5 ml-5">
-                                                    <span className="text-[10px] text-red-600 font-medium leading-tight">
-                                                        {item.errorMessage || `Parsing error: ${item.errorCode || 'UNKNOWN'}`}
-                                                    </span>
-                                                    {item.errorCode && item.errorMessage && (
-                                                        <span className="text-[8px] text-red-400 font-mono">
-                                                            Code: {item.errorCode}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-0.5">
-                                            <div className="font-bold text-slate-900 leading-tight">
-                                                {item.guestName && item.guestName !== 'PDF Guest' && item.guestName !== 'Unknown'
-                                                    ? item.guestName
-                                                    : <span className="text-slate-400 font-normal italic">{t('common.pending_extraction', 'Pending extraction')}</span>}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="font-black text-slate-900 uppercase tracking-tight text-sm">
+                                                {item.guestName && item.guestName !== 'PDF Guest' ? item.guestName : <span className="text-slate-300 font-normal italic">{t('common.pending')}</span>}
                                             </div>
-
-                                            {/* Booking Info on separate line */}
-                                            {item.bookingNumber && !item.bookingNumber.startsWith('PDF-') ? (
-                                                <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
-                                                    <span className="text-slate-400 font-normal">
-                                                        {item.bookingNumber.includes(':') ? '' : t('reception.booking_number_label', 'Booking Number: ')}
-                                                    </span>
-                                                    {item.bookingNumber}
-                                                </div>
-                                            ) : null}
-
-                                            {item.hotelName && (
-                                                <div className="text-[10px] text-slate-400 font-medium italic mt-0.5">
-                                                    {item.hotelName}
-                                                </div>
-                                            )}
-                                            {item.phone && <div className="text-[11px] text-slate-400 mt-0.5">{item.phone}</div>}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {hasExtractedData && item.checkIn && item.checkOut ? (
-                                            <>
-                                                <div className="text-sm text-slate-700 font-medium">{item.checkIn} — {item.checkOut}</div>
-                                                <div className="text-[11px] text-slate-400">{item.nights} {t('common.nights', 'nights')}</div>
-                                            </>
-                                        ) : (
-                                            <span className="text-xs text-slate-400 italic">—</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium h-5">
-                                            {hasExtractedData ? (item.requestedRooms ?? '—') : '—'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {hasExtractedData && item.totalAmount && item.totalAmount > 0 ? (
-                                            <div className="flex flex-col items-end">
-                                                <span className="font-bold text-slate-900">
-                                                    {formatCurrency(item.totalAmount, item.currency || 'USD')}
-                                                </span>
-                                                {item.currency && (
-                                                    <span className="text-[9px] text-slate-400 font-mono uppercase bg-slate-50 px-1 rounded border border-slate-100">
-                                                        {item.currency}
-                                                    </span>
+                                            <div className="text-[10px] font-bold text-slate-400 mt-0.5">{item.bookingNumber}</div>
+                                        </TableCell>
+                                        <TableCell className="font-bold text-slate-600 text-xs">
+                                            {item.checkIn} → {item.checkOut}
+                                            <div className="text-[10px] text-slate-400 mt-0.5">{item.nights} {t('common.nights')}</div>
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <div className="bg-slate-100 text-slate-700 font-black text-[10px] px-2 py-0.5 rounded-md inline-block">
+                                                {item.requestedRooms || 0}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right font-black text-slate-900">
+                                            {hasExtractedData && item.totalAmount > 0 ? formatCurrency(item.totalAmount, item.currency || 'USD') : '—'}
+                                        </TableCell>
+                                        <TableCell>
+                                            {getHintBadge(item.availabilityHint?.bucket)}
+                                        </TableCell>
+                                        <TableCell className="px-6 text-right">
+                                            <div className="flex justify-end gap-1.5">
+                                                {item.parsingStatus === 'Parsed' ? (
+                                                    <Button size="sm" className="h-8 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-4" onClick={() => handleConfirm(item.reservationId, item.bookingNumber)}>
+                                                        {t('reception.confirm')}
+                                                    </Button>
+                                                ) : (
+                                                    <Button variant="outline" size="sm" className="h-8 border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest px-4" onClick={() => handleParse(item.reservationId, item.bookingNumber)}>
+                                                        {t('reception.parse')}
+                                                    </Button>
                                                 )}
-                                            </div>
-                                        ) : (
-                                            <span className="text-slate-400">—</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {getHintBadge(item.availabilityHint?.bucket)}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            {/* Parse Button */}
-                                            {(item.parsingStatus === 'Pending' || item.parsingStatus === 'Failed') && (
-                                                <div className="flex gap-1">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="h-8 border-slate-200 hover:bg-slate-50 text-slate-700"
-                                                        onClick={() => handleParse(item.reservationId, item.bookingNumber)}
-                                                        disabled={isParsingThis || isPending}
-                                                    >
-                                                        {isParsingThis ? (
-                                                            <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" />
-                                                        ) : (
-                                                            <FileSearch className="w-3.5 h-3.5 me-1.5" />
-                                                        )}
-                                                        {isParsingThis
-                                                            ? t('reception.parsing', 'Parsing...')
-                                                            : item.parsingStatus === 'Failed'
-                                                                ? t('reception.retry', 'Retry')
-                                                                : t('reception.parse', 'Parse')}
-                                                    </Button>
-
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="h-8 border-slate-200 hover:bg-slate-50 text-slate-700"
-                                                        onClick={() => setViewingPdfId({ id: item.reservationId, number: item.bookingNumber })}
-                                                        title={t('attachments.view_pdf', 'View PDF')}
-                                                    >
-                                                        <Eye className="w-3.5 h-3.5" />
-                                                    </Button>
-                                                </div>
-                                            )}
-
-                                            {/* Confirm Button */}
-                                            {item.parsingStatus === 'Parsed' && (
-                                                <>
-                                                    <Button
-                                                        size="sm"
-                                                        className="bg-slate-900 text-white hover:bg-slate-800 h-8"
-                                                        onClick={() => handleConfirm(item.reservationId, item.bookingNumber)}
-                                                        disabled={isPending}
-                                                        title={t('reception.confirm', 'Confirm')}
-                                                    >
-                                                        {t('reception.confirm', 'Confirm')}
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        className="h-8 w-8 p-0 text-slate-400 hover:text-amber-600 hover:bg-amber-50"
-                                                        onClick={() => handleParse(item.reservationId, item.bookingNumber)}
-                                                        disabled={isParsingThis || isPending}
-                                                        title={t('reception.reparse', 'Re-parse')}
-                                                    >
-                                                        <RefreshCw className={cn("w-3.5 h-3.5", isParsingThis && "animate-spin")} />
-                                                    </Button>
-                                                </>
-                                            )}
-
-                                            {/* View Button (Parsed) */}
-                                            {item.parsingStatus === 'Parsed' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 h-8 w-8 p-0"
-                                                    onClick={() => setViewingPdfId({ id: item.reservationId, number: item.bookingNumber })}
-                                                    title={t('attachments.view_pdf', 'View PDF')}
-                                                >
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-300 hover:text-blue-500" onClick={() => setViewingPdfId({ id: item.reservationId, number: item.bookingNumber })}>
                                                     <Eye className="w-4 h-4" />
                                                 </Button>
-                                            )}
-
-                                            {/* Cancel/Delete Button */}
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="text-slate-400 hover:text-red-500 hover:bg-red-50 h-8 w-8 p-0"
-                                                onClick={() => handleCancel(item.reservationId, item.bookingNumber)}
-                                                disabled={isPending || user?.role === 'Receptionist'}
-                                                title={user?.role === 'Receptionist' ? t('reception.cancel_restricted', 'Cancel restricted for receptionists') : t('reception.cancel', 'Cancel')}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            </Card>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-300 hover:text-rose-500" onClick={() => handleCancel(item.reservationId, item.bookingNumber)} disabled={user?.role === 'Receptionist'}>
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
 
             <ConfirmDialog
                 isOpen={confirmState.isOpen}

@@ -28,7 +28,11 @@
         "view_details": "View Details",
         "back_to_list": "Back to List",
         "are_you_sure": "Are you sure you want to",
-        "coming_soon": "Feature coming soon..."
+        "coming_soon": "Feature coming soon...",
+        "today": "Today",
+        "unknown_hotel": "Unknown Hotel",
+        "pending": "Pending",
+        "uploading": "Uploading..."
     },
     "header": {
         "welcome": "Welcome back",
@@ -56,7 +60,18 @@
         "hotel_name_required": "Please select a listing before uploading PDFs.",
         "select_listing": "Select Listing",
         "listing_required": "A listing must be selected.",
-        "parse_selected": "Parse Selected ({{count}})"
+        "parse_selected": "Parse Selected ({{count}})",
+        "pending_requests": "Pending Requests",
+        "parse_all": "Parse All",
+        "confirm_all_parsed": "Confirm All Parsed",
+        "safe": "Safe",
+        "tight": "Tight",
+        "overbook": "Overbook",
+        "parse_success": "Parsing triggered successfully.",
+        "retry": "Retry",
+        "parse": "Parse",
+        "parsing": "Parsing...",
+        "reparse": "Re-parse"
     },
     "dashboard": {
         "title": "Dashboard",

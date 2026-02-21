@@ -28,7 +28,11 @@
         "view_details": "عرض التفاصيل",
         "back_to_list": "العودة للقائمة",
         "are_you_sure": "هل أنت متأكد أنك تريد",
-        "coming_soon": "الميزة قادمة قريباً..."
+        "coming_soon": "الميزة قادمة قريباً...",
+        "today": "اليوم",
+        "unknown_hotel": "فندق غير معروف",
+        "pending": "معلق",
+        "uploading": "جاري الرفع..."
     },
     "header": {
         "welcome": "مرحباً بك مجدداً",
@@ -53,12 +57,21 @@
         "no_departures": "لا يوجد مغادرة لهذا اليوم.",
         "no_in_house": "لا يوجد ضيوف في الفندق.",
         "reservation_details": "تفاصيل الحجز",
-        "parse": "تحليل الملف",
-        "retry": "إعادة المحاولة",
         "hotel_name_required": "يرجى اختيار Listing قبل رفع ملفات PDF.",
         "select_listing": "اختر الـ Listing",
         "listing_required": "يجب اختيار الـ Listing.",
-        "parse_selected": "تحليل المختارة ({{count}})"
+        "parse_selected": "تحليل المختارة ({{count}})",
+        "pending_requests": "طلبات معلقة",
+        "parse_all": "تحليل الكل",
+        "confirm_all_parsed": "تأكيد الكل",
+        "safe": "آمن",
+        "tight": "محدود",
+        "overbook": "حجز زائد",
+        "parse_success": "تم بدء التحليل بنجاح.",
+        "retry": "إعادة المحاولة",
+        "parse": "تحليل",
+        "parsing": "جاري التحليل...",
+        "reparse": "إعادة تحليل"
     },
     "dashboard": {
         "title": "لوحة القيادة",
