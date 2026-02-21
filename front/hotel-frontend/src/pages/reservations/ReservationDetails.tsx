@@ -1,5 +1,6 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { format, parseISO } from 'date-fns';
 import { useReservationDetails } from '@/hooks/reservations/useReservationDetails';
 import { useReservationActions } from '@/hooks/reservations/useReservationActions';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,9 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     ArrowLeft,
-    Calendar,
+    CalendarDays,
     User,
-    Info,
     Wallet,
     Phone,
     Bed,
@@ -24,15 +24,17 @@ import {
     FileText,
     Loader2,
     Pencil,
-    Building2,
-    Banknote
+    Banknote,
+    Hash,
+    ChevronRight,
+    MapPin
 } from 'lucide-react';
 import { getAttachmentMetadata } from '@/api/attachments';
 import { AttachmentList } from '@/components/attachments/AttachmentList';
 import { ReservationStatus, ReservationSource, PaymentMethodLabels, CurrencyCodeLabels, CurrencyCodeEnum } from '@/api/types/reservations';
 import { cn, formatCurrency, extractErrorMessage } from '@/lib/utils';
-import { toast }
-    from 'sonner';
+import { toast } from 'sonner';
+import { StatusBadge } from '@/components/reservation/StatusBadge';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useState } from 'react';
 import { EditReservationDialog } from '@/pages/reservations/components/EditReservationDialog';
@@ -40,6 +42,8 @@ import { useGetConfirmationPlan, useApplyConfirmationPlan } from '@/features/rec
 import { AllocationReviewModal } from '@/pages/reception/components/AllocationReviewModal';
 import type { ReservationAllocationPlanDto } from '@/api/types/reception';
 import { useBusinessDate } from '@/app/providers/BusinessDateProvider';
+
+
 
 const ReservationDetails = () => {
     const { id } = useParams<{ id: string }>();
@@ -83,7 +87,7 @@ const ReservationDetails = () => {
             } else {
                 toast.info(t('attachments.none_found', 'No PDF document associated with this reservation.'));
             }
-        } catch (err) {
+        } catch (_err) {
             // Error logged by http interceptor
         } finally {
             setIsCheckingAttachment(false);
@@ -189,173 +193,199 @@ const ReservationDetails = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate(backPath)}>
-                    <ArrowLeft className="w-5 h-5" />
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900">{res.guestName}</h1>
-                    <p className="text-sm text-slate-500">#{res.id} • {res.status}</p>
+        <div className="space-y-6 pb-24 lg:pb-0">
+            {/* Top Navigation & Status */}
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(backPath)}
+                        className="rounded-full hover:bg-slate-100 h-9 w-9"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-slate-600" />
+                    </Button>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-none uppercase tracking-tight">
+                                {res.guestName}
+                            </h1>
+                            <StatusBadge status={res.status} className="mt-0.5" />
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <Hash className="w-3 h-3" />
+                            <span>ID: {res.id}</span>
+                            {res.bookingNumber && (
+                                <>
+                                    <span className="opacity-30">•</span>
+                                    <span>{res.bookingNumber}</span>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
-                <div className="flex-grow" />
-                <div className="flex gap-2">
+
+                {isAdmin && res.status !== ReservationStatus.CheckedOut && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-full h-9 w-9"
+                        onClick={handleDelete}
+                        disabled={actions.remove.isPending}
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </Button>
+                )}
+            </div>
+
+            {/* Sticky Action Bar (Fixed at bottom on mobile, inline-ish but fixed-ready on desktop) */}
+            <div className="fixed bottom-0 left-0 right-0 sm:bottom-6 sm:left-auto sm:right-6 sm:w-auto z-50 p-4 sm:p-0 pointer-events-none">
+                <div className="bg-white/80 backdrop-blur-xl border border-slate-200/50 p-2 rounded-2xl sm:rounded-2xl shadow-2xl flex items-center gap-2 pointer-events-auto max-w-lg mx-auto sm:mx-0">
                     {res.status === ReservationStatus.Draft && (
                         <>
                             <Button
-                                variant="secondary"
+                                variant="outline"
                                 onClick={() => setIsEditOpen(true)}
-                                className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 shadow-sm"
+                                className="flex-1 sm:flex-none h-11 sm:h-10 rounded-xl border-slate-200 font-black text-[10px] uppercase tracking-widest text-slate-600"
                             >
-                                <Pencil className="w-4 h-4 me-2" />
-                                {t('common.edit', 'Edit')}
+                                <Pencil className="w-3.5 h-3.5 mr-2" />
+                                {t('common.edit')}
                             </Button>
                             <Button
-                                className="bg-slate-900"
+                                className="flex-1 sm:flex-none h-11 sm:h-10 rounded-xl bg-slate-900 border-none font-black text-[10px] uppercase tracking-widest"
                                 onClick={() => handleConfirmFlow()}
                                 disabled={!!(getPlan.isPending || (res.checkInDate && new Date(res.checkInDate) < new Date(new Date().setHours(0, 0, 0, 0))))}
-                                title={res.checkInDate && new Date(res.checkInDate) < new Date(new Date().setHours(0, 0, 0, 0))
-                                    ? t('errors.past_date', 'الحجز لم يتم لأن تاريخ الوصول في الماضي')
-                                    : t('reservations.confirm', 'Confirm')}
                             >
-                                {getPlan.isPending ? <Loader2 className="animate-spin w-4 h-4 me-2" /> : <CheckCircle2 className="w-4 h-4 me-2" />}
-                                {t('reservations.confirm', 'Confirm')}
+                                {getPlan.isPending ? <Loader2 className="animate-spin w-3.5 h-3.5 mr-2" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-2" />}
+                                {t('reservations.confirm')}
                             </Button>
                         </>
                     )}
+
                     {res.status === ReservationStatus.Confirmed && (
-                        <Button
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                            onClick={() => handleAction('check-in', (id) => actions.checkIn.mutateAsync({ id, businessDate }))}
-                            disabled={actions.checkIn.isPending || res.checkInDate.split('T')[0] !== businessDate}
-                            title={res.checkInDate.split('T')[0] !== businessDate
-                                ? t('reservations.check_in_restricted', 'Check-in only allowed on scheduled date')
-                                : t('reservations.check_in', 'Check-in')}
-                        >
-                            <LogIn className="w-4 h-4 me-2" />
-                            {t('reservations.check_in', 'Check-in')}
-                        </Button>
+                        <>
+                            <Button
+                                className="flex-1 sm:flex-none h-11 sm:h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-black text-[10px] uppercase tracking-widest"
+                                onClick={() => handleAction('check-in', (id) => actions.checkIn.mutateAsync({ id, businessDate }))}
+                                disabled={actions.checkIn.isPending || res.checkInDate.split('T')[0] !== businessDate}
+                            >
+                                <LogIn className="w-3.5 h-3.5 mr-2" />
+                                {t('reservations.check_in')}
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                className="flex-1 sm:flex-none h-11 sm:h-10 rounded-xl border-slate-200 font-black text-[10px] uppercase tracking-widest text-slate-500"
+                                onClick={() => handleAction('no-show', (id) => actions.noShow.mutateAsync({ id, businessDate }))}
+                                disabled={actions.noShow.isPending || res.checkInDate.split('T')[0] !== businessDate}
+                            >
+                                <UserMinus className="w-3.5 h-3.5 mr-2" />
+                                {t('reservations.no_show')}
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                className="flex-none w-11 sm:w-10 h-11 sm:h-10 rounded-xl text-rose-500 hover:bg-rose-50"
+                                onClick={() => handleAction('cancel', (id) => actions.cancel.mutateAsync(id))}
+                                disabled={actions.cancel.isPending || user?.role === 'Receptionist'}
+                            >
+                                <XCircle className="w-5 h-5" />
+                            </Button>
+                        </>
                     )}
+
                     {res.status === ReservationStatus.CheckedIn && (
                         <Button
-                            variant="secondary"
+                            className="w-full sm:w-auto h-11 sm:h-10 rounded-xl bg-purple-600 hover:bg-purple-700 font-black text-[10px] uppercase tracking-widest"
                             onClick={() => handleAction('check-out', (id) => actions.checkOut.mutateAsync({ id, businessDate }))}
                             disabled={actions.checkOut.isPending || (!isAdmin && res.checkOutDate.split('T')[0] !== businessDate)}
-                            title={!isAdmin && res.checkOutDate.split('T')[0] !== businessDate
-                                ? t('reservations.check_out_restricted', 'Check-out only allowed on scheduled date')
-                                : t('reservations.check_out', 'Check-out') + (isAdmin ? ' (Admin Bypass)' : '')}
                         >
-                            <LogOut className="w-4 h-4 me-2" />
-                            {t('reservations.check_out', 'Check-out')}
-                        </Button>
-                    )}
-                    {/* State-guarded Actions */}
-                    {([ReservationStatus.Draft, ReservationStatus.Confirmed] as ReservationStatus[]).includes(res.status) && (
-                        <Button
-                            variant="outline"
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => handleAction('cancel', (id) => actions.cancel.mutateAsync(id))}
-                            disabled={actions.cancel.isPending || user?.role === 'Receptionist'}
-                            title={user?.role === 'Receptionist'
-                                ? t('reservations.cancel_restricted', 'Cancel only allowed for Managers/Admins')
-                                : t('reservations.cancel', 'Cancel')}
-                        >
-                            <XCircle className="w-4 h-4 me-2" />
-                            {t('reservations.cancel', 'Cancel')}
+                            <LogOut className="w-3.5 h-3.5 mr-2" />
+                            {t('reservations.check_out')}
                         </Button>
                     )}
 
-                    {res.status === ReservationStatus.Confirmed && (
-                        <Button
-                            variant="outline"
-                            onClick={() => handleAction('no-show', (id) => actions.noShow.mutateAsync({ id, businessDate }))}
-                            disabled={actions.noShow.isPending || res.checkInDate.split('T')[0] !== businessDate}
-                            title={res.checkInDate.split('T')[0] !== businessDate
-                                ? t('reservations.no_show_restricted', 'No-show only allowed on scheduled arrival date')
-                                : t('reservations.no_show', 'No-show')}
-                        >
-                            <UserMinus className="w-4 h-4 me-2" />
-                            {t('reservations.no_show', 'No-show')}
-                        </Button>
+                    {res.status === ReservationStatus.CheckedOut && (
+                        <div className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
+                            {t('status.completed', 'Reservation Completed')}
+                        </div>
                     )}
-                    {/* Delete Button - Admin only, hidden for CheckedOut status */}
-                    {isAdmin && res.status !== ReservationStatus.CheckedOut && (
-                        <Button
-                            variant="ghost"
-                            className="text-slate-400 hover:text-red-600 hover:bg-red-50"
-                            onClick={handleDelete}
-                            disabled={actions.remove.isPending}
-                            title={t('common.delete', 'Delete')}
-                        >
-                            <Trash2 className="w-5 h-5" />
-                        </Button>
-                    )}
-                </div >
-            </div >
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Stay Info */}
-                    <Card className="border-none shadow-sm">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-500 uppercase flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                {t('reservations.stay_info', 'Stay Information')}
+                    {/* Stay Info Card - Compact Horizontal */}
+                    <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                        <CardHeader className="p-4 pb-2 bg-slate-50/50">
+                            <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <CalendarDays className="w-3.5 h-3.5" />
+                                {t('reservations.stay_info')}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <div className="text-xs text-slate-400">{t('reservations.check_in', 'Check-in')}</div>
-                                    <div className="text-lg font-semibold">{res.checkInDate}</div>
+                        <CardContent className="p-4 space-y-4">
+                            <div className="flex items-center justify-between text-center">
+                                <div className="flex-1">
+                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">{t('reservations.check_in')}</div>
+                                    <div className="text-sm sm:text-lg font-black text-slate-900 leading-tight">
+                                        {format(parseISO(res.checkInDate), 'MMM d, yyyy')}
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="text-xs text-slate-400">{t('reservations.check_out', 'Check-out')}</div>
-                                    <div className="text-lg font-semibold">{res.checkOutDate}</div>
+                                <div className="px-4 text-slate-200">
+                                    <ChevronRight className="w-5 h-5" />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">{t('reservations.check_out')}</div>
+                                    <div className="text-sm sm:text-lg font-black text-slate-900 leading-tight">
+                                        {format(parseISO(res.checkOutDate), 'MMM d, yyyy')}
+                                    </div>
                                 </div>
                             </div>
+
                             {res.hotelName && (
-                                <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                                    <Building2 className="w-4 h-4 text-slate-400" />
-                                    <div>
-                                        <div className="text-xs text-slate-400">{t('reservations.hotel_name', 'Hotel')}</div>
-                                        <div className="text-sm font-medium">{res.hotelName}</div>
-                                    </div>
+                                <div className="flex items-center gap-2 pt-3 border-t border-slate-50">
+                                    <MapPin className="w-3.5 h-3.5 text-slate-300" />
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight truncate">
+                                        {res.hotelName}
+                                    </span>
                                 </div>
                             )}
                         </CardContent>
                     </Card>
 
-                    {/* Rooms */}
-                    <Card className="border-none shadow-sm">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-500 uppercase flex items-center gap-2">
-                                <Bed className="w-4 h-4" />
-                                {t('reservations.rooms_and_rates', 'Rooms & Rates')}
+                    {/* Rooms Card - Optimized Density */}
+                    <Card className="border border-slate-100 shadow-sm rounded-2xl bg-white overflow-hidden">
+                        <CardHeader className="p-4 pb-2 bg-slate-50/50">
+                            <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <Bed className="w-3.5 h-3.5" />
+                                {t('reservations.rooms_and_rates')}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {res.lines.map((line) => (
-                                    <div key={line.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                        <div>
-                                            <div className="font-semibold text-slate-900">
-                                                {line.roomNumber ? `Room ${line.roomNumber}` : t('reservations.unassigned', 'Unassigned Room')}
-                                            </div>
-                                            <div className="text-sm text-slate-500">{line.roomTypeName} • {line.nights} {t('common.nights', 'nights')}</div>
+                        <CardContent className="p-4 space-y-2">
+                            {res.lines.map((line) => (
+                                <div key={line.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-50 bg-slate-50/30 group hover:bg-slate-50 transition-colors">
+                                    <div className="space-y-0.5">
+                                        <div className="font-black text-slate-900 text-xs sm:text-sm uppercase tracking-tight">
+                                            {line.roomNumber ? `Room ${line.roomNumber}` : t('reservations.unassigned')}
                                         </div>
-                                        <div className="text-right">
-                                            <div className="font-medium">
-                                                {formatCurrency(line.ratePerNight, res.currency)} / night
-                                            </div>
-                                            <div className="text-xs text-slate-400">
-                                                Total: {formatCurrency(line.lineTotal, res.currency)}
-                                            </div>
+                                        <div className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5 uppercase tracking-tighter">
+                                            <span>{line.roomTypeName}</span>
+                                            <span className="opacity-30">•</span>
+                                            <span className="text-blue-600">{line.nights} {t('common.nights')}</span>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="text-right">
+                                        <div className="font-black text-slate-900 text-xs sm:text-sm">
+                                            {formatCurrency(line.ratePerNight, res.currency)}
+                                            <span className="text-[8px] text-slate-300 ml-1 font-bold">/N</span>
+                                        </div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                            {formatCurrency(line.lineTotal, res.currency)}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </CardContent>
                     </Card>
                 </div>
@@ -363,29 +393,32 @@ const ReservationDetails = () => {
                 {/* Sidebar */}
                 <div className="space-y-6">
                     {/* Guest Section */}
-                    <Card className="border-none shadow-sm h-fit">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-500 uppercase flex items-center gap-2">
-                                <User className="w-4 h-4" />
-                                {t('reservations.guest_details', 'Guest Details')}
+                    <Card className="border border-slate-100 shadow-sm rounded-2xl bg-white overflow-hidden h-fit">
+                        <CardHeader className="p-4 pb-2 bg-slate-50/50">
+                            <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <User className="w-3.5 h-3.5" />
+                                {t('reservations.guest_details')}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="flex items-center gap-3">
-                                <Info className="w-4 h-4 text-slate-300" />
-                                <span className="text-sm font-medium">{res.guestName}</span>
+                        <CardContent className="p-4 space-y-4">
+                            <div className="space-y-1">
+                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t('reservations.guest')}</div>
+                                <div className="text-sm font-black text-slate-900 uppercase">{res.guestName}</div>
                             </div>
                             {res.phone && (
-                                <div className="flex items-center gap-3">
-                                    <Phone className="w-4 h-4 text-slate-300" />
-                                    <span className="text-sm">{res.phone}</span>
+                                <div className="space-y-1">
+                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t('common.phone')}</div>
+                                    <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                        <Phone className="w-3.5 h-3.5 text-slate-300" />
+                                        <span>{res.phone}</span>
+                                    </div>
                                 </div>
                             )}
                         </CardContent>
                     </Card>
 
-                    {/* Payment Section - Premium Redesign */}
-                    <Card className="border-none shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden relative h-fit group">
+                    {/* Payment Section - Premium High-Density */}
+                    <Card className="border-none shadow-xl bg-slate-900 text-white rounded-2xl overflow-hidden relative h-fit group">
                         {/* Decorative glow effect */}
                         <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-colors" />
 
@@ -465,16 +498,16 @@ const ReservationDetails = () => {
 
 
 
-                    {/* Attachments Section - Lazy Loaded */}
+                    {/* Attachments Section - Simplified */}
                     {(res.source === ReservationSource.PDF || res.source === ReservationSource.WhatsApp) && (
-                        <Card className="border-none shadow-sm h-fit">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-slate-500 uppercase flex items-center gap-2">
-                                    <FileText className="w-4 h-4" />
-                                    {t('attachments.title', 'Attachments')}
+                        <Card className="border border-slate-100 shadow-sm rounded-2xl bg-white overflow-hidden h-fit">
+                            <CardHeader className="p-4 pb-2 bg-slate-50/50">
+                                <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <FileText className="w-3.5 h-3.5" />
+                                    {t('attachments.title')}
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-4">
                                 {attachment ? (
                                     <AttachmentList
                                         attachments={[attachment]}
@@ -483,17 +516,17 @@ const ReservationDetails = () => {
                                 ) : (
                                     <Button
                                         variant="outline"
-                                        className="w-full border-dashed border-2 py-8 h-auto flex flex-col gap-2 group hover:border-slate-300 hover:bg-slate-50 transition-all"
+                                        className="w-full h-12 rounded-xl border-dashed border-slate-200 flex items-center justify-center gap-3 hover:bg-slate-50 transition-all border-2"
                                         onClick={handleViewPdf}
                                         disabled={isCheckingAttachment}
                                     >
                                         {isCheckingAttachment ? (
-                                            <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                                            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
                                         ) : (
-                                            <FileText className="w-6 h-6 text-slate-300 group-hover:text-slate-400" />
+                                            <FileText className="w-4 h-4 text-slate-400" />
                                         )}
-                                        <span className="text-xs font-semibold text-slate-500">
-                                            {isCheckingAttachment ? t('common.checking', 'Checking...') : t('attachments.view_pdf_doc', 'Retrieve PDF Document')}
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">
+                                            {isCheckingAttachment ? t('common.checking') : t('attachments.view_pdf_doc')}
                                         </span>
                                     </Button>
                                 )}
@@ -556,7 +589,7 @@ const ReservationDetails = () => {
                             await applyPlan.mutateAsync(req);
                             setIsAllocationOpen(false);
                             refetch();
-                        } catch (err) {
+                        } catch (_err) {
                             // Error toast is handled by hook
                         }
                     }}
@@ -578,12 +611,12 @@ const ReservationDetailsSkeleton = () => (
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-                <Skeleton className="h-32 w-full rounded-xl" />
-                <Skeleton className="h-64 w-full rounded-xl" />
+                <Skeleton className="h-40 w-full rounded-2xl" />
+                <Skeleton className="h-64 w-full rounded-2xl" />
             </div>
             <div className="space-y-6">
-                <Skeleton className="h-32 w-full rounded-xl" />
-                <Skeleton className="h-40 w-full rounded-xl" />
+                <Skeleton className="h-40 w-full rounded-2xl" />
+                <Skeleton className="h-48 w-full rounded-2xl" />
             </div>
         </div>
     </div>

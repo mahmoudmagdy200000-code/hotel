@@ -28,44 +28,11 @@ import {
 } from 'lucide-react';
 import { ReservationStatus } from '@/api/types/reservations';
 import { cn, formatCurrency } from '@/lib/utils';
+import { StatusBadge } from '@/components/reservation/StatusBadge';
 
 
 
-const StatusBadge = ({ status }: { status: ReservationStatus }) => {
-    const { t } = useTranslation();
-    let style = "bg-slate-50 text-slate-400 border-slate-100";
-    let label = "Unknown";
 
-    switch (status) {
-        case ReservationStatus.Confirmed:
-            style = "bg-blue-50 text-blue-600 border-blue-100";
-            label = t('status.confirmed', 'Confirmed');
-            break;
-        case ReservationStatus.Draft:
-            style = "bg-slate-100 text-slate-600 border-slate-200";
-            label = t('status.draft', 'Draft');
-            break;
-        case ReservationStatus.CheckedIn:
-            style = "bg-emerald-50 text-emerald-600 border-emerald-100";
-            label = t('status.checked_in', 'Checked In');
-            break;
-        case ReservationStatus.CheckedOut:
-            style = "bg-purple-50 text-purple-600 border-purple-100";
-            label = t('status.checked_out', 'Checked Out');
-            break;
-        case ReservationStatus.Cancelled:
-        case ReservationStatus.NoShow:
-            style = "bg-rose-50 text-rose-600 border-rose-100";
-            label = status === ReservationStatus.Cancelled ? t('status.cancelled', 'Cancelled') : t('status.no_show', 'No Show');
-            break;
-    }
-
-    return (
-        <span className={`inline-flex px-1.5 py-0.5 rounded-sm font-black text-[9px] uppercase tracking-widest border ${style}`}>
-            {label}
-        </span>
-    );
-};
 
 const ReservationsList = () => {
     const { t } = useTranslation();
