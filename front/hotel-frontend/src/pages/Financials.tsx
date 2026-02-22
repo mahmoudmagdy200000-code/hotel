@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBusinessDate } from '@/app/providers/BusinessDateProvider';
 import { format, startOfMonth, endOfMonth, parseISO, addMonths, subMonths, setMonth, setYear } from 'date-fns';
@@ -6,8 +6,6 @@ import { ar, enUS } from 'date-fns/locale';
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,16 +26,14 @@ import {
     ChevronRight,
     BarChart3,
     Bed,
-    Building,
     TrendingUp,
     Zap,
-    ChevronUp,
-    ChevronDown,
-    LayoutGrid,
     PieChart
 } from 'lucide-react';
 import { useRevenueSummary } from '@/hooks/dashboard';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn, extractErrorMessage } from '@/lib/utils';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { CurrencyCodeEnum, CurrencyCodeLabels } from '@/api/types/reservations';
 import type { GetRevenueSummaryParams, RevenueSummaryItemDto } from '@/api/types/dashboard';
 
@@ -167,9 +163,9 @@ const Financials = () => {
                                 <SelectTrigger className="h-8 border-none shadow-none font-black text-[10px] uppercase tracking-widest w-[110px] focus:ring-0">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl border-none shadow-2xl">
+                                <SelectContent>
                                     {months.map(m => (
-                                        <SelectItem key={m.value} value={m.value} className="text-[10px] font-black uppercase">{m.label}</SelectItem>
+                                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -177,9 +173,9 @@ const Financials = () => {
                                 <SelectTrigger className="h-8 border-none shadow-none font-bold text-[10px] w-[70px] focus:ring-0">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl border-none shadow-2xl">
+                                <SelectContent>
                                     {years.map(y => (
-                                        <SelectItem key={y} value={y} className="text-[10px] font-bold">{y}</SelectItem>
+                                        <SelectItem key={y} value={y}>{y}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

@@ -11,13 +11,9 @@ import {
     Coffee,
     HelpCircle,
     DollarSign,
-    ChevronDown,
-    LayoutGrid,
     PieChart,
     Building2,
     RefreshCw,
-    Search,
-    ChevronRight,
     AlertCircle,
     Briefcase
 } from 'lucide-react';
@@ -49,6 +45,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
+    Dialog,
+    DialogContent,
     DialogTrigger,
 } from '@/components/ui/dialog';
 import {
