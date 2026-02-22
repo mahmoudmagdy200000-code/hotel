@@ -44,7 +44,8 @@ public class ReceptionActions : EndpointGroupBase
             CheckInDate = request.CheckInDate,
             CheckOutDate = request.CheckOutDate,
             BalanceDue = request.BalanceDue,
-            PaymentMethod = request.PaymentMethod
+            PaymentMethod = request.PaymentMethod,
+            CurrencyCode = request.CurrencyCode
         });
         return TypedResults.Ok(result);
     }
@@ -102,7 +103,7 @@ public class GetConfirmationPlanRequest
     public List<int>? ReservationIds { get; set; }
 }
 
-public record CheckInRequest(DateOnly BusinessDate, string? GuestName = null, string? Phone = null, string? BookingNumber = null, DateTime? CheckInDate = null, DateTime? CheckOutDate = null, decimal? BalanceDue = null, PaymentMethod? PaymentMethod = null);
+public record CheckInRequest(DateOnly BusinessDate, string? GuestName = null, string? Phone = null, string? BookingNumber = null, DateTime? CheckInDate = null, DateTime? CheckOutDate = null, decimal? BalanceDue = null, PaymentMethod? PaymentMethod = null, CurrencyCode? CurrencyCode = null);
 public record CheckOutRequest(DateOnly BusinessDate, decimal? BalanceDue = null, PaymentMethod? PaymentMethod = null);
 public record CancelRequest(string? Reason);
 public record NoShowRequest(string? Reason, DateOnly BusinessDate);

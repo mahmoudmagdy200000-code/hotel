@@ -1,24 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRoomTypes, useRoomTypeActions } from '@/hooks/rooms/useRoomTypes';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-} from '@/components/ui/table';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter,
     DialogDescription
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -31,10 +21,12 @@ import {
     DollarSign,
     CheckCircle2,
     XCircle,
-    AlertCircle
+    AlertCircle,
+    Layers,
+    TrendingUp
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { formatCurrency, extractErrorMessage } from '@/lib/utils';
+import { cn, formatCurrency, extractErrorMessage } from '@/lib/utils';
 import type { RoomTypeDto, CreateRoomTypeCommand, UpdateRoomTypeCommand } from '@/api/types/rooms';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -91,10 +83,23 @@ const RoomTypes = () => {
             }
             setIsDialogOpen(false);
             resetForm();
+            toast.success(editingRoomType ? t('common.update_success') : t('common.create_success'));
         } catch (err: unknown) {
             setError(extractErrorMessage(err) || 'Operation failed');
         }
     };
+
+    // Summary Statistics
+    const stats = useMemo(() => {
+        if (!roomTypes) return { total: 0, active: 0, totalCapacity: 0, avgRate: 0 };
+        const activeTypes = roomTypes.filter(rt => rt.isActive);
+        return {
+            total: roomTypes.length,
+            active: activeTypes.length,
+            totalCapacity: roomTypes.reduce((sum, rt) => sum + rt.capacity, 0),
+            avgRate: activeTypes.length > 0 ? roomTypes.reduce((sum, rt) => sum + rt.defaultRate, 0) / roomTypes.length : 0
+        };
+    }, [roomTypes]);
 
     // Confirmation Dialog State
     const [confirmState, setConfirmState] = useState<{
@@ -131,178 +136,200 @@ const RoomTypes = () => {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                        {t('rooms.room_types', 'Room Types')}
+        <div className="space-y-6 pb-20 sm:pb-6 font-sans">
+            {/* Header */}
+            <div className="flex flex-row items-center justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none uppercase">
+                        {t('rooms.room_types', 'Categories')}
                     </h1>
-                    <p className="text-slate-500 mt-1">
-                        {t('rooms.room_types_desc', 'Manage global room categories, capacities and default pricing.')}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm bg-slate-100 text-slate-600">
+                            {t('rooms.config', 'Configuration')}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            {stats.total} {t('rooms.templates', 'Templates Defined')}
+                        </div>
+                    </div>
                 </div>
-                <Button onClick={() => handleOpenDialog()} className="bg-slate-900">
+
+                <Button
+                    onClick={() => handleOpenDialog()}
+                    className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-200 transition-all active:scale-95 font-black text-[10px] uppercase tracking-widest"
+                >
                     <Plus className="w-4 h-4 me-2" />
-                    {t('rooms.add_room_type', 'Add Room Type')}
+                    {t('rooms.add_room_type', 'Add Type')}
                 </Button>
             </div>
 
-            <Card className="border-none shadow-sm overflow-hidden">
-                <Table>
-                    <TableHeader className="bg-slate-50">
-                        <TableRow>
-                            <TableHead>{t('common.name', 'Name')}</TableHead>
-                            <TableHead>{t('rooms.capacity', 'Capacity')}</TableHead>
-                            <TableHead>{t('rooms.default_rate', 'Default Rate')}</TableHead>
-                            <TableHead>{t('common.status', 'Status')}</TableHead>
-                            <TableHead className="text-right">{t('common.actions', 'Actions')}</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            Array(3).fill(0).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell colSpan={5}><Skeleton className="h-12 w-full" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : isError ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="h-32 text-center text-red-500 font-medium">
-                                    {t('common.error_loading', 'Error loading room types')}
-                                </TableCell>
-                            </TableRow>
-                        ) : roomTypes?.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="h-32 text-center text-slate-500">
-                                    {t('rooms.no_room_types', 'No room types defined yet.')}
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            roomTypes?.map((rt) => (
-                                <TableRow key={rt.id} className="group">
-                                    <TableCell className="font-semibold text-slate-900 capitalize">{rt.name}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <Users className="w-4 h-4 text-slate-400" />
-                                            <span>{rt.capacity} {t('common.guests', 'Guests')}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="font-medium text-emerald-700">
-                                            {formatCurrency(rt.defaultRate)}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {rt.isActive ? (
-                                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-100 flex w-fit items-center gap-1">
-                                                <CheckCircle2 className="w-3 h-3" />
-                                                {t('common.active', 'Active')}
-                                            </Badge>
-                                        ) : (
-                                            <Badge variant="outline" className="bg-slate-50 text-slate-400 border-slate-100 flex w-fit items-center gap-1">
-                                                <XCircle className="w-3 h-3" />
-                                                {t('common.inactive', 'Inactive')}
-                                            </Badge>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(rt)}>
-                                                <Edit className="w-4 h-4 text-slate-400 group-hover:text-slate-900" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(rt.id)}>
-                                                <Trash2 className="w-4 h-4 text-slate-400 group-hover:text-red-600" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </Card>
+            {/* Summary Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <MetricCard
+                    title={t('rooms.stat_types', 'Total Types')}
+                    value={stats.total}
+                    icon={<Layers className="w-4 h-4 text-blue-600" />}
+                    bg="bg-blue-50"
+                    isLoading={isLoading}
+                />
+                <MetricCard
+                    title={t('rooms.stat_active_types', 'Active Categories')}
+                    value={stats.active}
+                    icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+                    bg="bg-emerald-50"
+                    isLoading={isLoading}
+                />
+                <MetricCard
+                    title={t('rooms.stat_capacity', 'Est. Capacity')}
+                    value={stats.totalCapacity}
+                    icon={<Users className="w-4 h-4 text-purple-600" />}
+                    bg="bg-purple-50"
+                    isLoading={isLoading}
+                />
+                <MetricCard
+                    title={t('rooms.stat_avg_rate', 'Avg. Base Rate')}
+                    value={formatCurrency(stats.avgRate)}
+                    icon={<TrendingUp className="w-4 h-4 text-amber-600" />}
+                    bg="bg-amber-50"
+                    isLoading={isLoading}
+                    isCurrency
+                />
+            </div>
 
-            {/* Create/Edit Dialog */}
+            {/* Content */}
+            {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Array(4).fill(0).map((_, i) => (
+                        <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+                    ))}
+                </div>
+            ) : isError ? (
+                <Alert variant="destructive" className="rounded-2xl border-rose-200 bg-rose-50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle className="font-black uppercase tracking-widest text-[10px]">{t('common.error')}</AlertTitle>
+                    <AlertDescription className="text-sm font-medium">
+                        {t('common.error_loading_room_types', 'Failed to synchronize category templates.')}
+                    </AlertDescription>
+                </Alert>
+            ) : roomTypes?.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+                    <Layers className="w-12 h-12 text-slate-200 mb-4" />
+                    <p className="text-sm font-black text-slate-400 uppercase tracking-widest">{t('rooms.no_room_types')}</p>
+                    <Button variant="link" onClick={() => handleOpenDialog()} className="text-blue-600 font-bold mt-2">
+                        {t('rooms.define_first_type')}
+                    </Button>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {roomTypes?.map((rt) => (
+                        <RoomTypeCard
+                            key={rt.id}
+                            roomType={rt}
+                            onEdit={() => handleOpenDialog(rt)}
+                            onDelete={() => handleDelete(rt.id)}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {/* Dialog */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {editingRoomType ? t('rooms.edit_room_type', 'Edit Room Type') : t('rooms.create_room_type', 'Create Room Type')}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {editingRoomType ? t('rooms.edit_type_desc', 'Update room type specifications and pricing.') : t('rooms.create_type_desc', 'Define a new category of rooms for the property.')}
-                        </DialogDescription>
-                    </DialogHeader>
+                <DialogContent className="sm:max-w-[480px] rounded-3xl border-none shadow-2xl p-0 overflow-hidden">
+                    <div className="bg-slate-900 p-6 text-white relative">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-black uppercase tracking-tight">
+                                {editingRoomType ? t('rooms.edit_room_type') : t('rooms.create_room_type')}
+                            </DialogTitle>
+                            <DialogDescription className="text-slate-400 font-medium text-sm">
+                                {editingRoomType ? t('rooms.edit_type_desc') : t('rooms.create_type_desc')}
+                            </DialogDescription>
+                        </DialogHeader>
+                    </div>
 
-                    {error && (
-                        <Alert variant="destructive" className="py-2 px-3">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle className="text-xs uppercase font-bold tracking-wider">{t('common.error', 'Error')}</AlertTitle>
-                            <AlertDescription className="text-xs">
-                                {error}
-                            </AlertDescription>
-                        </Alert>
-                    )}
+                    <div className="p-6">
+                        {error && (
+                            <Alert variant="destructive" className="mb-4 rounded-xl py-2 px-3">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle className="text-[10px] uppercase font-black tracking-widest">{t('common.error')}</AlertTitle>
+                                <AlertDescription className="text-xs font-bold">{error}</AlertDescription>
+                            </Alert>
+                        )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">{t('common.name', 'Name')}</Label>
-                            <Input
-                                id="name"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="e.g. Deluxe Double"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <Label htmlFor="capacity">{t('rooms.capacity', 'Capacity')}</Label>
+                                <Label htmlFor="name" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('common.name')}</Label>
                                 <Input
-                                    id="capacity"
-                                    type="number"
-                                    value={formData.capacity}
-                                    onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })}
-                                    min={1}
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="h-11 rounded-xl border-slate-200 font-bold focus:ring-slate-900"
+                                    placeholder="e.g. Deluxe Double"
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="rate">{t('rooms.default_rate', 'Default Rate')}</Label>
-                                <div className="relative">
-                                    <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
-                                    <Input
-                                        id="rate"
-                                        type="number"
-                                        className="pl-8"
-                                        value={formData.defaultRate}
-                                        onChange={(e) => setFormData({ ...formData, defaultRate: Number(e.target.value) })}
-                                        min={0}
-                                        step="0.01"
-                                        required
-                                    />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="capacity" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('rooms.capacity')}</Label>
+                                    <div className="relative">
+                                        <Users className="absolute left-3 top-3.5 h-4 w-4 text-slate-300" />
+                                        <Input
+                                            id="capacity"
+                                            type="number"
+                                            value={formData.capacity}
+                                            onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })}
+                                            className="h-11 rounded-xl border-slate-200 font-bold pl-10 focus:ring-slate-900"
+                                            min={1}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="rate" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('rooms.default_rate')}</Label>
+                                    <div className="relative">
+                                        <DollarSign className="absolute left-3 top-3.5 h-4 w-4 text-slate-300" />
+                                        <Input
+                                            id="rate"
+                                            type="number"
+                                            className="h-11 rounded-xl border-slate-200 font-bold pl-10 focus:ring-slate-900"
+                                            value={formData.defaultRate}
+                                            onChange={(e) => setFormData({ ...formData, defaultRate: Number(e.target.value) })}
+                                            min={0}
+                                            step="0.01"
+                                            required
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-2 pt-2">
-                            <input
-                                type="checkbox"
-                                id="isActive"
-                                checked={formData.isActive}
-                                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                className="rounded border-slate-300 text-slate-900 focus:ring-slate-900"
-                            />
-                            <Label htmlFor="isActive" className="cursor-pointer">{t('common.active', 'Active')}</Label>
-                        </div>
-                        <DialogFooter className="pt-4">
-                            <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>
-                                {t('common.cancel', 'Cancel')}
-                            </Button>
-                            <Button type="submit" className="bg-slate-900" disabled={actions.create.isPending || actions.update.isPending}>
-                                {editingRoomType ? t('common.save_changes', 'Save Changes') : t('common.create', 'Create')}
-                            </Button>
-                        </DialogFooter>
-                    </form>
+
+                            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div className="flex-1">
+                                    <Label htmlFor="isActive" className="text-xs font-black text-slate-900 uppercase tracking-tight block cursor-pointer">
+                                        {t('common.active_status', 'Available for New Rooms')}
+                                    </Label>
+                                    <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-tighter">
+                                        {t('rooms.active_type_desc', 'Inactive types cannot be assigned to new physical rooms.')}
+                                    </p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    id="isActive"
+                                    checked={formData.isActive}
+                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                    className="w-5 h-5 rounded-lg border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 pt-2">
+                                <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="h-12 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400">
+                                    {t('common.cancel')}
+                                </Button>
+                                <Button type="submit" className="h-12 px-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-slate-200" disabled={actions.create.isPending || actions.update.isPending}>
+                                    {editingRoomType ? t('common.save_changes') : t('common.create_template', 'Create Template')}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
                 </DialogContent>
             </Dialog>
 
@@ -313,10 +340,96 @@ const RoomTypes = () => {
                 onConfirm={confirmState.onConfirm}
                 onCancel={closeConfirm}
                 variant={confirmState.variant}
-                confirmText={t('common.confirm', 'Confirm')}
-                cancelText={t('common.cancel', 'Cancel')}
+                confirmText={t('common.confirm')}
+                cancelText={t('common.cancel')}
             />
         </div>
+    );
+};
+
+const MetricCard = ({ title, value, icon, bg, isLoading, isCurrency }: { title: string, value: string | number, icon: React.ReactNode, bg: string, isLoading: boolean, isCurrency?: boolean }) => (
+    <Card className="border border-slate-100 shadow-sm transition-all hover:bg-white active:scale-[0.98] group rounded-2xl overflow-hidden bg-white/50 backdrop-blur-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
+            <CardTitle className="text-[9px] uppercase font-black text-slate-400 tracking-wider group-hover:text-slate-600 transition-colors">
+                {title}
+            </CardTitle>
+            <div className={`${bg} p-1.5 rounded-lg group-hover:shadow-sm transition-all`}>
+                {icon}
+            </div>
+        </CardHeader>
+        <CardContent className="p-3 pt-0">
+            {isLoading ? <Skeleton className="h-7 w-12" /> : (
+                <div className={cn("font-black text-slate-900 leading-none tracking-tight", isCurrency ? "text-lg sm:text-xl" : "text-xl sm:text-2xl")}>
+                    {value}
+                </div>
+            )}
+        </CardContent>
+    </Card>
+);
+
+const RoomTypeCard = ({ roomType, onEdit, onDelete }: { roomType: RoomTypeDto, onEdit: () => void, onDelete: () => void }) => {
+    const { t } = useTranslation();
+
+    return (
+        <Card className="border border-slate-100 shadow-sm rounded-[12px] overflow-hidden bg-white hover:border-slate-300 transition-all group flex flex-col h-full">
+            <div className="p-4 flex-1 space-y-4">
+                <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-sm shadow-xl shadow-slate-200">
+                            {roomType.name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div className="space-y-0.5">
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight truncate max-w-[140px]">{roomType.name}</h3>
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <Users className="w-2.5 h-2.5" />
+                                <span>{roomType.capacity} {t('common.guests_plural', 'Guests')}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        {roomType.isActive ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border bg-emerald-50 text-emerald-600 border-emerald-100">
+                                <CheckCircle2 className="w-2.5 h-2.5" />
+                                {t('common.active')}
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border bg-slate-50 text-slate-400 border-slate-100">
+                                <XCircle className="w-2.5 h-2.5" />
+                                {t('common.inactive')}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="pt-2">
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-lg font-black text-slate-900">{formatCurrency(roomType.defaultRate)}</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">/ {t('common.night')}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-2 bg-slate-50/50 border-t border-slate-100 flex items-center gap-1">
+                <Button
+                    variant="ghost"
+                    className="flex-1 h-11 rounded-xl hover:bg-white hover:shadow-sm font-black text-[9px] uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-all"
+                    onClick={onEdit}
+                >
+                    <Edit className="w-3.5 h-3.5 mr-2" />
+                    {t('common.edit')}
+                </Button>
+                <div className="w-px h-4 bg-slate-200" />
+                <Button
+                    variant="ghost"
+                    className="flex-1 h-11 rounded-xl hover:bg-white hover:shadow-sm font-black text-[9px] uppercase tracking-widest text-slate-500 hover:text-rose-600 transition-all"
+                    onClick={onDelete}
+                >
+                    <Trash2 className="w-3.5 h-3.5 mr-2" />
+                    {t('common.delete')}
+                </Button>
+            </div>
+        </Card>
     );
 };
 
