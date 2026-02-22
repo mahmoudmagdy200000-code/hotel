@@ -43,15 +43,14 @@ public class GetPdfFileStreamQueryHandler : IRequestHandler<GetPdfFileStreamQuer
         var match = Regex.Match(reservation.Notes ?? string.Empty, @"Internal Path:\s*([^|\r\n]+)");
         if (!match.Success) throw new ConflictException("PDF file path not found.");
 
-        var filePath = match.Groups[1].Value.Trim();
+        var filePath = match.Groups[1].Value.Trim().Replace('\\', '/');
         var fileNameMatch = Regex.Match(reservation.Notes ?? string.Empty, @"File:\s*([^\s|]+)");
         var fileName = fileNameMatch.Success ? fileNameMatch.Groups[1].Value : "reservation.pdf";
 
         if (!File.Exists(filePath)) 
         {
             // Try relative resolution
-            var relativePath = filePath;
-            var resolvedPath = Path.Combine(_environment.ContentRootPath, relativePath);
+            var resolvedPath = Path.Combine(_environment.ContentRootPath, filePath);
 
             if (File.Exists(resolvedPath))
             {
@@ -60,7 +59,8 @@ public class GetPdfFileStreamQueryHandler : IRequestHandler<GetPdfFileStreamQuer
             else
             {
                 // Fallback to filename in current uploads
-                var fileNameOnly = Path.GetFileName(filePath);
+                var fileNameOnly = filePath.Split('/').Last();
+                if (string.IsNullOrEmpty(fileNameOnly)) fileNameOnly = filePath.Split('\\').Last();
                 var fallbackPath = Path.Combine(_environment.ContentRootPath, "App_Data", "Uploads", fileNameOnly);
 
                 if (File.Exists(fallbackPath))

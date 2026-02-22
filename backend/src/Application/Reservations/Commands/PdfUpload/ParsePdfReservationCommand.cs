@@ -87,7 +87,7 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
             throw new ConflictException("Stored PDF path not found in reservation notes.");
         }
 
-        var filePath = match.Groups[1].Value.Trim();
+        var filePath = match.Groups[1].Value.Trim().Replace('\\', '/');
         Console.Error.WriteLine($"[DEBUG] PDF Path: {filePath}");
 
         try

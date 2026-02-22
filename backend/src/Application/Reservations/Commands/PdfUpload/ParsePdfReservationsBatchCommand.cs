@@ -172,7 +172,7 @@ public class ParsePdfReservationsBatchCommandHandler
                     "Stored PDF path not found in reservation notes.", correlationId, cancellationToken);
             }
 
-            var filePath = match.Groups[1].Value.Trim();
+            var filePath = match.Groups[1].Value.Trim().Replace('\\', '/');
 
             // Call parser
             var parseOutput = await _parser.ParseAsync(filePath, cancellationToken);

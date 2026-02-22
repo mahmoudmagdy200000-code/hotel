@@ -27,7 +27,7 @@ public class LocalFileStorage : IFileStorage
         using var fileStream = new FileStream(fullPath, FileMode.Create);
         await content.CopyToAsync(fileStream, cancellationToken);
 
-        // Return relative path for portability
-        return Path.Combine("App_Data", "Uploads", uniqueFileName);
+        // Return relative path for portability (always use forward slashes for cross-platform safety)
+        return $"App_Data/Uploads/{uniqueFileName}";
     }
 }

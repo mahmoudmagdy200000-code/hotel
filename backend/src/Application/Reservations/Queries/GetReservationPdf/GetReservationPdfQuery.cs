@@ -46,14 +46,13 @@ public class GetReservationPdfQueryHandler : IRequestHandler<GetReservationPdfQu
             throw new NotFoundException("PDF path marker not found in reservation notes.");
         }
 
-        var filePath = pathMatch.Groups[1].Value.Trim();
+        var filePath = pathMatch.Groups[1].Value.Trim().Replace('\\', '/');
 
         // Portability Fix: Handle both absolute and relative paths
         if (!File.Exists(filePath))
         {
             // If it's a relative path starting with App_Data, resolve it relative to ContentRoot
-            var relativePath = filePath;
-            var resolvedPath = Path.Combine(_environment.ContentRootPath, relativePath);
+            var resolvedPath = Path.Combine(_environment.ContentRootPath, filePath);
 
             if (File.Exists(resolvedPath))
             {
@@ -62,7 +61,8 @@ public class GetReservationPdfQueryHandler : IRequestHandler<GetReservationPdfQu
             else
             {
                 // Last ditch effort: try filename only in current uploads dir
-                var fileNameOnly = Path.GetFileName(filePath);
+                var fileNameOnly = filePath.Split('/').Last();
+                if (string.IsNullOrEmpty(fileNameOnly)) fileNameOnly = filePath.Split('\\').Last();
                 var fallbackPath = Path.Combine(_environment.ContentRootPath, "App_Data", "Uploads", fileNameOnly);
 
                 if (File.Exists(fallbackPath))
