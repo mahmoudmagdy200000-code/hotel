@@ -131,8 +131,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                 <Hotel className="text-white w-5 h-5" />
                             </div>
                             <div className="flex flex-col leading-none">
-                                <span className="text-sm font-black tracking-tighter text-white">RAS SEDR</span>
-                                <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">Property Mgmt</span>
+                                <span className="text-sm font-black tracking-tighter text-white">HOTEL</span>
+                                <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">PMS</span>
                             </div>
                         </div>
                         <button
