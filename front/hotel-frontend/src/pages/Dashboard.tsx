@@ -25,6 +25,7 @@ import {
     LayoutGrid,
     Target
 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/dashboard';
 import { formatCurrency, cn } from '@/lib/utils';
 import { CurrencyCodeEnum, CurrencyCodeLabels } from '@/api/types/reservations';
@@ -151,16 +152,6 @@ const Dashboard = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <div className="hidden xs:flex items-center p-1 bg-white/5 border border-white/5 rounded-xl">
-                                <button
-                                    className={`px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'Forecast' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                                    onClick={() => setMode('Forecast')}
-                                >FCAST</button>
-                                <button
-                                    className={`px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'Actual' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                                    onClick={() => setMode('Actual')}
-                                >ACTUAL</button>
-                            </div>
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -173,11 +164,25 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
+                    <div className="flex flex-col xl:flex-row items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
+                        {/* Data Mode Selector */}
+                        <div className="flex items-center p-1 bg-white/10 rounded-xl h-10 w-full xl:w-auto">
+                            <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="w-full">
+                                <TabsList className="grid w-full grid-cols-2 bg-transparent border-none h-8 p-0">
+                                    <TabsTrigger value="Actual" className="text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all">
+                                        Actuals
+                                    </TabsTrigger>
+                                    <TabsTrigger value="Forecast" className="text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg transition-all">
+                                        Forecast
+                                    </TabsTrigger>
+                                </TabsList>
+                            </Tabs>
+                        </div>
+
                         {/* Temporal Control */}
-                        <div className="flex items-center gap-1 bg-white rounded-xl p-1 shadow-inner h-10 w-full sm:w-auto">
+                        <div className="flex items-center gap-1 bg-white rounded-xl p-1 shadow-inner h-10 w-full xl:w-auto">
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={handlePrevWeek}><ChevronLeft className="w-3.5 h-3.5" /></Button>
-                            <div className="flex-1 text-center px-4">
+                            <div className="flex-1 text-center px-4 min-w-[120px]">
                                 <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">
                                     {dateRange.from.substring(5)} → {dateRange.to.substring(5)}
                                 </span>
@@ -186,11 +191,11 @@ const Dashboard = () => {
                         </div>
 
                         {/* Currency Matrix */}
-                        <div className="flex items-center p-1 bg-white/10 rounded-xl h-10 w-full sm:w-auto">
+                        <div className="flex items-center p-1 bg-white/10 rounded-xl h-10 w-full xl:w-auto">
                             {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
                                 <button
                                     key={code}
-                                    className={`flex-1 sm:flex-none px-4 py-1.5 text-[10px] font-black rounded-lg transition-all ${selectedCurrency === parseInt(code, 10) ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                                    className={`flex-1 xl:flex-none px-4 py-1.5 text-[10px] font-black rounded-lg transition-all ${selectedCurrency === parseInt(code, 10) ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                                     onClick={() => handleCurrencyChange(parseInt(code, 10))}
                                 >{label}</button>
                             ))}
