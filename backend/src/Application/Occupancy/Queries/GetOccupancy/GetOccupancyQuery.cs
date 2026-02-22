@@ -28,7 +28,8 @@ public class GetOccupancyQueryHandler : IRequestHandler<GetOccupancyQuery, Occup
         var to = request.To ?? DateTime.Today.AddDays(7);
         if (to <= from) to = from.AddDays(1); // Ensure at least 1 night
 
-        var nightsCount = (int)(to - from).TotalDays;
+        // +1 because 'to' is inclusive (frontend sends endOfMonth)
+        var nightsCount = (int)(to - from).TotalDays + 1;
         
         var mode = (request.Mode ?? "Forecast").ToLower();
         var groupBy = (request.GroupBy ?? "both").ToLower();
@@ -44,13 +45,13 @@ public class GetOccupancyQueryHandler : IRequestHandler<GetOccupancyQuery, Occup
             : new[] { ReservationStatus.Confirmed, ReservationStatus.CheckedIn, ReservationStatus.CheckedOut };
 
         // 4. Fetch Data
-        // Overlap: CheckIn < To AND CheckOut > From
+        // Overlap: CheckIn <= To AND CheckOut > From (to is inclusive)
         var reservations = await _context.Reservations
             .AsNoTracking()
             .Include(x => x.Lines)
                 .ThenInclude(l => l.RoomType)
             .Where(x => statuses.Contains(x.Status) &&
-                        x.CheckInDate < to &&
+                        x.CheckInDate <= to &&
                         x.CheckOutDate > from)
             .ToListAsync(cancellationToken);
 
