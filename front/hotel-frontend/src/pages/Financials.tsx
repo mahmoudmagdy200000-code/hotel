@@ -1,10 +1,4 @@
-/**
- * Financials Page - FE-7
- * Displays revenue summary for a date range with daily or room-type breakdown
- * Data from: GET /api/financials/revenue
- */
-
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBusinessDate } from '@/app/providers/BusinessDateProvider';
 import { format, startOfMonth, endOfMonth, parseISO, addMonths, subMonths, setMonth, setYear } from 'date-fns';
@@ -35,11 +29,22 @@ import {
     BarChart3,
     Bed,
     Building,
+    TrendingUp,
+    Zap,
+    ChevronUp,
+    ChevronDown,
+    LayoutGrid,
+    PieChart
 } from 'lucide-react';
 import { useRevenueSummary } from '@/hooks/dashboard';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { CurrencyCodeEnum, CurrencyCodeLabels } from '@/api/types/reservations';
 import type { GetRevenueSummaryParams, RevenueSummaryItemDto } from '@/api/types/dashboard';
+
+/**
+ * Ras Sedr Rental - Financial Analysis
+ * High-density operational dashboard for revenue tracking and forecasting.
+ */
 
 const formatYYYYMMDD = (date: Date) => {
     return format(date, 'yyyy-MM-dd');
@@ -50,15 +55,10 @@ const Financials = () => {
     const { businessDate } = useBusinessDate();
     const dateLocale = i18n.language === 'ar' ? ar : enUS;
 
-    // Use a single date to represent the currently viewed month
     const [currentDate, setCurrentDate] = useState<Date>(() => parseISO(businessDate));
 
-    // Calculate start and end of the month
     const fromDate = startOfMonth(currentDate);
     const toDate = endOfMonth(currentDate);
-
-    const formattedFrom = formatYYYYMMDD(fromDate);
-    const formattedTo = formatYYYYMMDD(toDate);
 
     const [mode, setMode] = useState<'forecast' | 'actual'>('actual');
     const [groupBy, setGroupBy] = useState<'day' | 'roomType' | 'room' | 'branch' | 'hotel'>('day');
@@ -73,36 +73,20 @@ const Financials = () => {
     };
 
     const params: GetRevenueSummaryParams = useMemo(() => ({
-        from: formattedFrom,
-        to: formattedTo,
+        from: formatYYYYMMDD(fromDate),
+        to: formatYYYYMMDD(toDate),
         mode,
         groupBy,
         currency: selectedCurrency,
-    }), [formattedFrom, formattedTo, mode, groupBy, selectedCurrency]);
+    }), [fromDate, toDate, mode, groupBy, selectedCurrency]);
 
     const { data, isLoading, isError, error, refetch, isFetching } = useRevenueSummary(params);
 
-    const handlePrevMonth = () => {
-        setCurrentDate(prev => subMonths(prev, 1));
-    };
-
-    const handleNextMonth = () => {
-        setCurrentDate(prev => addMonths(prev, 1));
-    };
-
-    const handleMonthSelect = (monthStr: string) => {
-        const monthIndex = parseInt(monthStr);
-        setCurrentDate(prev => setMonth(prev, monthIndex));
-    };
-
-    const handleYearSelect = (yearStr: string) => {
-        const year = parseInt(yearStr);
-        setCurrentDate(prev => setYear(prev, year));
-    };
-
-    const handleThisMonth = () => {
-        setCurrentDate(new Date());
-    };
+    const handlePrevMonth = () => setCurrentDate(prev => subMonths(prev, 1));
+    const handleNextMonth = () => setCurrentDate(prev => addMonths(prev, 1));
+    const handleMonthSelect = (val: string) => setCurrentDate(prev => setMonth(prev, parseInt(val)));
+    const handleYearSelect = (val: string) => setCurrentDate(prev => setYear(prev, parseInt(val)));
+    const handleThisMonth = () => setCurrentDate(parseISO(businessDate));
 
     const months = Array.from({ length: 12 }, (_, i) => ({
         value: i.toString(),
@@ -112,382 +96,362 @@ const Financials = () => {
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 6 }, (_, i) => (currentYear - 2 + i).toString());
 
-    // Calculate max revenue for visual bar
     const maxRevenue = useMemo(() => {
         if (!data?.items || data.items.length === 0) return 0;
         return Math.max(...data.items.map(item => item.revenue));
     }, [data]);
 
-    // Format date label for display
+    const bestItem = useMemo(() => {
+        if (!data?.items || data.items.length === 0) return null;
+        return [...data.items].sort((a, b) => b.revenue - a.revenue)[0];
+    }, [data]);
+
     const formatLabel = (key: string) => {
         if (groupBy === 'day') {
             const date = new Date(key);
-            const dayName = date.toLocaleDateString(undefined, { weekday: 'short' });
-            return `${key} (${dayName})`;
+            return format(date, 'eee, MMM d', { locale: dateLocale });
         }
-        if (groupBy === 'roomType') {
-            return key;
-        }
-        if (groupBy === 'room') {
-            return `${t('financials.room')} ${key}`;
-        }
-        if (groupBy === 'branch') {
-            return key;
-        }
-        if (groupBy === 'hotel') {
-            return key;
-        }
+        if (groupBy === 'room') return `${t('financials.room')} ${key}`;
         return key;
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col gap-4">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <h1 className="text-2xl font-bold text-slate-800">
-                        {t('financials.title')}
-                    </h1>
+        <div className="space-y-6 pb-24 sm:pb-8">
+            {/* STICKY ACTION BAR */}
+            <div className="sticky top-0 z-40 -mx-4 sm:mx-0 px-4 py-4 bg-slate-900 shadow-2xl sm:rounded-3xl sm:static sm:bg-slate-900 border-b border-white/5">
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-white/10 rounded-2xl border border-white/5 backdrop-blur-xl">
+                                <DollarSign className="w-5 h-5 text-emerald-400" />
+                            </div>
+                            <div>
+                                <h1 className="text-sm font-black text-white uppercase tracking-tighter leading-none">
+                                    {t('financials.title')}
+                                </h1>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isFetching ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                        {format(currentDate, 'MMMM yyyy', { locale: dateLocale })}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div className="text-sm text-slate-500 font-medium bg-slate-50 px-3 py-1 rounded-md border border-slate-200">
-                        {formattedFrom} <span className="text-slate-300 mx-2">→</span> {formattedTo}
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 active:scale-[0.98]"
+                                onClick={handleThisMonth}
+                                title="Current Month"
+                            >
+                                <Zap className="h-3.5 w-3.5 text-amber-400" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                onClick={() => refetch()}
+                                disabled={isFetching}
+                            >
+                                <RefreshCw className={cn("h-3.5 w-3.5 text-slate-400", isFetching && "animate-spin text-emerald-400")} />
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
+                        <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-inner h-10">
+                            <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="h-8 w-8 rounded-lg hover:bg-slate-100"><ChevronLeft className="w-4 h-4" /></Button>
+                            <Select value={currentDate.getMonth().toString()} onValueChange={handleMonthSelect}>
+                                <SelectTrigger className="h-8 border-none shadow-none font-black text-[10px] uppercase tracking-widest w-[110px] focus:ring-0">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl border-none shadow-2xl">
+                                    {months.map(m => (
+                                        <SelectItem key={m.value} value={m.value} className="text-[10px] font-black uppercase">{m.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select value={currentDate.getFullYear().toString()} onValueChange={handleYearSelect}>
+                                <SelectTrigger className="h-8 border-none shadow-none font-bold text-[10px] w-[70px] focus:ring-0">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl border-none shadow-2xl">
+                                    {years.map(y => (
+                                        <SelectItem key={y} value={y} className="text-[10px] font-bold">{y}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="icon" onClick={handleNextMonth} className="h-8 w-8 rounded-lg hover:bg-slate-100"><ChevronRight className="w-4 h-4" /></Button>
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="flex flex-1 sm:flex-none p-1 bg-white/10 rounded-xl border border-white/5">
+                                <button
+                                    className={cn(
+                                        "flex-1 px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all",
+                                        mode === 'actual' ? "bg-white text-slate-900 shadow-lg" : "text-white/40 hover:text-white"
+                                    )}
+                                    onClick={() => setMode('actual')}
+                                >
+                                    {t('dashboard.actual')}
+                                </button>
+                                <button
+                                    className={cn(
+                                        "flex-1 px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all",
+                                        mode === 'forecast' ? "bg-white text-slate-900 shadow-lg" : "text-white/40 hover:text-white"
+                                    )}
+                                    onClick={() => setMode('forecast')}
+                                >
+                                    {t('dashboard.forecast')}
+                                </button>
+                            </div>
+
+                            <div className="flex p-1 bg-white rounded-xl shadow-inner h-10">
+                                {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
+                                    <button
+                                        key={code}
+                                        className={cn(
+                                            "px-4 py-1.5 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all",
+                                            selectedCurrency === parseInt(code, 10) ? "bg-slate-900 text-white shadow-xl" : "text-slate-400 hover:text-slate-600"
+                                        )}
+                                        onClick={() => handleCurrencyChange(parseInt(code, 10))}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Unified Toolbar */}
-                <div className="flex flex-col xl:flex-row gap-3 bg-white p-2 rounded-xl border border-slate-200 shadow-sm items-start xl:items-center justify-between">
-
-                    {/* Left: Date Navigation */}
-                    <div className="flex items-center gap-1 w-full xl:w-auto overflow-x-auto pb-1 xl:pb-0 hide-scrollbar">
-                        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-100">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handlePrevMonth}
-                                disabled={isFetching}
-                                className="h-8 w-8 hover:bg-white hover:shadow-sm"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                            </Button>
-
-                            <Select value={currentDate.getMonth().toString()} onValueChange={handleMonthSelect}>
-                                <SelectTrigger className="w-[110px] h-8 border-none shadow-none focus:ring-0 bg-transparent font-medium">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {months.map(m => (
-                                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={currentDate.getFullYear().toString()} onValueChange={handleYearSelect}>
-                                <SelectTrigger className="w-[80px] h-8 border-none shadow-none focus:ring-0 bg-transparent font-medium text-slate-500">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {years.map(year => (
-                                        <SelectItem key={year} value={year}>{year}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleNextMonth}
-                                disabled={isFetching}
-                                className="h-8 w-8 hover:bg-white hover:shadow-sm"
-                            >
-                                <ChevronRight className="w-4 h-4" />
-                            </Button>
-                        </div>
-
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleThisMonth}
-                            disabled={isFetching}
-                            className="h-10 ml-2 border-slate-200 hover:bg-slate-50 hover:text-emerald-600"
-                        >
-                            <CalendarDays className="w-4 h-4 me-2" />
-                            {t('common.today', 'Today')}
-                        </Button>
+            {/* KPI GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Card className="bg-emerald-600 border-none rounded-[32px] shadow-2xl overflow-hidden relative group">
+                    <div className="absolute right-0 top-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                        <TrendingUp className="w-24 h-24 text-white" />
                     </div>
+                    <CardContent className="p-6 relative">
+                        <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest block mb-1">
+                            {t('financials.total_revenue')}
+                        </span>
+                        {isLoading ? (
+                            <Skeleton className="h-10 w-32 bg-emerald-500" />
+                        ) : (
+                            <div className="flex items-baseline gap-2">
+                                <h2 className="text-3xl font-black text-white tracking-tighter leading-none">
+                                    {data ? formatCurrency(data.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]) : '—'}
+                                </h2>
+                                <span className="text-[10px] font-black text-emerald-200 uppercase tracking-widest bg-emerald-700/50 px-2 py-0.5 rounded-lg border border-white/10">
+                                    {mode}
+                                </span>
+                            </div>
+                        )}
+                        <p className="text-[10px] font-bold text-emerald-200/60 mt-4 uppercase tracking-tighter leading-tight">
+                            {mode === 'forecast' ? "Projected gross earnings based on active reservations." : "Realized income from checked-in/out stays."}
+                        </p>
+                    </CardContent>
+                </Card>
 
-                    {/* Right: View Settings */}
-                    <div className="flex items-center gap-3 w-full xl:w-auto flex-wrap sm:flex-nowrap">
+                <Card className="bg-slate-900 border-none rounded-[32px] shadow-2xl overflow-hidden relative group">
+                    <CardContent className="p-6">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                            Best Performing Segment
+                        </span>
+                        {isLoading ? (
+                            <Skeleton className="h-10 w-32 bg-slate-800" />
+                        ) : bestItem ? (
+                            <div className="space-y-4">
+                                <div className="flex flex-col">
+                                    <h2 className="text-2xl font-black text-white tracking-tight leading-none uppercase truncate">
+                                        {formatLabel(bestItem.key)}
+                                    </h2>
+                                    <span className="text-xs font-black text-emerald-400 mt-1 uppercase tracking-widest">
+                                        {formatCurrency(bestItem.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
+                                    </div>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase">PEAK</span>
+                                </div>
+                            </div>
+                        ) : <p className="text-slate-500 font-black text-sm uppercase">N/A</p>}
+                    </CardContent>
+                </Card>
 
-                        {/* Mode Toggle */}
-                        <div className="flex rounded-lg bg-slate-100 p-1 border border-slate-200">
-                            <button
-                                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${mode === 'forecast'
-                                    ? 'bg-white text-slate-900 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700'
-                                    }`}
-                                onClick={() => setMode('forecast')}
-                            >
-                                {t('dashboard.forecast')}
-                            </button>
-                            <button
-                                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${mode === 'actual'
-                                    ? 'bg-white text-slate-900 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700'
-                                    }`}
-                                onClick={() => setMode('actual')}
-                            >
-                                {t('dashboard.actual')}
-                            </button>
+                <Card className="bg-white border-slate-100 rounded-[32px] shadow-sm overflow-hidden flex flex-col justify-center">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Analysis Mode</span>
+                            <div className="p-2 bg-blue-50 rounded-xl">
+                                <PieChart className="w-4 h-4 text-blue-500" />
+                            </div>
                         </div>
-
-                        {/* Currency */}
-                        <div className="flex rounded-lg bg-slate-100 p-1 border border-slate-200">
-                            {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
+                        <div className="flex flex-wrap gap-1.5">
+                            {['day', 'roomType', 'room', 'hotel'].map((g) => (
                                 <button
-                                    key={code}
-                                    className={`px-2.5 py-1.5 text-xs font-bold rounded-md transition-all ${selectedCurrency === parseInt(code, 10)
-                                        ? 'bg-emerald-600 text-white shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-700'
-                                        }`}
-                                    onClick={() => handleCurrencyChange(parseInt(code, 10))}
+                                    key={g}
+                                    className={cn(
+                                        "px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border rounded-lg transition-all",
+                                        groupBy === g ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-400 border-slate-100 hover:border-slate-300"
+                                    )}
+                                    onClick={() => setGroupBy(g as any)}
                                 >
-                                    {label}
+                                    {g === 'roomType' ? 'Type' : g}
                                 </button>
                             ))}
                         </div>
+                    </CardContent>
+                </Card>
+            </div>
 
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => refetch()}
-                            disabled={isFetching}
-                            className="h-10 w-10 shrink-0 border-slate-200"
-                            title={t('common.retry')}
-                        >
-                            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+            {/* ERROR DISPLAY */}
+            {isError && (
+                <Alert variant="destructive" className="rounded-[24px] border-rose-100 bg-rose-50 p-6 shadow-sm">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-white rounded-2xl shadow-sm"><AlertCircle className="w-6 h-6 text-rose-500" /></div>
+                            <div className="space-y-1">
+                                <AlertTitle className="text-sm font-black text-rose-900 uppercase tracking-tighter">Sync Denied</AlertTitle>
+                                <AlertDescription className="text-xs font-bold text-rose-600/70">{extractErrorMessage(error)}</AlertDescription>
+                            </div>
+                        </div>
+                        <Button variant="outline" className="h-10 px-6 rounded-xl border-rose-200 text-rose-700 bg-white font-black text-[10px] uppercase tracking-widest" onClick={() => refetch()}>
+                            Re-establish Sync
                         </Button>
                     </div>
-                </div>
-            </div>
-
-            {/* Date Range Display */}
-            <div className="text-sm text-slate-500">
-                {formattedFrom} → {formattedTo}
-            </div>
-
-            {/* Error State */}
-            {isError && (
-                <Card className="border-red-200 bg-red-50">
-                    <CardContent className="py-6">
-                        <div className="flex items-center gap-3 text-red-700">
-                            <AlertCircle className="w-5 h-5" />
-                            <span>{t('common.error_loading')}: {(error as Error)?.message || 'Unknown error'}</span>
-                            <Button variant="outline" size="sm" onClick={() => refetch()}>
-                                {t('common.retry')}
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                </Alert>
             )}
 
-            {/* Total Revenue Card */}
-            <Card className="border-none shadow-sm bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
-                <CardContent className="pt-6">
-                    {isLoading ? (
-                        <div className="space-y-3">
-                            <Skeleton className="h-4 w-32 bg-emerald-400/50" />
-                            <Skeleton className="h-10 w-48 bg-emerald-400/50" />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="flex items-center gap-2 text-emerald-100 mb-2">
-                                <DollarSign className="w-5 h-5" />
-                                <span className="text-sm font-medium">{t('financials.total_revenue')}</span>
-                            </div>
-                            <div className="text-4xl font-bold">
-                                {data ? formatCurrency(data.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]) : '—'}
-                            </div>
-                            <div className="text-sm text-emerald-100 mt-2">
-                                {mode === 'forecast' ? t('financials.forecast_note') : t('financials.actual_note')}
-                            </div>
-                        </>
-                    )}
-                </CardContent>
-            </Card>
+            {/* REVENUE BREAKDOWN */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between px-2">
+                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-slate-400" />
+                        {groupBy === 'day' ? t('financials.daily_revenue') : t(`financials.revenue_by_${groupBy}`)}
+                    </h2>
+                    <Button variant="ghost" className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-50 rounded-xl px-4">
+                        PDF Audit Report
+                    </Button>
+                </div>
 
-            {/* Group By Toggle */}
-            <div className="flex items-center gap-4">
-                <span className="text-sm text-slate-600">{t('financials.group_by')}:</span>
-                <div className="flex rounded-lg border border-slate-200 overflow-hidden">
-                    <button
-                        className={`px-4 py-2 text-sm transition-colors flex items-center gap-2 ${groupBy === 'day'
-                            ? 'bg-slate-900 text-white'
-                            : 'bg-white text-slate-600 hover:bg-slate-50'
-                            }`}
-                        onClick={() => setGroupBy('day')}
-                    >
-                        <CalendarDays className="w-4 h-4" />
-                        {t('financials.by_day')}
-                    </button>
-                    <button
-                        className={`px-4 py-2 text-sm transition-colors flex items-center gap-2 ${groupBy === 'roomType'
-                            ? 'bg-slate-900 text-white'
-                            : 'bg-white text-slate-600 hover:bg-slate-50'
-                            }`}
-                        onClick={() => setGroupBy('roomType')}
-                    >
-                        <Building2 className="w-4 h-4" />
-                        {t('financials.by_room_type')}
-                    </button>
-                    <button
-                        className={`px-4 py-2 text-sm transition-colors flex items-center gap-2 ${groupBy === 'room'
-                            ? 'bg-slate-900 text-white'
-                            : 'bg-white text-slate-600 hover:bg-slate-50'
-                            }`}
-                        onClick={() => setGroupBy('room')}
-                    >
-                        <Bed className="w-4 h-4" />
-                        {t('financials.by_room')}
-                    </button>
-                    <button
-                        className={`px-4 py-2 text-sm transition-colors flex items-center gap-2 ${groupBy === 'branch'
-                            ? 'bg-slate-900 text-white'
-                            : 'bg-white text-slate-600 hover:bg-slate-50 border-s border-slate-200'
-                            }`}
-                        onClick={() => setGroupBy('branch')}
-                    >
-                        <Building2 className="w-4 h-4" />
-                        {t('financials.by_branch')}
-                    </button>
-                    <button
-                        className={`px-4 py-2 text-sm transition-colors flex items-center gap-2 ${groupBy === 'hotel'
-                            ? 'bg-slate-900 text-white'
-                            : 'bg-white text-slate-600 hover:bg-slate-50 border-s border-slate-200'
-                            }`}
-                        onClick={() => setGroupBy('hotel')}
-                    >
-                        <Building className="w-4 h-4" />
-                        {t('financials.by_hotel', 'By Hotel')}
-                    </button>
+                <div className="space-y-3">
+                    {isLoading ? (
+                        [...Array(6)].map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)
+                    ) : data?.items && data.items.length > 0 ? (
+                        data.items.map((item: RevenueSummaryItemDto) => {
+                            const share = data.totalRevenue > 0 ? (item.revenue / data.totalRevenue) * 100 : 0;
+                            return (
+                                <Card key={item.key} className="border-none shadow-sm rounded-2xl overflow-hidden bg-white active:scale-[0.99] transition-all group">
+                                    <CardContent className="p-4 sm:p-5">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 group-hover:bg-slate-900 group-hover:border-slate-900 transition-all">
+                                                    {groupBy === 'day' ? <CalendarDays className="w-4 h-4 text-slate-400 group-hover:text-white" /> :
+                                                        groupBy === 'room' ? <Bed className="w-4 h-4 text-slate-400 group-hover:text-white" /> :
+                                                            <Building2 className="w-4 h-4 text-slate-400 group-hover:text-white" />}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-black text-slate-900 uppercase text-xs tracking-tight">{formatLabel(item.key)}</h3>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                        {share.toFixed(1)}% of period capture
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-lg font-black text-slate-900 tracking-tighter">
+                                                    {formatCurrency(item.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                                </p>
+                                                <div className="flex items-center justify-end gap-1 text-[8px] font-black text-emerald-600 uppercase">
+                                                    <TrendingUp className="w-2.5 h-2.5" /> Stable
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="relative pt-4">
+                                            <div className="h-2 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-1000"
+                                                    style={{ width: maxRevenue > 0 ? `${(item.revenue / maxRevenue) * 100}%` : '0%' }}
+                                                />
+                                            </div>
+                                            {item.revenue === maxRevenue && (
+                                                <Badge className="absolute -top-1 right-0 bg-slate-900 text-white font-black text-[7px] uppercase tracking-widest px-2 py-0 border-none shadow-lg">
+                                                    Peak Output
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })
+                    ) : (
+                        <div className="py-24 text-center flex flex-col items-center justify-center space-y-4 bg-slate-50/50 rounded-[40px] border border-dashed border-slate-200">
+                            <div className="p-8 bg-white rounded-full shadow-inner opacity-60">
+                                <BarChart3 className="w-12 h-12 text-slate-200" />
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                    {t('financials.no_data_for_range', 'No Revenue Capture')}
+                                </h3>
+                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter opacity-60">
+                                    Revenue records or forecasts are missing for this period.
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Revenue Breakdown */}
-            <Card className="border-none shadow-sm">
-                <CardHeader>
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-slate-800">
-                        <BarChart3 className="w-5 h-5 text-slate-400" />
-                        {groupBy === 'day'
-                            ? t('financials.daily_revenue')
-                            : groupBy === 'roomType'
-                                ? t('financials.revenue_by_room_type')
-                                : groupBy === 'room'
-                                    ? t('financials.revenue_by_room')
-                                    : groupBy === 'branch'
-                                        ? t('financials.revenue_by_branch')
-                                        : t('financials.revenue_by_hotel', 'Revenue by Hotel')}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="space-y-3">
-                            {Array.from({ length: 7 }).map((_, i) => (
-                                <Skeleton key={i} className="h-10 w-full" />
-                            ))}
-                        </div>
-                    ) : data?.items && data.items.length > 0 ? (
-                        <div className="space-y-3">
-                            {data.items.map((item: RevenueSummaryItemDto) => (
-                                <div key={item.key} className="flex items-center gap-4">
-                                    <div className="w-32 sm:w-48 text-sm text-slate-700 truncate">
-                                        {formatLabel(item.key)}
-                                    </div>
-                                    <div className="flex-1 relative">
-                                        <div className="h-8 bg-slate-100 rounded-lg overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-lg transition-all duration-500"
-                                                style={{
-                                                    width: maxRevenue > 0 ? `${(item.revenue / maxRevenue) * 100}%` : '0%'
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="w-28 text-right font-medium text-slate-900">
-                                        {item.revenue !== null && item.revenue !== undefined ? formatCurrency(item.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]) : '—'}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="h-32 flex items-center justify-center text-slate-400">
-                            {t('financials.no_data_for_range')}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Summary Table */}
-            {data?.items && data.items.length > 0 && (
-                <Card className="border-none shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="text-lg font-semibold text-slate-800">
-                            {t('financials.detailed_breakdown')}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-slate-200">
-                                        <th className="text-left py-3 px-4 font-medium text-slate-600">
-                                            {groupBy === 'day'
-                                                ? t('financials.date')
-                                                : groupBy === 'roomType'
-                                                    ? t('financials.room_type')
-                                                    : groupBy === 'room'
-                                                        ? t('financials.room')
-                                                        : groupBy === 'branch'
-                                                            ? t('financials.branch')
-                                                            : t('financials.hotel', 'Hotel')}
-                                        </th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('financials.revenue')}</th>
-                                        <th className="text-right py-3 px-4 font-medium text-slate-600">{t('financials.share')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.items.map((item: RevenueSummaryItemDto) => {
-                                        // CLIENT_CALCULATED_OK - Revenue share is for visualization only
-                                        const share = data.totalRevenue > 0
-                                            ? ((item.revenue / data.totalRevenue) * 100).toFixed(1)
-                                            : '0.0';
-                                        return (
-                                            <tr key={item.key} className="border-b border-slate-100 hover:bg-slate-50">
-                                                <td className="py-3 px-4 font-medium text-slate-900">
-                                                    {formatLabel(item.key)}
-                                                </td>
-                                                <td className="py-3 px-4 text-right text-slate-700">
-                                                    {formatCurrency(item.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
-                                                </td>
-                                                <td className="py-3 px-4 text-right text-slate-500">
+            {/* DETAILED SUMMARY TABLE (DESKTOP) */}
+            {!isLoading && data?.items && data.items.length > 0 && (
+                <div className="hidden lg:block space-y-4 pt-8">
+                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter px-2">Detailed Integrity Audit</h2>
+                    <div className="rounded-[28px] border border-slate-100 bg-white overflow-hidden shadow-sm">
+                        <table className="w-full">
+                            <thead className="bg-slate-50/50">
+                                <tr className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                    <th className="py-5 px-8 text-left">{t('financials.date')} / Segment</th>
+                                    <th className="py-5 text-right">Raw Earnings</th>
+                                    <th className="py-5 px-8 text-right">Relative Weight</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {data.items.map((item: RevenueSummaryItemDto) => {
+                                    const share = data.totalRevenue > 0 ? ((item.revenue / data.totalRevenue) * 100).toFixed(1) : '0.0';
+                                    return (
+                                        <tr key={item.key} className="hover:bg-slate-50/50 transition-all group">
+                                            <td className="py-4 px-8 font-black text-slate-900 uppercase text-xs tracking-tight">
+                                                {formatLabel(item.key)}
+                                            </td>
+                                            <td className="py-4 text-right font-black text-slate-700 tracking-tighter">
+                                                {formatCurrency(item.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                            </td>
+                                            <td className="py-4 px-8 text-right">
+                                                <span className="inline-flex px-2 py-0.5 rounded-lg bg-slate-900 text-white font-black text-[9px] uppercase tracking-widest">
                                                     {share}%
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                                <tfoot>
-                                    <tr className="border-t-2 border-slate-300 bg-slate-50">
-                                        <td className="py-3 px-4 font-bold text-slate-900">{t('financials.total')}</td>
-                                        <td className="py-3 px-4 text-right font-bold text-slate-900">
-                                            {formatCurrency(data.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
-                                        </td>
-                                        <td className="py-3 px-4 text-right font-medium text-slate-500">100%</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </CardContent>
-                </Card>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                            <tfoot className="bg-slate-900 border-t-0">
+                                <tr className="text-white">
+                                    <td className="py-5 px-8 font-black uppercase text-xs tracking-widest">Aggregate Capture</td>
+                                    <td className="py-5 text-right font-black text-xl tracking-tighter text-emerald-400">
+                                        {formatCurrency(data.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                    </td>
+                                    <td className="py-5 px-8 text-right font-black text-[9px] uppercase tracking-widest text-slate-500">100.0%</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             )}
         </div>
     );
