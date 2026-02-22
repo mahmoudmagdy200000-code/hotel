@@ -35,8 +35,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Shield, Building2, Save, Loader2, Plus, Key } from "lucide-react";
+import { Users, Shield, Building2, Save, Loader2, Plus, Key, RefreshCw, UserCheck, ShieldCheck, LayoutGrid, Building } from "lucide-react";
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const UserManagement = () => {
     const { t } = useTranslation();
@@ -131,128 +133,261 @@ const UserManagement = () => {
 
     if (usersLoading || branchesLoading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+            <div className="space-y-6 animate-pulse p-4">
+                <div className="flex items-center gap-4">
+                    <Skeleton className="w-12 h-12 rounded-2xl bg-slate-100" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-6 w-48 bg-slate-100" />
+                        <Skeleton className="h-4 w-64 bg-slate-100" />
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-3xl bg-slate-50" />)}
+                </div>
+                <div className="space-y-4">
+                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 rounded-3xl bg-slate-50" />)}
+                </div>
             </div>
         );
     }
 
+    const stats = {
+        total: users?.length || 0,
+        admins: users?.filter(u => u.roles.includes('Administrator') || u.roles.includes('Owner')).length || 0,
+        receptionists: users?.filter(u => u.roles.includes('Receptionist')).length || 0,
+        unbound: users?.filter(u => !u.branchId).length || 0
+    };
+
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-slate-900 rounded-lg">
-                    <Users className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900">{t('admin.user_management', 'User Management')}</h1>
-                    <p className="text-slate-500">{t('admin.user_management_desc', 'Assign users to branches and set permissions')}</p>
-                </div>
-                <div className="ms-auto">
-                    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="bg-slate-900">
-                                <Plus className="w-4 h-4 me-2" />
-                                {t('admin.add_user', 'Add User')}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <form onSubmit={handleCreateUser}>
-                                <DialogHeader>
-                                    <DialogTitle>{t('admin.add_new_user', 'Add New User')}</DialogTitle>
-                                    <DialogDescription>
-                                        {t('admin.add_user_desc', 'Create a new staff account and assign initial role and branch.')}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="email">{t('auth.email', 'Email')}</Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            required
-                                            value={newUser.email}
-                                            onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
-                                            placeholder="staff@hotel.com"
-                                        />
+        <div className="space-y-6 pb-24 sm:pb-8">
+            {/* STICKY NAVY ACTION BAR */}
+            <div className="sticky top-0 z-40 -mx-4 sm:mx-0 px-4 py-4 bg-slate-900 shadow-2xl sm:rounded-3xl sm:static sm:bg-slate-900 border-b border-white/5">
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-white/10 rounded-2xl border border-white/5 backdrop-blur-xl">
+                                <Users className="w-5 h-5 text-blue-400" />
+                            </div>
+                            <div>
+                                <h1 className="text-sm font-black text-white uppercase tracking-tighter leading-none">
+                                    {t('admin.user_management', 'Staff Registry')}
+                                </h1>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500`} />
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                                        {t('admin.manage_access', 'Operational Access Control')}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button className="bg-blue-600 hover:bg-blue-700 h-10 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-900/40 active:scale-95 transition-all">
+                                        <Plus className="w-4 h-4 mr-1.5" />
+                                        {t('admin.add_user', 'Register Staff')}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden">
+                                    <div className="bg-slate-900 p-8 text-white">
+                                        <h2 className="text-xl font-black uppercase tracking-tighter">{t('admin.add_new_user', 'Provision User')}</h2>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">Identity Management</p>
                                     </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="password">{t('auth.password', 'Password')}</Label>
-                                        <div className="relative">
-                                            <Key className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                                    <form onSubmit={handleCreateUser} className="p-8 space-y-4">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('auth.email', 'Corporate Email')}</Label>
                                             <Input
-                                                id="password"
-                                                type="password"
+                                                type="email"
                                                 required
-                                                className="ps-10"
-                                                value={newUser.password}
-                                                onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
+                                                value={newUser.email}
+                                                onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
+                                                className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11"
+                                                placeholder="staff@viva-sedr.com"
                                             />
                                         </div>
-                                        <p className="text-[10px] text-slate-400 mt-1">
-                                            {t('admin.password_hint', 'Min 6 chars, uppercase, and digit required.')}
-                                        </p>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('auth.password', 'Master Key')}</Label>
+                                            <div className="relative">
+                                                <Key className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                                                <Input
+                                                    type="password"
+                                                    required
+                                                    className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 ps-10"
+                                                    value={newUser.password}
+                                                    onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
+                                                />
+                                            </div>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mt-1">
+                                                {t('admin.password_hint', 'Strict Policy: 6+ chars, uppercase, digit')}
+                                            </p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('auth.role', 'Authority')}</Label>
+                                                <Select value={newUser.role} onValueChange={(val) => setNewUser(prev => ({ ...prev, role: val }))}>
+                                                    <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 uppercase text-[10px]">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Administrator">{t('admin.roles.admin', 'Administrator')}</SelectItem>
+                                                        <SelectItem value="Owner">{t('admin.roles.owner', 'Owner')}</SelectItem>
+                                                        <SelectItem value="Receptionist">{t('admin.roles.receptionist', 'Receptionist')}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('admin.branch', 'Node Binding')}</Label>
+                                                <Select value={newUser.branchId} onValueChange={(val) => setNewUser(prev => ({ ...prev, branchId: val }))}>
+                                                    <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 uppercase text-[10px]">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="none">{t('common.no_branch', 'Universal Node')}</SelectItem>
+                                                        {branches?.map((branch) => (
+                                                            <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                        <div className="pt-4 flex gap-3">
+                                            <Button type="button" variant="ghost" onClick={() => setIsCreateDialogOpen(false)} className="flex-1 h-12 rounded-2xl font-black text-[11px] uppercase tracking-widest text-slate-400">Abort</Button>
+                                            <Button type="submit" disabled={createMutation.isPending} className="flex-[2] h-12 rounded-2xl bg-slate-900 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-slate-900/10">
+                                                {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : <Plus className="w-4 h-4 me-2" />}
+                                                {t('admin.create_user', 'Commit User')}
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* KPI GRID */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 px-1 sm:px-0">
+                <MetricCard
+                    title="Staff Count"
+                    value={stats.total}
+                    icon={<Users className="w-4 h-4 text-blue-600" />}
+                    bg="bg-blue-100"
+                    trend="Active Directory"
+                />
+                <MetricCard
+                    title="Authority Level"
+                    value={stats.admins}
+                    icon={<ShieldCheck className="w-4 h-4 text-emerald-600" />}
+                    bg="bg-emerald-100"
+                    trend="Admin / Owner"
+                />
+                <MetricCard
+                    title="Front Office"
+                    value={stats.receptionists}
+                    icon={<UserCheck className="w-4 h-4 text-amber-600" />}
+                    bg="bg-amber-100"
+                    trend="Receptionist"
+                />
+                <MetricCard
+                    title="Global Nodes"
+                    value={stats.unbound}
+                    icon={<LayoutGrid className="w-4 h-4 text-slate-600" />}
+                    bg="bg-slate-100"
+                    trend="Branch Isolation Off"
+                />
+            </div>
+
+            {/* STAFF REGISTRY LEDGER */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between px-2">
+                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-slate-400" />
+                        Access Matrix
+                    </h2>
+                </div>
+
+                {/* MOBILE: USER LIST CARDS */}
+                <div className="grid grid-cols-1 gap-4 sm:hidden">
+                    {users?.map((user) => {
+                        const changes = pendingChanges[user.id];
+                        const currentBranchId = changes?.branchId === undefined ? user.branchId : changes.branchId;
+                        const currentRole = changes?.roles ? changes.roles[0] : user.roles[0];
+                        const hasChanges = !!changes;
+
+                        return (
+                            <div key={user.id} className="bg-white border border-slate-100 rounded-[32px] overflow-hidden shadow-sm p-6 space-y-5 relative active:scale-[0.99] transition-all group">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-3 bg-slate-900 rounded-2xl shadow-lg shadow-slate-900/20">
+                                            <Users className="w-4 h-4 text-white" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <h3 className="font-black text-slate-900 text-sm uppercase tracking-tighter truncate">{user.email}</h3>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block truncate opacity-60">ID: {user.id}</span>
+                                        </div>
                                     </div>
-                                    <div className="grid gap-2">
-                                        <Label>{t('auth.role', 'Role')}</Label>
-                                        <Select
-                                            value={newUser.role}
-                                            onValueChange={(val) => setNewUser(prev => ({ ...prev, role: val }))}
+                                    {hasChanges && (
+                                        <Button
+                                            size="icon"
+                                            onClick={() => handleSave(user.id)}
+                                            disabled={updateMutation.isPending}
+                                            className="h-10 w-10 rounded-xl bg-blue-600 shadow-lg shadow-blue-500/30"
                                         >
-                                            <SelectTrigger>
-                                                <SelectValue />
+                                            {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                        </Button>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Assigned Role</Label>
+                                        <Select value={currentRole} onValueChange={(val) => handleRoleChange(user.id, val)}>
+                                            <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 text-xs px-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Shield className="w-3.5 h-3.5 text-slate-400" />
+                                                    <SelectValue />
+                                                </div>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="Administrator">{t('admin.roles.admin', 'Administrator')}</SelectItem>
-                                                <SelectItem value="Owner">{t('admin.roles.owner', 'Owner')}</SelectItem>
-                                                <SelectItem value="Receptionist">{t('admin.roles.receptionist', 'Receptionist')}</SelectItem>
+                                                <SelectItem value="Administrator">Administrator</SelectItem>
+                                                <SelectItem value="Owner">Owner</SelectItem>
+                                                <SelectItem value="Receptionist">Receptionist</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <div className="grid gap-2">
-                                        <Label>{t('admin.branch', 'Branch')}</Label>
-                                        <Select
-                                            value={newUser.branchId}
-                                            onValueChange={(val) => setNewUser(prev => ({ ...prev, branchId: val }))}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Branch Isolation</Label>
+                                        <Select value={currentBranchId || 'none'} onValueChange={(val) => handleBranchChange(user.id, val)}>
+                                            <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 text-xs px-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Building className="w-3.5 h-3.5 text-slate-400" />
+                                                    <SelectValue />
+                                                </div>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="none">{t('common.no_branch', 'Universal / No Branch')}</SelectItem>
+                                                <SelectItem value="none">Universal Node</SelectItem>
                                                 {branches?.map((branch) => (
-                                                    <SelectItem key={branch.id} value={branch.id}>
-                                                        {branch.name}
-                                                    </SelectItem>
+                                                    <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                 </div>
-                                <DialogFooter>
-                                    <Button type="submit" disabled={createMutation.isPending} className="w-full bg-slate-900">
-                                        {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin me-2" />}
-                                        {t('admin.create_user', 'Create User')}
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
+                            </div>
+                        );
+                    })}
                 </div>
-            </div>
 
-            <Card className="border-none shadow-sm">
-                <CardHeader>
-                    <CardTitle>{t('admin.users', 'Users')}</CardTitle>
-                    <CardDescription>{t('admin.manage_access', 'Manage staff access and locations')}</CardDescription>
-                </CardHeader>
-                <CardContent>
+                {/* DESKTOP: PREMIUM REGISTRY TABLE */}
+                <div className="hidden sm:block rounded-[32px] border border-slate-100 shadow-sm overflow-hidden bg-white">
                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{t('common.user', 'User')}</TableHead>
-                                <TableHead>{t('auth.role', 'Role')}</TableHead>
-                                <TableHead>{t('admin.branch', 'Branch')}</TableHead>
-                                <TableHead className="text-right">{t('common.actions', 'Actions')}</TableHead>
+                        <TableHeader className="bg-slate-50/50">
+                            <TableRow className="border-b border-slate-100 font-black text-[10px] uppercase tracking-widest text-slate-400">
+                                <TableHead className="px-8 py-5">Corporate Identity</TableHead>
+                                <TableHead className="py-5">Authority Role</TableHead>
+                                <TableHead className="py-5">Node Permission</TableHead>
+                                <TableHead className="py-5 pr-8 text-right">Commit</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -263,62 +398,54 @@ const UserManagement = () => {
                                 const hasChanges = !!changes;
 
                                 return (
-                                    <TableRow key={user.id}>
-                                        <TableCell>
-                                            <div className="font-medium">{user.email}</div>
-                                            <div className="text-xs text-slate-400">{user.id}</div>
+                                    <TableRow key={user.id} className="hover:bg-slate-50/50 transition-all group">
+                                        <TableCell className="px-8 py-5">
+                                            <div className="font-black text-slate-900 uppercase tracking-tighter text-xs">{user.email}</div>
+                                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 opacity-40 group-hover:opacity-100 transition-opacity">ID: {user.id}</div>
                                         </TableCell>
-                                        <TableCell>
-                                            <Select
-                                                value={currentRole}
-                                                onValueChange={(val) => handleRoleChange(user.id, val)}
-                                            >
-                                                <SelectTrigger className="w-[140px] h-9">
+                                        <TableCell className="py-5">
+                                            <Select value={currentRole} onValueChange={(val) => handleRoleChange(user.id, val)}>
+                                                <SelectTrigger className="w-[180px] h-10 rounded-xl bg-slate-50 border-transparent font-black text-[10px] uppercase tracking-widest px-4 hover:border-slate-200 transition-all focus:ring-slate-900/5">
                                                     <div className="flex items-center gap-2">
-                                                        <Shield className="w-3 h-3 text-slate-400" />
+                                                        <Shield className="w-3.5 h-3.5 text-slate-400" />
                                                         <SelectValue />
                                                     </div>
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="Administrator">{t('admin.roles.admin', 'Administrator')}</SelectItem>
-                                                    <SelectItem value="Owner">{t('admin.roles.owner', 'Owner')}</SelectItem>
-                                                    <SelectItem value="Receptionist">{t('admin.roles.receptionist', 'Receptionist')}</SelectItem>
+                                                    <SelectItem value="Administrator">Administrator</SelectItem>
+                                                    <SelectItem value="Owner">Owner</SelectItem>
+                                                    <SelectItem value="Receptionist">Receptionist</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </TableCell>
-                                        <TableCell>
-                                            <Select
-                                                value={currentBranchId || 'none'}
-                                                onValueChange={(val) => handleBranchChange(user.id, val)}
-                                            >
-                                                <SelectTrigger className="w-[200px] h-9">
+                                        <TableCell className="py-5">
+                                            <Select value={currentBranchId || 'none'} onValueChange={(val) => handleBranchChange(user.id, val)}>
+                                                <SelectTrigger className="w-[200px] h-10 rounded-xl bg-slate-50 border-transparent font-black text-[10px] uppercase tracking-widest px-4 hover:border-slate-200 transition-all focus:ring-slate-900/5">
                                                     <div className="flex items-center gap-2">
-                                                        <Building2 className="w-3 h-3 text-slate-400" />
+                                                        <Building2 className="w-3.5 h-3.5 text-slate-400" />
                                                         <SelectValue />
                                                     </div>
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="none">{t('common.no_branch', 'Universal / No Branch')}</SelectItem>
+                                                    <SelectItem value="none">Universal Access</SelectItem>
                                                     {branches?.map((branch) => (
-                                                        <SelectItem key={branch.id} value={branch.id}>
-                                                            {branch.name}
-                                                        </SelectItem>
+                                                        <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="py-5 pr-8 text-right">
                                             <Button
                                                 size="sm"
                                                 disabled={!hasChanges || updateMutation.isPending}
                                                 onClick={() => handleSave(user.id)}
-                                                className="bg-slate-900"
-                                            >
-                                                {updateMutation.isPending && (
-                                                    <Loader2 className="w-3 h-3 animate-spin me-2" />
+                                                className={cn(
+                                                    "rounded-xl h-10 px-5 font-black text-[10px] uppercase tracking-widest transition-all",
+                                                    hasChanges ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 active:scale-95" : "bg-slate-100 text-slate-400"
                                                 )}
-                                                <Save className="w-3 h-3 me-2" />
-                                                {t('common.save', 'Save')}
+                                            >
+                                                {updateMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />}
+                                                Commit
                                             </Button>
                                         </TableCell>
                                     </TableRow>
@@ -326,10 +453,23 @@ const UserManagement = () => {
                             })}
                         </TableBody>
                     </Table>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 };
+
+const MetricCard = ({ title, value, icon, bg, trend }: { title: string, value: string | number, icon: React.ReactNode, bg: string, trend: string }) => (
+    <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group rounded-[32px] overflow-hidden bg-white">
+        <CardContent className="p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{title}</span>
+                <div className={cn("p-1.5 rounded-xl transition-all shadow-sm", bg)}>{icon}</div>
+            </div>
+            <h3 className="text-xl font-black text-slate-900 leading-none tracking-tighter truncate">{value}</h3>
+            <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{trend}</span>
+        </CardContent>
+    </Card>
+);
 
 export default UserManagement;
