@@ -9,8 +9,14 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronRight, Phone, CalendarDays, Hash, LogIn, LogOut } from 'lucide-react';
+import { Eye, CalendarDays, Hash, LogIn, LogOut, User, Bed, AlertCircle } from 'lucide-react';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
+import { StatusBadge } from '@/components/reservation/StatusBadge';
+
+/**
+ * Ras Sedr Rental - Reception Operation Table
+ * Universal component for tracking guest flow with high-impact mobile cards and premium desktop views.
+ */
 
 interface ReceptionTableProps {
     data: ReceptionReservationItemDto[];
@@ -18,45 +24,19 @@ interface ReceptionTableProps {
     onAction: (type: 'check-in' | 'check-out' | 'cancel' | 'confirm' | 'no-show', reservation: ReceptionReservationItemDto) => void;
 }
 
-const StatusBadge = ({ status }: { status: string }) => {
-    let style = "bg-slate-50 text-slate-400 border-slate-100";
-
-    switch (status.toLowerCase()) {
-        case 'confirmed':
-            style = "bg-blue-50 text-blue-600 border-blue-100";
-            break;
-        case 'draft':
-            style = "bg-slate-100 text-slate-600 border-slate-200";
-            break;
-        case 'checkedin':
-            style = "bg-emerald-50 text-emerald-600 border-emerald-100";
-            break;
-        case 'checkedout':
-            style = "bg-purple-50 text-purple-600 border-purple-100";
-            break;
-        case 'cancelled':
-        case 'noshow':
-            style = "bg-rose-50 text-rose-600 border-rose-100";
-            break;
-    }
-
-    return (
-        <span className={`inline-flex px-1.5 py-0.5 rounded-sm font-black text-[9px] uppercase tracking-widest border ${style}`}>
-            {status}
-        </span>
-    );
-};
-
 const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
     if (data.length === 0) {
         return (
-            <div className="text-center py-12 px-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
-                <div className="flex flex-col items-center gap-2 text-slate-400">
-                    <CalendarDays className="w-8 h-8 opacity-20" />
-                    <p className="text-[10px] font-black uppercase tracking-widest">{emptyMessage}</p>
+            <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-[40px] border border-dashed border-slate-200">
+                <div className="p-8 bg-white rounded-full shadow-inner opacity-60">
+                    <AlertCircle className="w-12 h-12 text-slate-200" />
+                </div>
+                <div className="space-y-1 text-center mt-4">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{emptyMessage}</h3>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter opacity-60">No operations pending for this category.</p>
                 </div>
             </div>
         );
@@ -64,67 +44,94 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
 
     return (
         <div className="space-y-4">
-            {/* Mobile: List Cards */}
-            <div className="grid grid-cols-1 gap-3 sm:hidden">
+            {/* MOBILE: HIGH-DENSITY LIST CARDS */}
+            <div className="grid grid-cols-1 gap-4 sm:hidden pb-4">
                 {data.map((item) => (
                     <div
                         key={item.reservationId}
-                        className="bg-white border border-slate-100 rounded-[12px] p-4 shadow-sm active:scale-[0.98] transition-all hover:border-blue-200 group"
+                        className="bg-white border border-slate-100 rounded-[24px] overflow-hidden shadow-sm active:scale-[0.99] transition-all group"
                         onClick={() => navigate(`/reception/reservations/${item.reservationId}`)}
                     >
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="min-w-0 flex-1 space-y-1.5">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tight">
-                                        {item.guestName}
-                                    </h3>
-                                    <StatusBadge status={item.status} />
-                                </div>
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                                        <Hash className="w-3 h-3" />
+                        <div className="p-5">
+                            <div className="flex items-start justify-between gap-4 mb-4">
+                                <div className="space-y-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tighter">
+                                            {item.guestName}
+                                        </h3>
+                                        <StatusBadge status={item.status} />
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        <Hash className="w-3 h-3 text-slate-300" />
                                         <span>{item.bookingNumber}</span>
                                     </div>
-                                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500">
-                                        <CalendarDays className="w-3 h-3 text-blue-500" />
-                                        <span>{item.checkIn} → {item.checkOut}</span>
-                                    </div>
-                                    {item.phone && (
-                                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                                            <Phone className="w-3 h-3" />
-                                            <span>{item.phone}</span>
-                                        </div>
-                                    )}
+                                </div>
+                                <div className="p-2.5 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all">
+                                    <User className="w-4 h-4 text-slate-400 group-hover:text-white" />
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="grid grid-cols-2 gap-3 mb-5">
+                                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Stay Period</span>
+                                    <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-700">
+                                        <CalendarDays className="w-3 h-3 text-blue-500" />
+                                        <span>{item.checkIn} → {item.checkOut}</span>
+                                    </div>
+                                </div>
+                                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Accommodation</span>
+                                    <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-700">
+                                        <Bed className="w-3 h-3 text-emerald-500" />
+                                        <span>{item.roomNumbers?.join(', ') || 'Unassigned'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
                                 {item.status === 'Confirmed' || item.status === 'Draft' ? (
-                                    <Button
-                                        size="icon"
-                                        className="h-10 w-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-100 flex-shrink-0"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onAction('check-in', item);
-                                        }}
-                                    >
-                                        <LogIn className="w-5 h-5" />
-                                    </Button>
+                                    <>
+                                        <Button
+                                            className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-900/10 active:scale-95 transition-all"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onAction('check-in', item);
+                                            }}
+                                        >
+                                            <LogIn className="w-4 h-4 mr-2" />
+                                            Check In
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            className="h-12 w-12 rounded-2xl text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onAction('no-show', item);
+                                            }}
+                                        >
+                                            <AlertCircle className="w-5 h-5" />
+                                        </Button>
+                                    </>
                                 ) : item.status === 'CheckedIn' ? (
                                     <Button
-                                        size="icon"
-                                        className="h-10 w-10 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-100 flex-shrink-0"
+                                        className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-900/10 active:scale-95 transition-all"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onAction('check-out', item);
                                         }}
                                     >
-                                        <LogOut className="w-5 h-5" />
+                                        <LogOut className="w-4 h-4 mr-2" />
+                                        Check Out
                                     </Button>
                                 ) : (
-                                    <div className="h-10 w-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-300">
-                                        <ChevronRight className="w-5 h-5" />
-                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full h-12 rounded-2xl border-slate-200 font-black text-[10px] uppercase tracking-widest text-slate-400"
+                                        onClick={() => navigate(`/reception/reservations/${item.reservationId}`)}
+                                    >
+                                        <Eye className="w-4 h-4 mr-2" />
+                                        View Details
+                                    </Button>
                                 )}
                             </div>
                         </div>
@@ -132,49 +139,68 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                 ))}
             </div>
 
-            {/* Desktop: Premium Table */}
-            <div className="hidden sm:block rounded-[12px] border border-slate-100 shadow-sm overflow-hidden bg-white">
+            {/* DESKTOP: PREMIUM OPERATIONAL TABLE */}
+            <div className="hidden sm:block rounded-[32px] border border-slate-100 shadow-sm overflow-hidden bg-white">
                 <Table>
                     <TableHeader>
-                        <tr className="bg-slate-50/50 text-slate-400 font-black uppercase tracking-tighter border-b border-slate-100">
-                            <TableHead className="py-4 px-6">{t('reception.guest_name', 'Guest')}</TableHead>
-                            <TableHead className="py-4 px-4">{t('reception.booking_number', 'Booking #')}</TableHead>
-                            <TableHead className="py-4 px-4">{t('reception.checkin', 'Check In')}</TableHead>
-                            <TableHead className="py-4 px-4">{t('reception.checkout', 'Check Out')}</TableHead>
-                            <TableHead className="py-4 px-4">{t('reception.status', 'Status')}</TableHead>
-                            <TableHead className="py-4 px-4">{t('reception.rooms', 'Rooms')}</TableHead>
-                            <TableHead className="py-4 px-6 text-right">{t('common.actions', 'Actions')}</TableHead>
+                        <tr className="bg-slate-50/50 text-slate-400 font-black uppercase tracking-widest border-b border-slate-100 text-[10px]">
+                            <TableHead className="py-5 px-8">{t('reception.guest_name')}</TableHead>
+                            <TableHead className="py-5 px-4">{t('reception.booking_number')}</TableHead>
+                            <TableHead className="py-5 px-4">Temporal Range</TableHead>
+                            <TableHead className="py-5 px-4 text-center">{t('reception.status')}</TableHead>
+                            <TableHead className="py-5 px-4">{t('reception.rooms')}</TableHead>
+                            <TableHead className="py-5 px-8 text-right">{t('common.actions')}</TableHead>
                         </tr>
                     </TableHeader>
                     <TableBody>
                         {data.map((item) => (
-                            <TableRow key={item.reservationId} className="hover:bg-blue-50/30 transition-all group">
-                                <TableCell className="py-4 px-6">
-                                    <div className="font-black text-slate-900 uppercase tracking-tight">{item.guestName}</div>
-                                    <div className="text-[10px] font-bold text-slate-400 mt-0.5">{item.phone || 'No phone'}</div>
+                            <TableRow key={item.reservationId} className="hover:bg-slate-50/50 transition-all group">
+                                <TableCell className="py-5 px-8">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs shadow-lg shadow-slate-900/10">
+                                            {item.guestName.substring(0, 1).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <div className="font-black text-slate-900 uppercase tracking-tight text-sm">{item.guestName}</div>
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{item.phone || 'No Contact'}</div>
+                                        </div>
+                                    </div>
                                 </TableCell>
-                                <TableCell className="py-4 px-4 font-bold text-slate-500 text-xs">
-                                    <span className="bg-slate-100 px-2 py-1 rounded text-slate-600">{item.bookingNumber}</span>
+                                <TableCell className="py-5 px-4">
+                                    <span className="bg-slate-100/80 px-2 py-1 rounded-lg text-slate-600 font-black text-[10px] uppercase tracking-tighter shadow-sm border border-slate-200/50">
+                                        {item.bookingNumber}
+                                    </span>
                                 </TableCell>
-                                <TableCell className="py-4 px-4 font-bold text-slate-600 text-xs">{item.checkIn}</TableCell>
-                                <TableCell className="py-4 px-4 font-bold text-slate-400 text-xs">{item.checkOut}</TableCell>
-                                <TableCell className="py-4 px-4">
+                                <TableCell className="py-5 px-4">
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-[10px] font-black text-slate-900 tracking-tighter">{item.checkIn}</span>
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">to {item.checkOut}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="py-5 px-4 text-center">
                                     <StatusBadge status={item.status} />
                                 </TableCell>
-                                <TableCell className="py-4 px-4">
-                                    <div className="text-xs font-black text-slate-900">
-                                        {item.roomNumbers && item.roomNumbers.length > 0 ? item.roomNumbers.join(', ') : '—'}
-                                    </div>
-                                    <div className="text-[10px] text-slate-400 font-bold truncate max-w-[120px]" title={item.roomTypeNames?.join(', ')}>
-                                        {item.roomTypeNames && item.roomTypeNames.length > 0 ? item.roomTypeNames.join(', ') : '—'}
+                                <TableCell className="py-5 px-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1.5 bg-blue-50 rounded-lg">
+                                            <Bed className="w-3.5 h-3.5 text-blue-500" />
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-black text-slate-900 tracking-tighter">
+                                                {item.roomNumbers && item.roomNumbers.length > 0 ? item.roomNumbers.join(', ') : 'Unassigned'}
+                                            </div>
+                                            <div className="text-[9px] text-slate-400 font-bold uppercase truncate max-w-[140px] tracking-tighter">
+                                                {item.roomTypeNames?.join(', ') || 'Incomplete'}
+                                            </div>
+                                        </div>
                                     </div>
                                 </TableCell>
-                                <TableCell className="py-4 px-6 text-right">
+                                <TableCell className="py-5 px-8 text-right">
                                     <div className="flex justify-end gap-2">
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-blue-600"
+                                            className="h-9 w-9 rounded-xl hover:bg-white hover:shadow-sm text-slate-300 hover:text-slate-900 transition-all"
                                             onClick={() => navigate(`/reception/reservations/${item.reservationId}`)}
                                         >
                                             <Eye className="w-4 h-4" />
@@ -184,7 +210,7 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                             <>
                                                 <Button
                                                     size="sm"
-                                                    className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest px-4"
+                                                    className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest px-5 rounded-xl shadow-lg shadow-emerald-900/10 active:scale-95 transition-all"
                                                     onClick={() => onAction('check-in', item)}
                                                 >
                                                     {t('reception.check_in')}
@@ -192,7 +218,7 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    className="h-8 text-rose-500 hover:text-rose-600 hover:bg-rose-50 font-black text-[10px] uppercase tracking-widest"
+                                                    className="h-9 text-rose-500 hover:text-rose-600 hover:bg-rose-50 font-black text-[10px] uppercase tracking-widest rounded-xl"
                                                     onClick={() => onAction('no-show', item)}
                                                 >
                                                     {t('reception.no_show')}
@@ -203,7 +229,7 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                         {item.status === 'CheckedIn' && (
                                             <Button
                                                 size="sm"
-                                                className="h-8 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest px-4"
+                                                className="h-9 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest px-5 rounded-xl shadow-lg shadow-blue-900/10 active:scale-95 transition-all"
                                                 onClick={() => onAction('check-out', item)}
                                             >
                                                 {t('reception.check_out')}
@@ -214,7 +240,7 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="h-8 border-slate-200 font-black text-[10px] uppercase tracking-widest"
+                                                className="h-9 border-slate-200 font-black text-[10px] uppercase tracking-widest rounded-xl"
                                                 onClick={() => onAction('confirm', item)}
                                             >
                                                 {t('reception.confirm')}

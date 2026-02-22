@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import {
@@ -10,7 +10,16 @@ import {
     ShoppingCart,
     Coffee,
     HelpCircle,
-    DollarSign
+    DollarSign,
+    ChevronDown,
+    LayoutGrid,
+    PieChart,
+    Building2,
+    RefreshCw,
+    Search,
+    ChevronRight,
+    AlertCircle,
+    Briefcase
 } from 'lucide-react';
 import { useExpenses, useCreateExpense } from '@/hooks/expenses/useExpenses';
 import {
@@ -30,7 +39,7 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue
-} from '../components/ui/select';
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -40,39 +49,42 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    Alert,
+    AlertDescription,
+    AlertTitle,
+} from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '../components/ui/textarea';
+import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-const getCategoryIcon = (category: ExpenseCategoryValue) => {
-    switch (category) {
-        case ExpenseCategoryEnum.Maintenance: return <Wrench className="w-4 h-4" />;
-        case ExpenseCategoryEnum.Purchases: return <ShoppingCart className="w-4 h-4" />;
-        case ExpenseCategoryEnum.Breakfast: return <Coffee className="w-4 h-4" />;
-        default: return <HelpCircle className="w-4 h-4" />;
-    }
+/**
+ * Ras Sedr Rental - Operational Expenditure Ledger
+ * High-density tracking for maintenance, logistics, and resource procurement.
+ */
+
+const CATEGORY_STYLE: Record<number, { icon: any; color: string; bg: string }> = {
+    [ExpenseCategoryEnum.Maintenance]: { icon: Wrench, color: 'text-rose-600', bg: 'bg-rose-50' },
+    [ExpenseCategoryEnum.Purchases]: { icon: ShoppingCart, color: 'text-blue-600', bg: 'bg-blue-50' },
+    [ExpenseCategoryEnum.Breakfast]: { icon: Coffee, color: 'text-emerald-600', bg: 'bg-emerald-50' },
 };
+
+const DEFAULT_CATEGORY = { icon: HelpCircle, color: 'text-slate-400', bg: 'bg-slate-50' };
 
 const Expenses = () => {
     const { t } = useTranslation();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filters, setFilters] = useState<GetExpensesParams>({
-        from: format(new Date(), 'yyyy-MM-01'), // Start of month
+        from: format(new Date(), 'yyyy-MM-01'),
         to: format(new Date(), 'yyyy-MM-dd'),
     });
 
-    const { data: expenses, isLoading, isError } = useExpenses(filters);
+    const { data: expenses, isLoading, isError, refetch, isFetching } = useExpenses(filters);
     const createExpenseMutation = useCreateExpense();
 
     const [newExpense, setNewExpense] = useState<{
@@ -95,6 +107,22 @@ const Expenses = () => {
         vendor: ''
     });
 
+    const stats = useMemo(() => {
+        if (!expenses) return { total: 0, count: 0, topCategory: '—' };
+        const total = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+        const categories = expenses.reduce((acc: any, curr) => {
+            acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
+            return acc;
+        }, {});
+        const topCat = Object.entries(categories).sort((a: any, b: any) => b[1] - a[1])[0];
+
+        return {
+            total,
+            count: expenses.length,
+            topCategory: topCat ? ExpenseCategoryLabels[parseInt(topCat[0]) as ExpenseCategoryValue] : '—'
+        };
+    }, [expenses]);
+
     const handleCreateExpense = async () => {
         try {
             if (!newExpense.description) {
@@ -105,17 +133,13 @@ const Expenses = () => {
                 toast.error('Amount must be greater than 0');
                 return;
             }
-            if (newExpense.currencyCode === CurrencyCodeEnum.Other && !newExpense.currencyOther) {
-                toast.error('Currency name is required for "Other"');
-                return;
-            }
 
             await createExpenseMutation.mutateAsync({
                 ...newExpense,
                 currencyOther: newExpense.currencyCode === CurrencyCodeEnum.Other ? newExpense.currencyOther : undefined
             });
 
-            toast.success('Expense logged successfully');
+            toast.success('Expenditure logged in ledger.');
             setIsCreateModalOpen(false);
             setNewExpense({
                 businessDate: format(new Date(), 'yyyy-MM-dd'),
@@ -128,290 +152,339 @@ const Expenses = () => {
                 vendor: ''
             });
         } catch (error) {
-            toast.error('Failed to log expense');
+            toast.error('Failed to commit expenditure.');
         }
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                        <Receipt className="w-6 h-6 text-blue-600" />
-                        {t('expenses.title', 'Operational Expenses')}
-                    </h1>
-                    <p className="text-slate-500">
-                        {t('expenses.subtitle', 'Track maintenance, purchases, and other operational costs.')}
-                    </p>
-                </div>
-
-                <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="bg-blue-600 hover:bg-blue-700">
-                            <Plus className="w-4 h-4 me-2" />
-                            {t('expenses.add_btn', 'Log Expense')}
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px]">
-                        <DialogHeader>
-                            <DialogTitle>{t('expenses.new_title', 'Log New Expense')}</DialogTitle>
-                            <DialogDescription>
-                                {t('expenses.new_desc', 'Enter the details of the operational expense below.')}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>{t('common.date', 'Date')}</Label>
-                                    <Input
-                                        type="date"
-                                        value={newExpense.businessDate}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewExpense({ ...newExpense, businessDate: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>{t('expenses.category', 'Category')}</Label>
-                                    <Select
-                                        value={newExpense.category.toString()}
-                                        onValueChange={(v: string) => setNewExpense({ ...newExpense, category: parseInt(v) as ExpenseCategoryValue })}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.entries(ExpenseCategoryLabels).map(([value, label]) => (
-                                                <SelectItem key={value} value={value}>{label}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+        <div className="space-y-6 pb-24 sm:pb-8">
+            {/* STICKY NAVY ACTION BAR */}
+            <div className="sticky top-0 z-40 -mx-4 sm:mx-0 px-4 py-4 bg-slate-900 shadow-2xl sm:rounded-3xl sm:static sm:bg-slate-900 border-b border-white/5">
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-white/10 rounded-2xl border border-white/5 backdrop-blur-xl">
+                                <Receipt className="w-5 h-5 text-rose-400" />
                             </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>{t('expenses.amount', 'Amount')}</Label>
-                                    <Input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={newExpense.amount}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewExpense({ ...newExpense, amount: parseFloat(e.target.value) })}
-                                    />
+                            <div>
+                                <h1 className="text-sm font-black text-white uppercase tracking-tighter leading-none">
+                                    {t('expenses.title')}
+                                </h1>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isFetching ? 'bg-amber-400 animate-pulse' : 'bg-rose-500'}`} />
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                        {filters.from} → {filters.to}
+                                    </span>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>{t('expenses.currency', 'Currency')}</Label>
-                                    <Select
-                                        value={newExpense.currencyCode.toString()}
-                                        onValueChange={(v: string) => setNewExpense({ ...newExpense, currencyCode: parseInt(v) as CurrencyCodeValue })}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.entries(CurrencyCodeLabels).map(([value, label]) => (
-                                                <SelectItem key={value} value={value}>{label}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            {newExpense.currencyCode === CurrencyCodeEnum.Other && (
-                                <div className="space-y-2">
-                                    <Label>{t('expenses.currency_other', 'Specify Currency')}</Label>
-                                    <Input
-                                        placeholder="e.g. GBP"
-                                        value={newExpense.currencyOther}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewExpense({ ...newExpense, currencyOther: e.target.value })}
-                                    />
-                                </div>
-                            )}
-
-                            <div className="space-y-2">
-                                <Label>{t('expenses.payment_method', 'Payment Method')}</Label>
-                                <Select
-                                    value={newExpense.paymentMethod.toString()}
-                                    onValueChange={(v: string) => setNewExpense({ ...newExpense, paymentMethod: parseInt(v) as PaymentMethodValue })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value={PaymentMethodEnum.Cash.toString()}>Cash</SelectItem>
-                                        <SelectItem value={PaymentMethodEnum.Visa.toString()}>Visa / Card</SelectItem>
-                                        <SelectItem value={PaymentMethodEnum.Other.toString()}>Other</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>{t('expenses.vendor', 'Vendor / Supplier')}</Label>
-                                <Input
-                                    placeholder={t('expenses.vendor_placeholder', 'Optional')}
-                                    value={newExpense.vendor}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewExpense({ ...newExpense, vendor: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>{t('expenses.description', 'Description')}</Label>
-                                <Textarea
-                                    placeholder={t('expenses.description_placeholder', 'Detail the expense...')}
-                                    value={newExpense.description}
-                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewExpense({ ...newExpense, description: e.target.value })}
-                                />
                             </div>
                         </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                                {t('common.cancel', 'Cancel')}
-                            </Button>
+
+                        <div className="flex items-center gap-2">
+                            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                                <DialogTrigger asChild>
+                                    <Button className="hidden sm:flex bg-rose-600 hover:bg-rose-700 h-9 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-rose-900/20 active:scale-95 transition-all">
+                                        <Plus className="w-4 h-4 mr-1.5" />
+                                        {t('expenses.add_btn')}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[500px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden">
+                                    <div className="bg-slate-900 p-8 text-white">
+                                        <h2 className="text-xl font-black uppercase tracking-tighter">{t('expenses.new_title')}</h2>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">Expenditure Authorization</p>
+                                    </div>
+                                    <div className="p-8 space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Temporal Date</Label>
+                                                <Input type="date" value={newExpense.businessDate} onChange={(e) => setNewExpense({ ...newExpense, businessDate: e.target.value })} className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11" />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('expenses.category')}</Label>
+                                                <Select value={newExpense.category.toString()} onValueChange={(v) => setNewExpense({ ...newExpense, category: parseInt(v) as ExpenseCategoryValue })}>
+                                                    <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {Object.entries(ExpenseCategoryLabels).map(([value, label]) => (
+                                                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Capital Amount</Label>
+                                                <Input type="number" min="0" step="0.01" value={newExpense.amount} onChange={(e) => setNewExpense({ ...newExpense, amount: parseFloat(e.target.value) })} className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11" />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Denomination</Label>
+                                                <Select value={newExpense.currencyCode.toString()} onValueChange={(v) => setNewExpense({ ...newExpense, currencyCode: parseInt(v) as CurrencyCodeValue })}>
+                                                    <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {Object.entries(CurrencyCodeLabels).map(([value, label]) => (
+                                                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Settlement Method</Label>
+                                            <Select value={newExpense.paymentMethod.toString()} onValueChange={(v) => setNewExpense({ ...newExpense, paymentMethod: parseInt(v) as PaymentMethodValue })}>
+                                                <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value={PaymentMethodEnum.Cash.toString()}>CASH SETTLEMENT</SelectItem>
+                                                    <SelectItem value={PaymentMethodEnum.Visa.toString()}>CARD / DIGITAL</SelectItem>
+                                                    <SelectItem value={PaymentMethodEnum.Other.toString()}>OTHER FLOW</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vendor Artifact</Label>
+                                            <Input placeholder="Supplier or Shop name..." value={newExpense.vendor} onChange={(e) => setNewExpense({ ...newExpense, vendor: e.target.value })} className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11" />
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Operational Narrative</Label>
+                                            <Textarea placeholder="Details of the expenditure..." value={newExpense.description} onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })} className="rounded-xl bg-slate-50 border-slate-100 font-bold min-h-[100px]" />
+                                        </div>
+                                    </div>
+                                    <div className="p-8 pt-0 flex gap-3">
+                                        <Button variant="ghost" onClick={() => setIsCreateModalOpen(false)} className="flex-1 h-12 rounded-2xl font-black text-[11px] uppercase tracking-widest text-slate-400">Abort</Button>
+                                        <Button onClick={handleCreateExpense} disabled={createExpenseMutation.isPending} className="flex-[2] h-12 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-rose-900/10">
+                                            {createExpenseMutation.isPending ? 'Committing...' : 'Commit to Ledger'}
+                                        </Button>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                             <Button
-                                className="bg-blue-600 hover:bg-blue-700"
-                                onClick={handleCreateExpense}
-                                disabled={createExpenseMutation.isPending}
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 text-white"
+                                onClick={() => refetch()}
+                                disabled={isFetching}
                             >
-                                {createExpenseMutation.isPending ? t('common.saving', 'Saving...') : t('expenses.save', 'Save Expense')}
+                                <RefreshCw className={cn("h-3.5 w-3.5 text-slate-400", isFetching && "animate-spin text-rose-400")} />
                             </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
+                        <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-inner h-10">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400 ml-2" />
+                            <input type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })} className="bg-transparent border-none text-[10px] font-black uppercase focus:ring-0 outline-none w-[110px]" />
+                            <span className="text-[10px] text-slate-300 font-black">TO</span>
+                            <input type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })} className="bg-transparent border-none text-[10px] font-black uppercase focus:ring-0 outline-none w-[110px]" />
+                        </div>
+
+                        <div className="flex flex-1 items-center gap-2 w-full sm:w-auto">
+                            <Select
+                                value={filters.category?.toString() || 'all'}
+                                onValueChange={(v) => setFilters({ ...filters, category: v === 'all' ? undefined : parseInt(v) as ExpenseCategoryValue })}
+                            >
+                                <SelectTrigger className="h-10 rounded-xl bg-white border-none shadow-inner text-[10px] font-black uppercase tracking-widest pl-4">
+                                    <div className="flex items-center gap-2">
+                                        <Filter className="w-3 h-3 text-slate-400" />
+                                        <SelectValue placeholder="All Categories" />
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Categories</SelectItem>
+                                    {Object.entries(ExpenseCategoryLabels).map(([value, label]) => (
+                                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* Filters */}
-            <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm">
-                <CardContent className="p-4">
-                    <div className="flex flex-wrap items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-slate-400" />
-                            <Input
-                                type="date"
-                                className="w-40 h-9"
-                                value={filters.from}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, from: e.target.value })}
-                            />
-                            <span className="text-slate-400">to</span>
-                            <Input
-                                type="date"
-                                className="w-40 h-9"
-                                value={filters.to}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, to: e.target.value })}
-                            />
-                        </div>
+            {/* PULSE KPI GRID */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <MetricCard
+                    title="Gross Burn"
+                    value={formatCurrency(stats.total, 'EGP')}
+                    icon={<DollarSign className="w-4 h-4 text-rose-600" />}
+                    bg="bg-rose-100"
+                    trend="Operational Load"
+                />
+                <MetricCard
+                    title="Artifact Count"
+                    value={stats.count}
+                    icon={<Receipt className="w-4 h-4 text-blue-600" />}
+                    bg="bg-blue-100"
+                    trend="Ledger Entries"
+                />
+                <MetricCard
+                    title="Primary Factor"
+                    value={stats.topCategory}
+                    icon={<PieChart className="w-4 h-4 text-amber-600" />}
+                    bg="bg-amber-100"
+                    trend="Top Expenditure"
+                />
+                <MetricCard
+                    title="Active Mode"
+                    value="Audit"
+                    icon={<Briefcase className="w-4 h-4 text-slate-600" />}
+                    bg="bg-slate-100"
+                    trend="Financial Integrity"
+                />
+            </div>
 
-                        <div className="h-6 w-px bg-slate-200 hidden md:block" />
-
-                        <Select
-                            value={filters.category?.toString() || 'all'}
-                            onValueChange={(v: string) => setFilters({ ...filters, category: v === 'all' ? undefined : parseInt(v) as ExpenseCategoryValue })}
-                        >
-                            <SelectTrigger className="w-40 h-9">
-                                <Filter className="w-3.5 h-3.5 me-2 text-slate-400" />
-                                <SelectValue placeholder="All Categories" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Categories</SelectItem>
-                                {Object.entries(ExpenseCategoryLabels).map(([value, label]) => (
-                                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-
-                        <Select
-                            value={filters.currency?.toString() || 'all'}
-                            onValueChange={(v: string) => setFilters({ ...filters, currency: v === 'all' ? undefined : parseInt(v) as CurrencyCodeValue })}
-                        >
-                            <SelectTrigger className="w-40 h-9">
-                                <DollarSign className="w-3.5 h-3.5 me-2 text-slate-400" />
-                                <SelectValue placeholder="All Currencies" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Currencies</SelectItem>
-                                {Object.entries(CurrencyCodeLabels).map(([value, label]) => (
-                                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+            {/* EXPENDITURE LEDGER */}
+            <div className="space-y-4">
+                {isLoading ? (
+                    <div className="space-y-4">
+                        {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-[32px]" />)}
                     </div>
-                </CardContent>
-            </Card>
-
-            {/* Table */}
-            <Card className="border-none shadow-sm overflow-hidden">
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader className="bg-slate-50">
-                            <TableRow>
-                                <TableHead className="w-32">{t('common.date', 'Date')}</TableHead>
-                                <TableHead className="w-40">{t('expenses.category', 'Category')}</TableHead>
-                                <TableHead className="w-40">{t('expenses.amount', 'Amount')}</TableHead>
-                                <TableHead className="w-32">{t('expenses.payment', 'Payment')}</TableHead>
-                                <TableHead>{t('expenses.description', 'Description')}</TableHead>
-                                <TableHead className="w-40">{t('expenses.vendor', 'Vendor')}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                Array(5).fill(0).map((_, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell colSpan={6}><Skeleton className="h-12 w-full" /></TableCell>
-                                    </TableRow>
-                                ))
-                            ) : isError ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-32 text-center text-red-500">
-                                        {t('expenses.error', 'Failed to load expenses.')}
-                                    </TableCell>
-                                </TableRow>
-                            ) : expenses?.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-48 text-center text-slate-500">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Receipt className="w-12 h-12 text-slate-200" />
-                                            <p>{t('expenses.no_data', 'No expenses found for this period.')}</p>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                expenses?.map(expense => (
-                                    <TableRow key={expense.id} className="hover:bg-slate-50/50">
-                                        <TableCell className="font-medium text-slate-600">
-                                            {format(new Date(expense.businessDate), 'MMM dd, yyyy')}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant="outline" className="font-normal border-slate-200 bg-white gap-1.5 py-1">
-                                                    <span className="text-blue-500">{getCategoryIcon(expense.category)}</span>
-                                                    {ExpenseCategoryLabels[expense.category]}
+                ) : isError ? (
+                    <Alert variant="destructive" className="rounded-[32px] border-rose-100 bg-rose-50 p-8 shadow-sm">
+                        <div className="flex flex-col items-center text-center gap-4">
+                            <div className="p-4 bg-white rounded-full shadow-sm"><AlertCircle className="w-8 h-8 text-rose-500" /></div>
+                            <div className="space-y-1">
+                                <AlertTitle className="text-sm font-black text-rose-900 uppercase tracking-tighter">Sync Denied</AlertTitle>
+                                <AlertDescription className="text-xs font-bold text-rose-600/70">Expenditure data could not be retrieved from the main cluster.</AlertDescription>
+                            </div>
+                            <Button variant="outline" className="mt-2 border-rose-200" onClick={() => refetch()}>Force Refresh</Button>
+                        </div>
+                    </Alert>
+                ) : (expenses || []).length === 0 ? (
+                    <div className="py-24 text-center flex flex-col items-center justify-center space-y-4 bg-slate-50/50 rounded-[40px] border border-dashed border-slate-200">
+                        <div className="p-8 bg-white rounded-full shadow-inner opacity-60">
+                            <Receipt className="w-12 h-12 text-slate-200" />
+                        </div>
+                        <div className="space-y-1">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Zero Burn Detected</h3>
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter opacity-60">No financial artifacts registered for this temporal range.</p>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {/* MOBILE: LEDGER CARDS */}
+                        <div className="grid grid-cols-1 gap-4 sm:hidden">
+                            {(expenses || []).map((expense) => {
+                                const style = CATEGORY_STYLE[expense.category] || DEFAULT_CATEGORY;
+                                const Icon = style.icon;
+                                return (
+                                    <div key={expense.id} className="bg-white border border-slate-100 rounded-[32px] overflow-hidden shadow-sm p-6 space-y-4 relative group">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn("p-2.5 rounded-2xl transition-all shadow-sm", style.bg, style.color)}>
+                                                    <Icon className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-black text-slate-900 text-sm uppercase tracking-tighter">{ExpenseCategoryLabels[expense.category]}</h3>
+                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{format(new Date(expense.businessDate), 'MMM dd, yyyy')}</span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-base font-black text-slate-900 tracking-tighter">
+                                                    {formatCurrency(expense.amount, expense.currencyCode === CurrencyCodeEnum.Other ? expense.currencyOther : CurrencyCodeLabels[expense.currencyCode])}
+                                                </div>
+                                                <Badge className="bg-slate-900 text-white font-black text-[8px] uppercase tracking-widest px-2 py-0 border-none">
+                                                    {expense.paymentMethod === PaymentMethodEnum.Cash ? 'CASH' : 'DIGITAL'}
                                                 </Badge>
                                             </div>
-                                        </TableCell>
-                                        <TableCell className="font-bold text-slate-900">
-                                            {formatCurrency(expense.amount, expense.currencyCode === CurrencyCodeEnum.Other ? expense.currencyOther : CurrencyCodeLabels[expense.currencyCode])}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-none font-normal">
-                                                {expense.paymentMethod === PaymentMethodEnum.Cash ? 'Cash' :
-                                                    expense.paymentMethod === PaymentMethodEnum.Visa ? 'Visa' : 'Other'}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="max-w-md truncate text-slate-600" title={expense.description}>
-                                                {expense.description}
+                                        </div>
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-[11px] font-bold text-slate-500 leading-snug">
+                                            "{expense.description}"
+                                        </div>
+                                        {expense.vendor && (
+                                            <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
+                                                <Building2 className="w-3.5 h-3.5 text-slate-300" />
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">{expense.vendor}</span>
                                             </div>
-                                        </TableCell>
-                                        <TableCell className="text-slate-500">
-                                            {expense.vendor || '-'}
-                                        </TableCell>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* DESKTOP: PREMIUM LEDGER TABLE */}
+                        <div className="hidden sm:block rounded-[32px] border border-slate-100 shadow-sm overflow-hidden bg-white">
+                            <Table>
+                                <TableHeader className="bg-slate-50/50">
+                                    <TableRow className="border-b border-slate-100 font-black text-[10px] uppercase tracking-widest text-slate-400">
+                                        <TableHead className="px-8 py-5">Temporal</TableHead>
+                                        <TableHead className="py-5">Classification</TableHead>
+                                        <TableHead className="py-5">Artifact Description</TableHead>
+                                        <TableHead className="py-5">Settlement</TableHead>
+                                        <TableHead className="py-5 pr-8 text-right">Burn Amount</TableHead>
                                     </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                                </TableHeader>
+                                <TableBody>
+                                    {(expenses || []).map((expense) => {
+                                        const style = CATEGORY_STYLE[expense.category] || DEFAULT_CATEGORY;
+                                        const Icon = style.icon;
+                                        return (
+                                            <TableRow key={expense.id} className="hover:bg-slate-50/50 transition-all group">
+                                                <TableCell className="px-8 py-5">
+                                                    <div className="font-black text-slate-900 uppercase tracking-tighter text-xs">
+                                                        {format(new Date(expense.businessDate), 'MMM dd, yyyy')}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-5">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={cn("p-2 rounded-xl", style.bg, style.color)}><Icon className="w-3.5 h-3.5" /></div>
+                                                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{ExpenseCategoryLabels[expense.category]}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-5">
+                                                    <div className="max-w-md truncate font-bold text-slate-500 text-xs italic" title={expense.description}>"{expense.description}"</div>
+                                                    <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-0.5">{expense.vendor || 'DIRECT PROCUREMENT'}</div>
+                                                </TableCell>
+                                                <TableCell className="py-5">
+                                                    <Badge className="bg-slate-100 text-slate-600 border-none font-black text-[8px] uppercase tracking-widest px-2 py-0.5 shadow-sm">
+                                                        {expense.paymentMethod === PaymentMethodEnum.Cash ? 'CASH FLOW' : 'DIGITAL SYNC'}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="py-5 pr-8 text-right">
+                                                    <div className="text-sm font-black text-slate-900 tracking-tighter group-hover:scale-105 transition-transform">
+                                                        {formatCurrency(expense.amount, expense.currencyCode === CurrencyCodeEnum.Other ? expense.currencyOther : CurrencyCodeLabels[expense.currencyCode])}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* FAB MOBILE */}
+            <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="sm:hidden fixed bottom-24 right-6 h-14 w-14 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white shadow-2xl shadow-rose-900/40 active:scale-95 transition-all z-40 border-4 border-white/20"
+                size="icon"
+            >
+                <Plus className="w-7 h-7" />
+            </Button>
         </div>
     );
 };
+
+const MetricCard = ({ title, value, icon, bg, trend }: { title: string, value: string | number, icon: React.ReactNode, bg: string, trend: string }) => (
+    <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group rounded-[32px] overflow-hidden bg-white">
+        <CardContent className="p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{title}</span>
+                <div className={cn("p-1.5 rounded-xl transition-all shadow-sm", bg)}>{icon}</div>
+            </div>
+            <h3 className="text-xl font-black text-slate-900 leading-none tracking-tighter truncate">{value}</h3>
+            <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{trend}</span>
+        </CardContent>
+    </Card>
+);
 
 export default Expenses;
