@@ -324,7 +324,7 @@ const ReceptionToday = () => {
                 onClose={() => setCheckInState(prev => ({ ...prev, isOpen: false }))}
                 reservation={checkInState.reservation}
                 isPending={actions.checkIn.isPending}
-                onConfirm={async (guestName, phone, bookingNumber, checkInDate, checkOutDate, balanceDue, paymentMethod) => {
+                onConfirm={async (guestName, phone, bookingNumber, checkInDate, checkOutDate, balanceDue, paymentMethod, currencyCode) => {
                     if (!checkInState.reservation) return;
                     try {
                         await actions.checkIn.mutateAsync({
@@ -336,7 +336,8 @@ const ReceptionToday = () => {
                             checkInDate,
                             checkOutDate,
                             balanceDue,
-                            paymentMethod
+                            paymentMethod,
+                            currencyCode
                         });
                         toast.success(t('reception.checkin_success', 'Check-in successful!'));
                         setCheckInState(prev => ({ ...prev, isOpen: false }));

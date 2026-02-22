@@ -33,9 +33,7 @@ public class UpdateReservationCommandValidator : AbstractValidator<UpdateReserva
             .MaximumLength(150);
 
         RuleFor(v => v.CheckInDate)
-            .NotEmpty()
-            .GreaterThanOrEqualTo(DateTime.Today)
-            .WithMessage("Cannot create reservation with a past check-in date.");
+            .NotEmpty();
 
         RuleFor(v => v.CheckOutDate)
             .NotEmpty()

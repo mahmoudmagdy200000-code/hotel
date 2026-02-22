@@ -264,61 +264,62 @@ public static class PdfExtractionRules
             }
         } catch {}
         
-        // Primary Strategy: Structured Regex
-        foreach (var label in TotalPriceLabels)
-        {
-            // Debug: Print if label is found
-            if (Regex.IsMatch(text, Regex.Escape(label), RegexOptions.IgnoreCase))
+            // Primary Strategy: Structured Regex
+            foreach (var label in TotalPriceLabels)
             {
-               Console.WriteLine($"[DEBUG] Found label: {label}");
-            }
-
-            // Pattern: Label, optional colon, optional currency code/symbol, then number
-            // We use [\s\r\n]* explicitly to ensure we match across lines reliably
-            // We use ([\d\., ]+) for amount to be permissive (OCRs are messy, formats vary), relying on NormalizeAmount to clean it up.
-            var pattern = $@"{label}[\s\r\n]*[:：]?[\s\r\n]*(?:([A-Z€£$]{{1,3}})[\s\r\n]*)?([\d\., ]+)(?:[\s\r\n]*([A-Z]{{2,3}}))?";
-            var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-            if (match.Success)
-            {
-                Console.WriteLine($"[DEBUG] Strict Match Success! Groups: '{match.Groups[1].Value}', '{match.Groups[2].Value}', '{match.Groups[3].Value}'");
-                
-                // Currency might be before or after the amount
-                var currencyBefore = match.Groups[1].Value.Trim();
-                var amountStr = match.Groups[2].Value;
-                var currencyAfter = match.Groups[3].Value.Trim();
-
-                // Double-check we didn't match a "subtotal" if we have other options
-                // Though \bTotal\b should already prevent this.
-                int checkStart = Math.Max(0, match.Index - 10);
-                int checkLength = Math.Min(match.Length + 20, text.Length - checkStart);
-                
-                if (label.Contains("Total", StringComparison.OrdinalIgnoreCase) && 
-                    text.Substring(checkStart, checkLength).Contains("subtotal", StringComparison.OrdinalIgnoreCase))
+                // Debug: Print if label is found
+                if (Regex.IsMatch(text, Regex.Escape(label), RegexOptions.IgnoreCase))
                 {
-                     continue;
+                   Console.WriteLine($"[DEBUG] Found label: {label}");
                 }
 
-                // Normalize amount (handle different decimal separators)
-                var normalizedAmount = NormalizeAmount(amountStr);
-                Console.WriteLine($"[DEBUG] Normalized Amount: {normalizedAmount}");
-                
-                if (normalizedAmount.HasValue)
+                // Pattern: Label, optional colon, optional currency code/symbol, then number
+                // We use [\s\r\n]* explicitly to ensure we match across lines reliably
+                // We use ([\d\., ]+) for amount to be permissive (OCRs are messy, formats vary), relying on NormalizeAmount to clean it up.
+                // UPDATED REGEX: Now supports symbols ($ € £) or codes (USD EUR) both BEFORE and AFTER the amount.
+                var pattern = $@"{label}[\s\r\n]*[:：]?[\s\r\n]*(?:([A-Z€£$]{{1,3}})[\s\r\n]*)?([\d\., ]+)(?:[\s\r\n]*([A-Z€£$]{{1,3}}|[A-Z]{{2,3}}))?";
+                var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                if (match.Success)
                 {
-                    var currency = NormalizeCurrency(!string.IsNullOrEmpty(currencyBefore) ? currencyBefore : currencyAfter);
+                    Console.WriteLine($"[DEBUG] Strict Match Success! Groups: '{match.Groups[1].Value}', '{match.Groups[2].Value}', '{match.Groups[3].Value}'");
                     
-                    // CURRENCY CONVERSION RULE: Unify to USD
-                    // Assuming Rate: 1 USD = 50 EGP
-                    if (currency == "EGP")
+                    // Currency might be before or after the amount
+                    var currencyBefore = match.Groups[1].Value.Trim();
+                    var amountStr = match.Groups[2].Value;
+                    var currencyAfter = match.Groups[3].Value.Trim();
+
+                    // Double-check we didn't match a "subtotal" if we have other options
+                    // Though \bTotal\b should already prevent this.
+                    int checkStart = Math.Max(0, match.Index - 10);
+                    int checkLength = Math.Min(match.Length + 20, text.Length - checkStart);
+                    
+                    if (label.Contains("Total", StringComparison.OrdinalIgnoreCase) && 
+                        text.Substring(checkStart, checkLength).Contains("subtotal", StringComparison.OrdinalIgnoreCase))
                     {
-                        normalizedAmount = normalizedAmount.Value / 50.0m;
-                        normalizedAmount = Math.Round(normalizedAmount.Value, 2);
-                        currency = "USD";
+                         continue;
                     }
 
-                    return (normalizedAmount, currency);
+                    // Normalize amount (handle different decimal separators)
+                    var normalizedAmount = NormalizeAmount(amountStr);
+                    Console.WriteLine($"[DEBUG] Normalized Amount: {normalizedAmount}");
+                    
+                    if (normalizedAmount.HasValue)
+                    {
+                        var currency = NormalizeCurrency(!string.IsNullOrEmpty(currencyBefore) ? currencyBefore : currencyAfter);
+                        
+                        // CURRENCY CONVERSION RULE: Unify to USD
+                        // Assuming Rate: 1 USD = 50 EGP
+                        if (currency == "EGP")
+                        {
+                            normalizedAmount = normalizedAmount.Value / 50.0m;
+                            normalizedAmount = Math.Round(normalizedAmount.Value, 2);
+                            currency = "USD";
+                        }
+
+                        return (normalizedAmount, currency);
+                    }
                 }
             }
-        }
         
         // Fallback Strategy: Aggressive scan (Loose)
         // If structured regex failed, look for [Label] ... [Number] within 50 chars context

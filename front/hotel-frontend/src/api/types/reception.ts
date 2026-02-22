@@ -10,6 +10,7 @@ export interface ReceptionReservationItemDto {
     roomTypeNames: string[];
     balanceDue: number;
     currency: string;
+    currencyCode: number;
     paymentMethod: string;
 }
 

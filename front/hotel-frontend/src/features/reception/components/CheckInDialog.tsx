@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format, parseISO } from 'date-fns';
-import { PaymentMethodEnum } from '@/api/types/reservations';
+import { PaymentMethodEnum, CurrencyCodeEnum } from '@/api/types/reservations';
 import type { PaymentMethodValue } from '@/api/types/reservations';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
 import { Wallet, CreditCard, MoreHorizontal, Banknote } from 'lucide-react';
@@ -29,7 +29,8 @@ interface CheckInDialogProps {
         checkInDate: string | undefined, // yyyy-MM-dd
         checkOutDate: string | undefined, // yyyy-MM-dd
         balanceDue: number,
-        paymentMethod: PaymentMethodValue
+        paymentMethod: PaymentMethodValue,
+        currencyCode: number
     ) => void;
     reservation: ReceptionReservationItemDto | null;
     isPending: boolean;
@@ -50,6 +51,7 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(undefined);
     const [balanceDue, setBalanceDue] = useState<number>(0);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethodValue>(PaymentMethodEnum.Cash);
+    const [currencyCode, setCurrencyCode] = useState<number>(CurrencyCodeEnum.EGP);
 
     useEffect(() => {
         if (reservation) {
@@ -67,6 +69,7 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             } else {
                 setPaymentMethod(PaymentMethodEnum.Cash);
             }
+            setCurrencyCode(reservation.currencyCode || CurrencyCodeEnum.EGP);
         }
     }, [reservation, isOpen]);
 
@@ -78,7 +81,8 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             checkInDate ? format(checkInDate, 'yyyy-MM-dd') : undefined,
             checkOutDate ? format(checkOutDate, 'yyyy-MM-dd') : undefined,
             balanceDue,
-            paymentMethod
+            paymentMethod,
+            currencyCode
         );
     };
 
@@ -89,6 +93,15 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
         { value: PaymentMethodEnum.Visa, label: t('reservations.visa', 'Visa'), icon: CreditCard },
         { value: PaymentMethodEnum.Other, label: t('reservations.other', 'Other'), icon: MoreHorizontal },
     ];
+
+    const getCurrencySymbol = (code: number) => {
+        switch (code) {
+            case CurrencyCodeEnum.USD: return '$';
+            case CurrencyCodeEnum.EUR: return '€';
+            case CurrencyCodeEnum.EGP: return 'EGP';
+            default: return '$';
+        }
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -176,18 +189,41 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                             {t('reservations.balance_due', 'Balance Due')}
                         </Label>
                         <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">
-                                $
+                            <span className={cn(
+                                "absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-black uppercase",
+                                currencyCode === CurrencyCodeEnum.EGP ? "left-2.5" : "left-3"
+                            )}>
+                                {getCurrencySymbol(currencyCode)}
                             </span>
                             <Input
                                 id="balanceDue"
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                className="pl-7 h-11 border-slate-200 focus:ring-2 focus:ring-slate-900/5 rounded-xl transition-all"
+                                className={cn(
+                                    "h-11 border-slate-200 focus:ring-2 focus:ring-slate-900/5 rounded-xl transition-all",
+                                    currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7"
+                                )}
                                 value={balanceDue}
                                 onChange={(e) => setBalanceDue(parseFloat(e.target.value) || 0)}
                             />
+                        </div>
+                        <div className="flex gap-1 mt-2">
+                            {[CurrencyCodeEnum.EGP, CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR].map((code) => (
+                                <button
+                                    key={code}
+                                    type="button"
+                                    onClick={() => setCurrencyCode(code)}
+                                    className={cn(
+                                        "px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border transition-all",
+                                        currencyCode === code
+                                            ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                                            : "bg-white text-slate-400 border-slate-100 hover:border-slate-200"
+                                    )}
+                                >
+                                    {code === CurrencyCodeEnum.EGP ? 'EGP' : code === CurrencyCodeEnum.USD ? 'USD' : 'EUR'}
+                                </button>
+                            ))}
                         </div>
                         <p className="text-[10px] text-slate-400">
                             {t('reservations.balance_due_hint', 'Remaining unpaid amount')}

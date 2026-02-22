@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CalendarDays, Hash } from 'lucide-react';
+import { CalendarDays, Hash, ArrowLeft } from 'lucide-react';
 import type {
     ReservationAllocationPlanDto,
     ConfirmAllocationRequest
@@ -88,11 +88,21 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
             <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
-                <DialogHeader>
-                    <DialogTitle>{t('reception.review_allocation_plan', 'Review Room Assignments')}</DialogTitle>
-                    <DialogDescription>
-                        {t('reception.review_allocation_desc', 'Review and adjust proposed room assignments before confirming. Prices are matched to the closest available room.')}
-                    </DialogDescription>
+                <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="sm:hidden h-10 w-10 -ml-2 rounded-full hover:bg-slate-100"
+                        onClick={onClose}
+                    >
+                        <ArrowLeft className="h-5 w-5 text-slate-500" />
+                    </Button>
+                    <div className="space-y-1 text-left">
+                        <DialogTitle>{t('reception.review_allocation_plan', 'Review Room Assignments')}</DialogTitle>
+                        <DialogDescription className="hidden sm:block">
+                            {t('reception.review_allocation_desc', 'Review and adjust proposed room assignments before confirming. Prices are matched to the closest available room.')}
+                        </DialogDescription>
+                    </div>
                 </DialogHeader>
 
                 <div className="flex-1 overflow-auto py-4">
@@ -257,6 +267,6 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                     </Button>
                 </DialogFooter>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     );
 }

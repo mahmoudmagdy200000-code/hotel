@@ -198,10 +198,10 @@ const ReservationDetails = () => {
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
                         onClick={() => navigate(backPath)}
-                        className="rounded-full hover:bg-slate-100 h-9 w-9"
+                        className="h-10 w-10 rounded-full border-slate-200 shadow-sm hover:bg-slate-50 transition-all active:scale-95"
                     >
                         <ArrowLeft className="w-5 h-5 text-slate-600" />
                     </Button>
@@ -241,7 +241,7 @@ const ReservationDetails = () => {
             {/* Sticky Action Bar (Fixed at bottom on mobile, inline-ish but fixed-ready on desktop) */}
             <div className="fixed bottom-0 left-0 right-0 sm:bottom-6 sm:left-auto sm:right-6 sm:w-auto z-50 p-4 sm:p-0 pointer-events-none">
                 <div className="bg-white/80 backdrop-blur-xl border border-slate-200/50 p-2 rounded-2xl sm:rounded-2xl shadow-2xl flex items-center gap-2 pointer-events-auto max-w-lg mx-auto sm:mx-0">
-                    {res.status === ReservationStatus.Draft && (
+                    {(res.status === ReservationStatus.Draft || res.status === ReservationStatus.Confirmed) && (
                         <>
                             <Button
                                 variant="outline"
@@ -254,7 +254,7 @@ const ReservationDetails = () => {
                             <Button
                                 className="flex-1 sm:flex-none h-11 sm:h-10 rounded-xl bg-slate-900 border-none font-black text-[10px] uppercase tracking-widest"
                                 onClick={() => handleConfirmFlow()}
-                                disabled={!!(getPlan.isPending || (res.checkInDate && new Date(res.checkInDate) < new Date(new Date().setHours(0, 0, 0, 0))))}
+                                disabled={getPlan.isPending}
                             >
                                 {getPlan.isPending ? <Loader2 className="animate-spin w-3.5 h-3.5 mr-2" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-2" />}
                                 {t('reservations.confirm')}
@@ -267,7 +267,7 @@ const ReservationDetails = () => {
                             <Button
                                 className="flex-1 sm:flex-none h-11 sm:h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-black text-[10px] uppercase tracking-widest"
                                 onClick={() => handleAction('check-in', (id) => actions.checkIn.mutateAsync({ id, businessDate }))}
-                                disabled={actions.checkIn.isPending || res.checkInDate.split('T')[0] !== businessDate}
+                                disabled={actions.checkIn.isPending}
                             >
                                 <LogIn className="w-3.5 h-3.5 mr-2" />
                                 {t('reservations.check_in')}
@@ -277,7 +277,7 @@ const ReservationDetails = () => {
                                 variant="outline"
                                 className="flex-1 sm:flex-none h-11 sm:h-10 rounded-xl border-slate-200 font-black text-[10px] uppercase tracking-widest text-slate-500"
                                 onClick={() => handleAction('no-show', (id) => actions.noShow.mutateAsync({ id, businessDate }))}
-                                disabled={actions.noShow.isPending || res.checkInDate.split('T')[0] !== businessDate}
+                                disabled={actions.noShow.isPending}
                             >
                                 <UserMinus className="w-3.5 h-3.5 mr-2" />
                                 {t('reservations.no_show')}

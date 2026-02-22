@@ -49,7 +49,7 @@ public class GetReceptionTodayQueryHandler : IRequestHandler<GetReceptionTodayQu
             var item = MapToItemDto(r);
 
             // Categorize
-            if (r.Status == ReservationStatus.Confirmed)
+            if (r.Status == ReservationStatus.Confirmed || r.Status == ReservationStatus.Draft)
             {
                 // Pending arrivals: All those who were supposed to arrive by targetDate OR have balance
                 arrivals.Add(item);
@@ -136,6 +136,7 @@ public class GetReceptionTodayQueryHandler : IRequestHandler<GetReceptionTodayQu
             RoomTypeNames = roomTypes,
             BalanceDue = r.BalanceDue,
             Currency = r.Currency,
+            CurrencyCode = (int)r.CurrencyCode,
             PaymentMethod = r.PaymentMethod.ToString()
         };
     }

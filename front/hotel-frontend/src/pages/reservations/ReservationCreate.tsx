@@ -152,11 +152,23 @@ const ReservationCreate = () => {
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/reservations')}>
-                    <ArrowLeft className="w-5 h-5" />
+            <div className="flex items-center gap-3">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => navigate('/reservations')}
+                    className="h-10 w-10 rounded-full border-slate-200 shadow-sm hover:bg-slate-50 transition-all active:scale-95"
+                >
+                    <ArrowLeft className="w-5 h-5 text-slate-600" />
                 </Button>
-                <h1 className="text-2xl font-bold text-slate-900">{t('reservations.create_new', 'Create New Reservation')}</h1>
+                <div className="space-y-0.5">
+                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none uppercase">
+                        {t('reservations.create_new', 'New Reservation')}
+                    </h1>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {t('reservations.fill_details_to_confirm', 'Fill details to confirm booking')}
+                    </div>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">

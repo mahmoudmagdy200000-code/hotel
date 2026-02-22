@@ -20,6 +20,7 @@ public record CheckInReservationCommand : IRequest<ReservationStatusChangedDto>
     public DateTime? CheckOutDate { get; init; }
     public decimal? BalanceDue { get; init; }
     public PaymentMethod? PaymentMethod { get; init; }
+    public CurrencyCode? CurrencyCode { get; init; }
 }
 
 public class CheckInReservationCommandValidator : AbstractValidator<CheckInReservationCommand>
@@ -96,6 +97,14 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         if (request.PaymentMethod.HasValue)
         {
             entity.PaymentMethod = request.PaymentMethod.Value;
+        }
+
+        if (request.CurrencyCode.HasValue)
+        {
+            entity.CurrencyCode = request.CurrencyCode.Value;
+            // Also update the symbolic string if it exists
+            entity.Currency = entity.CurrencyCode == CleanArchitecture.Domain.Enums.CurrencyCode.USD ? "USD" : 
+                              entity.CurrencyCode == CleanArchitecture.Domain.Enums.CurrencyCode.EUR ? "EUR" : "EGP";
         }
 
         // Handle Date Changes + Overlap Check
