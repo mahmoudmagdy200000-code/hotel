@@ -131,6 +131,7 @@ public static class PdfExtractionRules
         { "$", "USD" },
         { "€", "EUR" },
         { "£", "GBP" },
+        { "ج.م", "EGP" },
     };
 
     #endregion
@@ -307,6 +308,9 @@ public static class PdfExtractionRules
                     {
                         var currency = NormalizeCurrency(!string.IsNullOrEmpty(currencyBefore) ? currencyBefore : currencyAfter);
                         
+                        // Debug: What did we find?
+                        Console.WriteLine($"[DEBUG] Found currency: {currency}");
+
                         // CURRENCY CONVERSION RULE: Unify to USD
                         // Assuming Rate: 1 USD = 50 EGP
                         if (currency == "EGP")
@@ -314,6 +318,7 @@ public static class PdfExtractionRules
                             normalizedAmount = normalizedAmount.Value / 50.0m;
                             normalizedAmount = Math.Round(normalizedAmount.Value, 2);
                             currency = "USD";
+                            Console.WriteLine($"[DEBUG] Converted EGP to USD: {normalizedAmount}");
                         }
 
                         return (normalizedAmount, currency);
@@ -396,9 +401,17 @@ public static class PdfExtractionRules
             if (normalizedHint == "EGP") return Domain.Enums.CurrencyCode.EGP;
         }
 
-        if (string.IsNullOrWhiteSpace(text)) return Domain.Enums.CurrencyCode.EGP;
+        // 2. Heuristic: Price Plausibility (Higher priority than global scan if amount is unambiguous)
+        // If amount is < 400 and NO hints found, it's very likely USD/EUR.
+        // In Egypt, a hotel for < 400 EGP ($8) is rare, but $100 is common.
+        if (amount.HasValue && amount.Value > 0 && amount.Value < 400)
+        {
+            return Domain.Enums.CurrencyCode.USD;
+        }
 
-        // 2. Fallback to global scan if no hint or hint was unknown
+        if (string.IsNullOrWhiteSpace(text)) return Domain.Enums.CurrencyCode.USD; // Default to USD per system preference
+
+        // 3. Global scan as fallback
         // EUR: € OR EUR
         if (Regex.IsMatch(text, @"€|\bEUR\b|\bEuro\b", RegexOptions.IgnoreCase))
             return Domain.Enums.CurrencyCode.EUR;
@@ -407,20 +420,12 @@ public static class PdfExtractionRules
         if (Regex.IsMatch(text, @"\$|\bUSD\b|\bUS\s*Dollar|\bU\.S\.\s*Dollar", RegexOptions.IgnoreCase))
             return Domain.Enums.CurrencyCode.USD;
 
-        // EGP: EGP OR LE OR ج.م (LE needs boundary to avoid Double, Apple, etc.)
+        // EGP: EGP OR LE OR ج.م
         if (Regex.IsMatch(text, @"\bEGP\b|\bLE\b|ج\.م", RegexOptions.IgnoreCase))
             return Domain.Enums.CurrencyCode.EGP;
 
-        // 3. Heuristic: Price Plausibility
-        // If amount is detected but currency is unknown, check magnitude.
-        // E.g. < 400 is likely USD/EUR (since 400 EGP is ~$8, too low for typical hotel stay).
-        if (amount.HasValue && amount.Value > 0 && amount.Value < 400)
-        {
-            return Domain.Enums.CurrencyCode.USD;
-        }
-
-        // Default
-        return Domain.Enums.CurrencyCode.EGP;
+        // Default to USD (Center of gravity for the system)
+        return Domain.Enums.CurrencyCode.USD;
     }
 
     /// <summary>

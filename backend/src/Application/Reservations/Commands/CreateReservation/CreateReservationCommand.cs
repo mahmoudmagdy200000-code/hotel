@@ -19,7 +19,7 @@ public record CreateReservationCommand : IRequest<ReservationDto>
     public string? HotelName { get; init; }
     public decimal BalanceDue { get; init; }
     public PaymentMethod PaymentMethod { get; init; } = PaymentMethod.Cash;
-    public CurrencyCode CurrencyCode { get; init; } = CurrencyCode.EGP;
+    public CurrencyCode CurrencyCode { get; init; } = CurrencyCode.USD;
     public string? CurrencyOther { get; init; }
 }
 
@@ -143,6 +143,11 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
             CurrencyCode = request.CurrencyCode,
             CurrencyOther = request.CurrencyCode == CurrencyCode.Other ? request.CurrencyOther : null
         };
+
+        // Sync symbolic currency string
+        entity.Currency = entity.CurrencyCode == CurrencyCode.USD ? "USD" : 
+                          entity.CurrencyCode == CurrencyCode.EUR ? "EUR" : 
+                          entity.CurrencyCode == CurrencyCode.EGP ? "EGP" : (request.Currency ?? "USD");
 
         if (entity.Status == ReservationStatus.Confirmed)
         {
