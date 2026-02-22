@@ -26,13 +26,7 @@ interface SidebarProps {
     onClose: () => void;
 }
 
-interface NavItem {
-    path?: string;
-    label: string;
-    icon: React.ReactNode;
-    roles?: string[];
-    children?: Omit<NavItem, 'children'>[];
-}
+
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     const { t } = useTranslation();
@@ -165,7 +159,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-[11px] font-black text-white truncate uppercase tracking-tight">
-                                    {user?.username || 'Operator'}
+                                    {user?.name || 'Operator'}
                                 </p>
                                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
                                     {userRole}
