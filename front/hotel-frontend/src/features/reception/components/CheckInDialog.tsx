@@ -159,8 +159,17 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
         });
     }, [reservation, roomAssignments, rooms]);
 
+    if (!reservation) return null;
+
     const handleConfirm = () => {
         if (isDateInvalid || isAnyRoomOccupied) return;
+
+        // Generate assignments array carefully to ensure we pick up current state
+        const assignments = reservation.lines.map(line => ({
+            lineId: line.id,
+            roomId: roomAssignments[line.id]
+        })).filter(a => a.roomId !== undefined);
+
         onConfirm(
             guestName,
             phone,
@@ -171,14 +180,9 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             balanceDue,
             paymentMethod,
             currencyCode,
-            Object.entries(roomAssignments).map(([lineId, roomId]) => ({
-                lineId: parseInt(lineId),
-                roomId
-            }))
+            assignments
         );
     };
-
-    if (!reservation) return null;
 
     const paymentMethods = [
         { value: PaymentMethodEnum.Cash, label: t('reservations.cash', 'Cash'), icon: Banknote },

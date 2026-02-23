@@ -133,17 +133,14 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
             {
                 var assignment = request.RoomAssignments[i];
                 
-                // 1. Try match by explicit LineId
-                var targetLine = dbLines.FirstOrDefault(l => l.Id == assignment.LineId);
-                
-                // 2. Fallback: If it's a single room reservation (common for PDF), or IDs mismatch, match by index
-                if (targetLine == null && i < dbLines.Count)
-                {
-                    targetLine = dbLines[i];
-                }
+                // Try match by ID, but if counts match and it's 1-1, just take the line.
+                // This is vital for PDF drafts where IDs might be 0 or desynced.
+                var targetLine = dbLines.FirstOrDefault(l => l.Id == assignment.LineId) 
+                                 ?? (dbLines.Count == request.RoomAssignments.Count ? dbLines[i] : null);
 
-                if (targetLine != null && targetLine.RoomId != assignment.RoomId)
+                if (targetLine != null)
                 {
+                    // Explicitly load the new room to ensure metadata is correct
                     var room = await _context.Rooms
                         .Include(r => r.RoomType)
                         .FirstOrDefaultAsync(r => r.Id == assignment.RoomId, cancellationToken);
@@ -152,8 +149,7 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                     {
                         targetLine.RoomId = room.Id;
                         targetLine.RoomTypeId = room.RoomTypeId;
-                        // Force update navigation to avoid stale data in check
-                        targetLine.Room = room; 
+                        targetLine.Room = room; // Force update navigation
                     }
                 }
             }
@@ -164,13 +160,28 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         var newOut = request.CheckOutDate ?? entity.CheckOutDate;
 
         // Check overlaps for all rooms in this reservation
-        foreach (var line in entity.Lines)
+        var dbLines = entity.Lines.ToList();
+        for (int i = 0; i < dbLines.Count; i++)
         {
+            var line = dbLines[i];
+            var roomId = line.RoomId;
+            
+            // Priority 1: Use the explicit assignment from request if IDs match
+            var assignment = request.RoomAssignments?.FirstOrDefault(a => a.LineId == line.Id);
+            if (assignment != null)
+            {
+                roomId = assignment.RoomId;
+            }
+            // Priority 2: If it's a 1-to-1 match (single room), use the only assignment provided
+            else if (request.RoomAssignments?.Count == 1 && dbLines.Count == 1)
+            {
+                roomId = request.RoomAssignments[0].RoomId;
+            }
+
             // 1. Absolute Check: Is ANY other reservation CURRENTLY CheckedIn to this room?
-            // This prevents "two bookings in one room" regardless of dates.
             var currentOccupant = await _context.ReservationLines
                 .Include(l => l.Reservation)
-                .Where(l => l.RoomId == line.RoomId &&
+                .Where(l => l.RoomId == roomId &&
                             l.ReservationId != entity.Id &&
                             !l.Reservation!.IsDeleted &&
                             l.Reservation.Status == ReservationStatus.CheckedIn)
@@ -179,17 +190,17 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
             if (currentOccupant != null)
             {
                 var roomNum = await _context.Rooms
-                    .Where(r => r.Id == line.RoomId)
+                    .Where(r => r.Id == roomId)
                     .Select(r => r.RoomNumber)
                     .FirstOrDefaultAsync(cancellationToken);
 
                 throw new ConflictException($"Room {roomNum} is currently occupied by {currentOccupant.Reservation?.GuestName}. The previous guest must be Checked-Out before a new Check-In can be performed for this room.");
             }
 
-            // 2. Standard Date Overlap Check (for future/other confirmed bookings)
+            // 2. Standard Date Overlap Check
             var overlappingLine = await _context.ReservationLines
                 .Include(l => l.Reservation)
-                .Where(l => l.RoomId == line.RoomId &&
+                .Where(l => l.RoomId == roomId &&
                             l.ReservationId != entity.Id &&
                             !l.Reservation!.IsDeleted &&
                             (l.Reservation.Status == ReservationStatus.Confirmed || 
@@ -202,7 +213,7 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
             if (overlappingLine != null)
             {
                 var roomNumber = await _context.Rooms
-                    .Where(r => r.Id == line.RoomId)
+                    .Where(r => r.Id == roomId)
                     .Select(r => r.RoomNumber)
                     .FirstOrDefaultAsync(cancellationToken);
                     
