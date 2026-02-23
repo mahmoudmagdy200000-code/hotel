@@ -28,6 +28,7 @@ interface CheckInDialogProps {
         bookingNumber: string,
         checkInDate: string | undefined, // yyyy-MM-dd
         checkOutDate: string | undefined, // yyyy-MM-dd
+        totalAmount: number,
         balanceDue: number,
         paymentMethod: PaymentMethodValue,
         currencyCode: number
@@ -49,9 +50,10 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     const [bookingNumber, setBookingNumber] = useState<string>('');
     const [checkInDate, setCheckInDate] = useState<Date | undefined>(undefined);
     const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(undefined);
+    const [totalAmount, setTotalAmount] = useState<number>(0);
     const [balanceDue, setBalanceDue] = useState<number>(0);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethodValue>(PaymentMethodEnum.Cash);
-    const [currencyCode, setCurrencyCode] = useState<number>(CurrencyCodeEnum.EGP);
+    const [currencyCode, setCurrencyCode] = useState<number>(CurrencyCodeEnum.USD);
 
     useEffect(() => {
         if (reservation) {
@@ -60,6 +62,7 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             setBookingNumber(reservation.bookingNumber || '');
             setCheckInDate(reservation.checkIn ? parseISO(reservation.checkIn) : undefined);
             setCheckOutDate(reservation.checkOut ? parseISO(reservation.checkOut) : undefined);
+            setTotalAmount(reservation.totalAmount || 0);
             setBalanceDue(reservation.balanceDue);
 
             // Map string from DTO to enum value
@@ -69,7 +72,7 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             } else {
                 setPaymentMethod(PaymentMethodEnum.Cash);
             }
-            setCurrencyCode(reservation.currencyCode || CurrencyCodeEnum.EGP);
+            setCurrencyCode(reservation.currencyCode || CurrencyCodeEnum.USD);
         }
     }, [reservation, isOpen]);
 
@@ -80,6 +83,7 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             bookingNumber,
             checkInDate ? format(checkInDate, 'yyyy-MM-dd') : undefined,
             checkOutDate ? format(checkOutDate, 'yyyy-MM-dd') : undefined,
+            totalAmount,
             balanceDue,
             paymentMethod,
             currencyCode
@@ -184,50 +188,76 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="balanceDue" className="text-sm font-semibold text-slate-700">
-                            {t('reservations.balance_due', 'Balance Due')}
-                        </Label>
-                        <div className="relative">
-                            <span className={cn(
-                                "absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-black uppercase",
-                                currencyCode === CurrencyCodeEnum.EGP ? "left-2.5" : "left-3"
-                            )}>
-                                {getCurrencySymbol(currencyCode)}
-                            </span>
-                            <Input
-                                id="balanceDue"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                className={cn(
-                                    "h-11 border-slate-200 focus:ring-2 focus:ring-slate-900/5 rounded-xl transition-all",
-                                    currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7"
-                                )}
-                                value={balanceDue}
-                                onChange={(e) => setBalanceDue(parseFloat(e.target.value) || 0)}
-                            />
-                        </div>
-                        <div className="flex gap-1 mt-2">
-                            {[CurrencyCodeEnum.EGP, CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR].map((code) => (
-                                <button
-                                    key={code}
-                                    type="button"
-                                    onClick={() => setCurrencyCode(code)}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="totalAmount" className="text-sm font-semibold text-slate-700">
+                                {t('reservations.total_amount', 'Total Amount')}
+                            </Label>
+                            <div className="relative">
+                                <span className={cn(
+                                    "absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-black uppercase",
+                                    currencyCode === CurrencyCodeEnum.EGP ? "left-2.5" : "left-3"
+                                )}>
+                                    {getCurrencySymbol(currencyCode)}
+                                </span>
+                                <Input
+                                    id="totalAmount"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
                                     className={cn(
-                                        "px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border transition-all",
-                                        currencyCode === code
-                                            ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                                            : "bg-white text-slate-400 border-slate-100 hover:border-slate-200"
+                                        "h-11 border-slate-200 focus:ring-2 focus:ring-slate-900/5 rounded-xl transition-all",
+                                        currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7"
                                     )}
-                                >
-                                    {code === CurrencyCodeEnum.EGP ? 'EGP' : code === CurrencyCodeEnum.USD ? 'USD' : 'EUR'}
-                                </button>
-                            ))}
+                                    value={totalAmount}
+                                    onChange={(e) => setTotalAmount(parseFloat(e.target.value) || 0)}
+                                />
+                            </div>
                         </div>
-                        <p className="text-[10px] text-slate-400">
-                            {t('reservations.balance_due_hint', 'Remaining unpaid amount')}
-                        </p>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="balanceDue" className="text-sm font-semibold text-slate-700">
+                                {t('reservations.balance_due', 'Balance Due')}
+                            </Label>
+                            <div className="relative">
+                                <span className={cn(
+                                    "absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-black uppercase",
+                                    currencyCode === CurrencyCodeEnum.EGP ? "left-2.5" : "left-3"
+                                )}>
+                                    {getCurrencySymbol(currencyCode)}
+                                </span>
+                                <Input
+                                    id="balanceDue"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    className={cn(
+                                        "h-11 border-slate-200 focus:ring-2 focus:ring-slate-900/5 rounded-xl transition-all",
+                                        currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7"
+                                    )}
+                                    value={balanceDue}
+                                    onChange={(e) => setBalanceDue(parseFloat(e.target.value) || 0)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-1">
+                        {[CurrencyCodeEnum.EGP, CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR].map((code) => (
+                            <button
+                                key={code}
+                                type="button"
+                                onClick={() => setCurrencyCode(code)}
+                                className={cn(
+                                    "px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border transition-all",
+                                    currencyCode === code
+                                        ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                                        : "bg-white text-slate-400 border-slate-100 hover:border-slate-200"
+                                )}
+                            >
+                                {code === CurrencyCodeEnum.EGP ? 'EGP' : code === CurrencyCodeEnum.USD ? 'USD' : 'EUR'}
+                            </button>
+                        ))}
                     </div>
 
                     <div className="space-y-3">

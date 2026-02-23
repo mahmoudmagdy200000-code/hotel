@@ -81,6 +81,7 @@ export const checkInReservation = async (
     bookingNumber?: string,
     checkInDate?: string, // YYYY-MM-DD
     checkOutDate?: string, // YYYY-MM-DD
+    totalAmount?: number,
     balanceDue?: number,
     paymentMethod?: PaymentMethodValue,
     currencyCode?: number
@@ -92,6 +93,7 @@ export const checkInReservation = async (
         bookingNumber,
         checkInDate,
         checkOutDate,
+        totalAmount,
         balanceDue,
         paymentMethod,
         currencyCode

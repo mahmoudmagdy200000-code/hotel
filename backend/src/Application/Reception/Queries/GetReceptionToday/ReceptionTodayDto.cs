@@ -27,6 +27,7 @@ public record ReceptionReservationItemDto
     public string Status { get; init; } = string.Empty;
     public List<string> RoomNumbers { get; init; } = new();
     public List<string> RoomTypeNames { get; init; } = new();
+    public decimal TotalAmount { get; init; }
     public decimal BalanceDue { get; init; }
     public string Currency { get; init; } = string.Empty;
     public int CurrencyCode { get; init; }

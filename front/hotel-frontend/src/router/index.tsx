@@ -19,6 +19,7 @@ import UserManagement from '@/pages/admin/UserManagement';
 import NotFound from '@/pages/NotFound';
 import { ProtectedRoute } from '@/components/routes/ProtectedRoute';
 import { AdminRoute } from '@/components/routes/AdminRoute';
+import { OwnerRoute } from '@/components/routes/OwnerRoute';
 import { useAuth } from '@/hooks/useAuth';
 
 /** Redirects based on user role: Receptionist → Reception Today, others → Dashboard */
@@ -118,9 +119,9 @@ const router = createBrowserRouter([
             {
                 path: 'admin/users',
                 element: (
-                    <AdminRoute>
+                    <OwnerRoute>
                         <UserManagement />
-                    </AdminRoute>
+                    </OwnerRoute>
                 ),
             },
         ],

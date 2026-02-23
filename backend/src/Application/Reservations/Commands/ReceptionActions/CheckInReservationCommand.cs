@@ -18,6 +18,7 @@ public record CheckInReservationCommand : IRequest<ReservationStatusChangedDto>
     public string? BookingNumber { get; init; }
     public DateTime? CheckInDate { get; init; }
     public DateTime? CheckOutDate { get; init; }
+    public decimal? TotalAmount { get; init; }
     public decimal? BalanceDue { get; init; }
     public PaymentMethod? PaymentMethod { get; init; }
     public CurrencyCode? CurrencyCode { get; init; }
@@ -27,6 +28,10 @@ public class CheckInReservationCommandValidator : AbstractValidator<CheckInReser
 {
     public CheckInReservationCommandValidator()
     {
+        RuleFor(v => v.TotalAmount)
+            .GreaterThanOrEqualTo(0)
+            .When(v => v.TotalAmount.HasValue);
+
         RuleFor(v => v.BalanceDue)
             .GreaterThanOrEqualTo(0)
             .When(v => v.BalanceDue.HasValue);
@@ -87,6 +92,11 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         if (!string.IsNullOrWhiteSpace(request.BookingNumber))
         {
             entity.BookingNumber = request.BookingNumber;
+        }
+
+        if (request.TotalAmount.HasValue)
+        {
+            entity.TotalAmount = request.TotalAmount.Value;
         }
 
         if (request.BalanceDue.HasValue)

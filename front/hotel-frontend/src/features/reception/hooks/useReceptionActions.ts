@@ -21,7 +21,7 @@ export const useReceptionActions = () => {
     });
 
     const checkIn = useMutation({
-        mutationFn: ({ id, businessDate, guestName, phone, bookingNumber, checkInDate, checkOutDate, balanceDue, paymentMethod, currencyCode }: {
+        mutationFn: ({ id, businessDate, guestName, phone, bookingNumber, checkInDate, checkOutDate, totalAmount, balanceDue, paymentMethod, currencyCode }: {
             id: number;
             businessDate: string;
             guestName?: string;
@@ -29,11 +29,12 @@ export const useReceptionActions = () => {
             bookingNumber?: string;
             checkInDate?: string;
             checkOutDate?: string;
+            totalAmount?: number;
             balanceDue?: number;
             paymentMethod?: PaymentMethodValue;
             currencyCode?: number;
         }) =>
-            checkInReservation(id, businessDate, guestName, phone, bookingNumber, checkInDate, checkOutDate, balanceDue, paymentMethod, currencyCode),
+            checkInReservation(id, businessDate, guestName, phone, bookingNumber, checkInDate, checkOutDate, totalAmount, balanceDue, paymentMethod, currencyCode),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['reception'] });
             queryClient.invalidateQueries({ queryKey: ['reservations'] });

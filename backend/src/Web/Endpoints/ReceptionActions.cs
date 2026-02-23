@@ -43,6 +43,7 @@ public class ReceptionActions : EndpointGroupBase
             BookingNumber = request.BookingNumber,
             CheckInDate = request.CheckInDate,
             CheckOutDate = request.CheckOutDate,
+            TotalAmount = request.TotalAmount,
             BalanceDue = request.BalanceDue,
             PaymentMethod = request.PaymentMethod,
             CurrencyCode = request.CurrencyCode
@@ -103,7 +104,7 @@ public class GetConfirmationPlanRequest
     public List<int>? ReservationIds { get; set; }
 }
 
-public record CheckInRequest(DateOnly BusinessDate, string? GuestName = null, string? Phone = null, string? BookingNumber = null, DateTime? CheckInDate = null, DateTime? CheckOutDate = null, decimal? BalanceDue = null, PaymentMethod? PaymentMethod = null, CurrencyCode? CurrencyCode = null);
+public record CheckInRequest(DateOnly BusinessDate, string? GuestName = null, string? Phone = null, string? BookingNumber = null, DateTime? CheckInDate = null, DateTime? CheckOutDate = null, decimal? TotalAmount = null, decimal? BalanceDue = null, PaymentMethod? PaymentMethod = null, CurrencyCode? CurrencyCode = null);
 public record CheckOutRequest(DateOnly BusinessDate, decimal? BalanceDue = null, PaymentMethod? PaymentMethod = null);
 public record CancelRequest(string? Reason);
 public record NoShowRequest(string? Reason, DateOnly BusinessDate);

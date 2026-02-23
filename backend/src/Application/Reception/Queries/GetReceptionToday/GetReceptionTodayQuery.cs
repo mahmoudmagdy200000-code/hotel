@@ -134,6 +134,7 @@ public class GetReceptionTodayQueryHandler : IRequestHandler<GetReceptionTodayQu
             Status = r.Status.ToString(),
             RoomNumbers = roomNumbers,
             RoomTypeNames = roomTypes,
+            TotalAmount = r.TotalAmount,
             BalanceDue = r.BalanceDue,
             Currency = r.Currency,
             CurrencyCode = (int)r.CurrencyCode,

@@ -49,7 +49,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             { path: '/expenses', label: t('nav.expenses', 'Expenses'), icon: <Receipt size={18} />, roles: ['Administrator', 'Owner'] },
         ],
         administrative: [
-            { path: '/admin/users', label: t('nav.users', 'Users'), icon: <Users size={18} strokeWidth={2.5} />, roles: ['Administrator', 'Owner'] },
+            { path: '/admin/users', label: t('nav.users', 'Users'), icon: <Users size={18} strokeWidth={2.5} />, roles: ['Owner'] },
             { path: '/admin/listings', label: t('nav.admin_listings'), icon: <Tag size={18} strokeWidth={2.5} />, roles: ['Administrator', 'Owner'] },
             { path: '/admin/audit/deletes', label: t('nav.admin_audit'), icon: <Shield size={18} strokeWidth={2.5} />, roles: ['Administrator', 'Owner'] },
             { path: '/rooms', label: t('nav.rooms'), icon: <DoorOpen size={18} />, roles: ['Administrator', 'Owner'] },
