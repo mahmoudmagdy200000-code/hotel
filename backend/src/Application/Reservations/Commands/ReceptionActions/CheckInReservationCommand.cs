@@ -66,6 +66,7 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
     public async Task<ReservationStatusChangedDto> Handle(CheckInReservationCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Reservations
+            .Include(r => r.Lines)
             .FirstOrDefaultAsync(r => r.Id == request.ReservationId, cancellationToken);
 
         if (entity == null)
@@ -152,6 +153,27 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         // Check overlaps for all rooms in this reservation
         foreach (var line in entity.Lines)
         {
+            // 1. Absolute Check: Is ANY other reservation CURRENTLY CheckedIn to this room?
+            // This prevents "two bookings in one room" regardless of dates.
+            var currentOccupant = await _context.ReservationLines
+                .Include(l => l.Reservation)
+                .Where(l => l.RoomId == line.RoomId &&
+                            l.ReservationId != entity.Id &&
+                            !l.Reservation!.IsDeleted &&
+                            l.Reservation.Status == ReservationStatus.CheckedIn)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (currentOccupant != null)
+            {
+                var roomNum = await _context.Rooms
+                    .Where(r => r.Id == line.RoomId)
+                    .Select(r => r.RoomNumber)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                throw new ConflictException($"Room {roomNum} is currently occupied by {currentOccupant.Reservation?.GuestName}. The previous guest must be Checked-Out before a new Check-In can be performed for this room.");
+            }
+
+            // 2. Standard Date Overlap Check (for future/other confirmed bookings)
             var overlappingLine = await _context.ReservationLines
                 .Include(l => l.Reservation)
                 .Where(l => l.RoomId == line.RoomId &&
@@ -160,8 +182,8 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                             (l.Reservation.Status == ReservationStatus.Confirmed || 
                                 l.Reservation.Status == ReservationStatus.CheckedIn ||
                                 l.Reservation.Status == ReservationStatus.CheckedOut) &&
-                            newIn < l.Reservation.CheckOutDate &&
-                            l.Reservation.CheckInDate < newOut)
+                            newIn.Date < l.Reservation.CheckOutDate.Date &&
+                            l.Reservation.CheckInDate.Date < newOut.Date)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (overlappingLine != null)

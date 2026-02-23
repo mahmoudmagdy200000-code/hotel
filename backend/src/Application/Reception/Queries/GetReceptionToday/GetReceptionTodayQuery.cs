@@ -144,7 +144,8 @@ public class GetReceptionTodayQueryHandler : IRequestHandler<GetReceptionTodayQu
                 Id = l.Id,
                 RoomId = l.RoomId,
                 RoomNumber = l.Room?.RoomNumber ?? "??",
-                RoomTypeId = l.RoomTypeId
+                RoomTypeId = l.RoomTypeId,
+                RoomTypeName = l.RoomType?.Name ?? "Unknown"
             }).ToList()
         };
     }

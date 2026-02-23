@@ -41,4 +41,5 @@ public record ReceptionReservationLineDto
     public int RoomId { get; init; }
     public string RoomNumber { get; init; } = string.Empty;
     public int RoomTypeId { get; init; }
+    public string RoomTypeName { get; init; } = string.Empty;
 }

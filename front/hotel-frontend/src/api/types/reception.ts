@@ -21,6 +21,7 @@ export interface ReceptionReservationLineDto {
     roomId: number;
     roomNumber: string;
     roomTypeId: number;
+    roomTypeName: string;
 }
 
 export interface ReceptionTodaySummaryDto {
