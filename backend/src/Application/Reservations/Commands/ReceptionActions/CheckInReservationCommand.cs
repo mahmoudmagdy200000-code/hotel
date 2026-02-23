@@ -128,9 +128,14 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         // Phase 8.6 — Handle Room Changes
         if (request.RoomAssignments != null && request.RoomAssignments.Any())
         {
-            foreach (var assignment in request.RoomAssignments)
+            var linesList = entity.Lines.ToList();
+            for (int i = 0; i < request.RoomAssignments.Count; i++)
             {
-                var line = entity.Lines.FirstOrDefault(l => l.Id == assignment.LineId);
+                var assignment = request.RoomAssignments[i];
+                // Try matching by ID first, then by index as a fallback
+                var line = entity.Lines.FirstOrDefault(l => l.Id == assignment.LineId) 
+                           ?? (i < linesList.Count ? linesList[i] : null);
+
                 if (line != null && line.RoomId != assignment.RoomId)
                 {
                     var room = await _context.Rooms
