@@ -161,22 +161,13 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         var newOut = request.CheckOutDate ?? entity.CheckOutDate;
 
         // Check overlaps for all rooms in this reservation
+        // We use the updated state from the previous loop (applying request changes)
         for (int i = 0; i < dbLines.Count; i++)
         {
             var line = dbLines[i];
-            var roomId = line.RoomId;
             
-            // Priority 1: Use the explicit assignment from request if IDs match
-            var assignment = request.RoomAssignments?.FirstOrDefault(a => a.LineId == line.Id);
-            if (assignment != null)
-            {
-                roomId = assignment.RoomId;
-            }
-            // Priority 2: If it's a 1-to-1 match (single room), use the only assignment provided
-            else if (request.RoomAssignments?.Count == 1 && dbLines.Count == 1)
-            {
-                roomId = request.RoomAssignments[0].RoomId;
-            }
+            // Critical: Ensure we check the room ID that was just assigned from the request
+            var roomId = line.RoomId;
 
             // 1. Absolute Check: Is ANY other reservation CURRENTLY CheckedIn to this room?
             var currentOccupant = await _context.ReservationLines
