@@ -74,7 +74,15 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     const rooms = statusData?.items || [];
 
     useEffect(() => {
-        if (reservation && lastInitializedId.current !== reservation.reservationId) {
+        if (!reservation) return;
+
+        // Check if we need to initialize (new reservation or ID mismatch)
+        const currentLineIds = Object.keys(roomAssignments).map(Number);
+        const newLineIds = reservation.lines.map(l => l.id);
+        const idsMismatch = newLineIds.some(id => !currentLineIds.includes(id)) || newLineIds.length !== currentLineIds.length;
+        const isNewReservation = lastInitializedId.current !== reservation.reservationId;
+
+        if (isNewReservation || idsMismatch) {
             lastInitializedId.current = reservation.reservationId;
             setGuestName(reservation.guestName || '');
             setPhone(reservation.phone || '');
@@ -91,16 +99,13 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
 
             // Map string from DTO to enum value
             if (reservation.paymentMethod) {
-                // Simple mapping for now to avoid enum dependency issues in transition
                 setPaymentMethod(reservation.paymentMethod === 'Cash' ? 1 : reservation.paymentMethod === 'Card' ? 2 : 1);
             }
             if (reservation.currencyCode) {
                 setCurrencyCode(reservation.currencyCode);
             }
 
-            // ── Date auto-adjustment ──────────────────────────────
-            // If check-in date doesn't match today, auto-set it to today
-            // and shift checkout to preserve the same number of nights.
+            // Date auto-adjustment
             const origCheckIn = reservation.checkIn ? parseISO(reservation.checkIn) : undefined;
             const origCheckOut = reservation.checkOut ? parseISO(reservation.checkOut) : undefined;
             const today = parseISO(businessDate);
@@ -108,7 +113,6 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             if (origCheckIn && origCheckOut) {
                 const checkInDateOnly = format(origCheckIn, 'yyyy-MM-dd');
                 if (checkInDateOnly !== businessDate) {
-                    // Preserve number of nights
                     const nights = Math.max(1, Math.round((origCheckOut.getTime() - origCheckIn.getTime()) / (1000 * 60 * 60 * 24)));
                     const adjustedCheckOut = new Date(today);
                     adjustedCheckOut.setDate(adjustedCheckOut.getDate() + nights);
@@ -319,7 +323,9 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                 return (
                                     <div key={line.id} className="flex flex-col gap-2 p-3 border border-slate-100 rounded-xl bg-slate-50/50">
                                         <div className="flex justify-between items-center text-xs text-slate-500 mb-1">
-                                            <span className="font-bold">{line.roomNumber} ({line.roomTypeName || t('reception.any_room', 'Any room')})</span>
+                                            <span className="font-bold">
+                                                {selectedRoom?.roomNumber || line.roomNumber} ({line.roomTypeName || t('reception.any_room', 'Any room')})
+                                            </span>
                                             {isPotentiallyOccupied && (
                                                 <div className="flex items-center gap-1 text-rose-500 font-extrabold animate-pulse">
                                                     <AlertTriangle className="w-3 h-3" />
