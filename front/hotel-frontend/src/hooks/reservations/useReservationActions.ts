@@ -20,6 +20,7 @@ export const useReservationActions = () => {
             queryClient.invalidateQueries({ queryKey: ['reservation'] });
         }
         queryClient.invalidateQueries({ queryKey: ['reception'] });
+        queryClient.invalidateQueries({ queryKey: ['roomsStatus'] });
     };
 
     const create = useMutation({

@@ -149,20 +149,39 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
 
     const isAnyRoomOccupied = useMemo(() => {
         if (!reservation) return false;
-        return reservation.lines.some(line => {
+        const result = reservation.lines.some(line => {
             const currentRoomId = roomAssignments[line.id];
             const selectedRoom = rooms.find(r => r.roomId === currentRoomId);
-            return selectedRoom && (
-                selectedRoom.status === 'Occupied' ||
-                (selectedRoom.status === 'Reserved' && currentRoomId !== line.roomId)
-            );
+
+            if (!selectedRoom) return false;
+
+            // Occupied status is always a block (someone is physically there)
+            if (selectedRoom.status === 'Occupied') {
+                console.log(`[CheckIn] Room ${selectedRoom.roomNumber} is OCCUPIED by someone else.`);
+                return true;
+            }
+
+            // Reserved status is only a block if it's reserved by someone ELSE
+            if (selectedRoom.status === 'Reserved') {
+                const isDifferentReservation = selectedRoom.reservation?.reservationId !== reservation.reservationId;
+                if (isDifferentReservation) {
+                    console.log(`[CheckIn] Room ${selectedRoom.roomNumber} is RESERVED by Guest ID ${selectedRoom.reservation?.reservationId} (Current is ${reservation.reservationId}).`);
+                }
+                return isDifferentReservation;
+            }
+
+            return false;
         });
+        return result;
     }, [reservation, roomAssignments, rooms]);
 
     if (!reservation) return null;
 
     const handleConfirm = () => {
-        if (isDateInvalid || isAnyRoomOccupied) return;
+        if (isDateInvalid || isAnyRoomOccupied) {
+            console.warn("[CheckIn] Cannot confirm: Date Invalid or Room Occupied", { isDateInvalid, isAnyRoomOccupied });
+            return;
+        }
 
         // Generate assignments array carefully to ensure we pick up current state
         const assignments = reservation.lines.map(line => ({
@@ -170,12 +189,17 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             roomId: roomAssignments[line.id]
         })).filter(a => a.roomId !== undefined);
 
+        const safeFormat = (date: Date | undefined) => {
+            if (!date || isNaN(date.getTime())) return undefined;
+            return format(date, 'yyyy-MM-dd');
+        };
+
         onConfirm(
             guestName,
             phone,
             bookingNumber,
-            checkInDate ? format(checkInDate, 'yyyy-MM-dd') : undefined,
-            checkOutDate ? format(checkOutDate, 'yyyy-MM-dd') : undefined,
+            safeFormat(checkInDate),
+            safeFormat(checkOutDate),
             totalAmount,
             balanceDue,
             paymentMethod,
@@ -326,12 +350,14 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                 const currentRoomId = roomAssignments[line.id];
                                 const selectedRoom = rooms.find(r => r.roomId === currentRoomId);
 
-                                // A room is "Occupied" if its status is Occupied
-                                // OR if its status is Reserved (by another reservation)
-                                const isPotentiallyOccupied = selectedRoom && (
-                                    selectedRoom.status === 'Occupied' ||
-                                    (selectedRoom.status === 'Reserved' && selectedRoom.roomId !== line.roomId)
-                                );
+                                // Occupied status is always a block
+                                const isOccupied = selectedRoom && selectedRoom.status === 'Occupied';
+                                // Reserved status is only a block if it's reserved by someone else
+                                const isTakenByOther = selectedRoom &&
+                                    selectedRoom.status === 'Reserved' &&
+                                    selectedRoom.reservation?.reservationId !== reservation.reservationId;
+
+                                const isPotentiallyOccupied = isOccupied || isTakenByOther;
 
                                 return (
                                     <div key={line.id} className="flex flex-col gap-2 p-3 border border-slate-100 rounded-xl bg-slate-50/50">
