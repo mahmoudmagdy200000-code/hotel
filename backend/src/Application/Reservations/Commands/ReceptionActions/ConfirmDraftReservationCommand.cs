@@ -15,10 +15,12 @@ public record ConfirmDraftReservationCommand : IRequest<ReservationStatusChanged
 public class ConfirmDraftReservationCommandHandler : IRequestHandler<ConfirmDraftReservationCommand, ReservationStatusChangedDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public ConfirmDraftReservationCommandHandler(IApplicationDbContext context)
+    public ConfirmDraftReservationCommandHandler(IApplicationDbContext context, IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<ReservationStatusChangedDto> Handle(ConfirmDraftReservationCommand request, CancellationToken cancellationToken)
@@ -168,7 +170,7 @@ public class ConfirmDraftReservationCommandHandler : IRequestHandler<ConfirmDraf
 
         // 7. Perform confirmation
         var oldStatus = entity.Status;
-        entity.Confirm(DateTime.UtcNow);
+        entity.Confirm(_dateTimeProvider.GetHotelTimeNow());
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -239,7 +241,7 @@ public class ConfirmDraftReservationCommandHandler : IRequestHandler<ConfirmDraf
             ReservationId = entity.Id,
             OldStatus = oldStatus.ToString(),
             NewStatus = entity.Status.ToString(),
-            ChangedAtUtc = entity.ConfirmedAt ?? DateTime.UtcNow,
+            ChangedAtUtc = entity.ConfirmedAt ?? _dateTimeProvider.GetHotelTimeNow(),
             BusinessDate = entity.CheckInDate.ToString("yyyy-MM-dd"),
             Message = message
         };

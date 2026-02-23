@@ -15,17 +15,20 @@ public record GetOccupancyQuery : IRequest<OccupancySummaryDto>
 public class GetOccupancyQueryHandler : IRequestHandler<GetOccupancyQuery, OccupancySummaryDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public GetOccupancyQueryHandler(IApplicationDbContext context)
+    public GetOccupancyQueryHandler(IApplicationDbContext context, IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<OccupancySummaryDto> Handle(GetOccupancyQuery request, CancellationToken cancellationToken)
     {
         // 1. Inputs & Validation
-        var from = request.From ?? DateTime.Today;
-        var to = request.To ?? DateTime.Today.AddDays(7);
+        var today = _dateTimeProvider.GetHotelToday();
+        var from = request.From ?? today;
+        var to = request.To ?? today.AddDays(7);
         if (to <= from) to = from.AddDays(1); // Ensure at least 1 night
 
         // +1 because 'to' is inclusive (frontend sends endOfMonth)
@@ -68,9 +71,15 @@ public class GetOccupancyQueryHandler : IRequestHandler<GetOccupancyQuery, Occup
             var dateStr = currentDate.ToString("yyyy-MM-dd");
 
             // Find reservations active on this specific night
-            // Active if CheckIn <= currentDate AND CheckOut > currentDate (CheckOut >= nextDate)
+            // active if CheckIn <= currentDate AND CheckOut > currentDate (CheckOut >= nextDate)
+            // LATE CHECKOUT logic: if they are CheckedIn, and their CheckOutDate is exactly currentDate,
+            // and the real Egypt local time is past 10:00 AM, they consume this night's inventory as well.
             var activeRes = reservations
-                .Where(r => r.CheckInDate <= currentDate && r.CheckOutDate >= nextDate)
+                .Where(r => 
+                    (r.CheckInDate <= currentDate && r.CheckOutDate >= nextDate) ||
+                    (r.Status == ReservationStatus.CheckedIn && r.CheckOutDate.Date == currentDate.Date && 
+                     currentDate.Date == today && _dateTimeProvider.IsLateCheckOut(r.CheckOutDate))
+                 )
                 .ToList();
 
             // Distinct rooms occupied

@@ -11,10 +11,12 @@ public record ConfirmReservationCommand(int Id) : IRequest;
 public class ConfirmReservationCommandHandler : IRequestHandler<ConfirmReservationCommand>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public ConfirmReservationCommandHandler(IApplicationDbContext context)
+    public ConfirmReservationCommandHandler(IApplicationDbContext context, IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task Handle(ConfirmReservationCommand request, CancellationToken cancellationToken)
@@ -42,7 +44,7 @@ public class ConfirmReservationCommandHandler : IRequestHandler<ConfirmReservati
             errors.Add(new FluentValidation.Results.ValidationFailure("Phone", "Phone number is required to confirm."));
         }
 
-        if (entity.CheckInDate.Date < DateTime.Today && entity.Source != ReservationSource.PDF)
+        if (entity.CheckInDate.Date < _dateTimeProvider.GetHotelToday() && entity.Source != ReservationSource.PDF)
         {
             errors.Add(new FluentValidation.Results.ValidationFailure("CheckInDate", "Cannot confirm a reservation with a past check-in date."));
         }
@@ -76,7 +78,7 @@ public class ConfirmReservationCommandHandler : IRequestHandler<ConfirmReservati
             }
         }
 
-        entity.Confirm(DateTime.UtcNow);
+        entity.Confirm(_dateTimeProvider.GetHotelTimeNow());
 
         await _context.SaveChangesAsync(cancellationToken);
     }

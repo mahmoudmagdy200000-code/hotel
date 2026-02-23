@@ -39,10 +39,12 @@ public record ConfirmAllocationCommand : IRequest<ConfirmAllocationResultDto>
 public class ConfirmAllocationCommandHandler : IRequestHandler<ConfirmAllocationCommand, ConfirmAllocationResultDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public ConfirmAllocationCommandHandler(IApplicationDbContext context)
+    public ConfirmAllocationCommandHandler(IApplicationDbContext context, IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<ConfirmAllocationResultDto> Handle(ConfirmAllocationCommand command, CancellationToken cancellationToken)
@@ -60,8 +62,9 @@ public class ConfirmAllocationCommandHandler : IRequestHandler<ConfirmAllocation
         var allRooms = await _context.Rooms.Where(r => r.IsActive).ToListAsync(cancellationToken);
 
         // Load occupancy for relevant range
-        var minDate = reservations.Any() ? reservations.Min(d => d.CheckInDate) : DateTime.Today;
-        var maxDate = reservations.Any() ? reservations.Max(d => d.CheckOutDate) : DateTime.Today.AddDays(30);
+        var today = _dateTimeProvider.GetHotelToday();
+        var minDate = reservations.Any() ? reservations.Min(d => d.CheckInDate) : today;
+        var maxDate = reservations.Any() ? reservations.Max(d => d.CheckOutDate) : today.AddDays(30);
         
         var existingReservations = await _context.Reservations
             .Include(r => r.Lines)
@@ -154,7 +157,7 @@ public class ConfirmAllocationCommandHandler : IRequestHandler<ConfirmAllocation
                 });
             }
 
-            reservation.Confirm(DateTime.UtcNow);
+            reservation.Confirm(_dateTimeProvider.GetHotelTimeNow());
             result.ConfirmedCount++;
         }
 

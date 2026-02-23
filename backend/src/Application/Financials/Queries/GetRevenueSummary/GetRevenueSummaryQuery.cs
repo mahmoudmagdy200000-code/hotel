@@ -20,10 +20,12 @@ public record GetRevenueSummaryQuery : IRequest<RevenueSummaryDto>
 public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQuery, RevenueSummaryDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public GetRevenueSummaryQueryHandler(IApplicationDbContext context)
+    public GetRevenueSummaryQueryHandler(IApplicationDbContext context, IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<RevenueSummaryDto> Handle(GetRevenueSummaryQuery request, CancellationToken cancellationToken)
@@ -32,8 +34,9 @@ public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQu
         var requestedGroupBy = (request.groupBy ?? "day").ToLower();
         
         // Default to today if not provided
-        var from = request.From ?? DateTime.Today;
-        var to = request.To ?? DateTime.Today;
+        var today = _dateTimeProvider.GetHotelToday();
+        var from = request.From ?? today;
+        var to = request.To ?? today;
         
         var statusFilterComment = mode == "actual" 
             ? "Actual includes CheckedOut only by accounting policy." 

@@ -80,6 +80,11 @@ public static class DependencyInjection
             .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>();
 
         builder.Services.AddSingleton(TimeProvider.System);
+        
+        builder.Services.Configure<CleanArchitecture.Application.Common.Models.HotelSettings>(
+            builder.Configuration.GetSection(CleanArchitecture.Application.Common.Models.HotelSettings.SectionName));
+        builder.Services.AddSingleton<IDateTimeProvider, CleanArchitecture.Infrastructure.Services.HotelDateTimeProvider>();
+
         builder.Services.AddTransient<IIdentityService, IdentityService>();
         builder.Services.AddTransient<IFileStorage, CleanArchitecture.Infrastructure.Files.LocalFileStorage>();
         builder.Services.AddTransient<IPdfReservationParser, CleanArchitecture.Infrastructure.Files.StructuredPdfReservationParser>();

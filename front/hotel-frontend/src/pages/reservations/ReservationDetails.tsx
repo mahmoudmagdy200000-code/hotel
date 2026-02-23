@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { format, parseISO } from 'date-fns';
+import { formatHotelTime } from '@/utils/date';
 import { useReservationDetails } from '@/hooks/reservations/useReservationDetails';
 import { useReservationActions } from '@/hooks/reservations/useReservationActions';
 import { useAuth } from '@/hooks/useAuth';
@@ -353,9 +353,12 @@ const ReservationDetails = () => {
                                 <div className="flex-1 text-center group">
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('reservations.check_in')}</span>
                                     <div className="text-xl font-black text-slate-900 tracking-tighter">
-                                        {format(parseISO(res.checkInDate), 'MMM d, yyyy')}
+                                        {formatHotelTime(res.checkInDate, 'MMM d, yyyy')}
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{format(parseISO(res.checkInDate), 'EEEE')}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-1">
+                                        {formatHotelTime(res.checkInDate, 'EEEE')}
+                                        <span className="ml-2 text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-md font-black">14:00+ EGY</span>
+                                    </span>
                                 </div>
                                 <div className="p-4 bg-white rounded-full shadow-lg border border-slate-100 z-10 scale-110">
                                     <ChevronRight className="w-6 h-6 text-slate-900" />
@@ -363,9 +366,12 @@ const ReservationDetails = () => {
                                 <div className="flex-1 text-center group">
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('reservations.check_out')}</span>
                                     <div className="text-xl font-black text-slate-900 tracking-tighter">
-                                        {format(parseISO(res.checkOutDate), 'MMM d, yyyy')}
+                                        {formatHotelTime(res.checkOutDate, 'MMM d, yyyy')}
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{format(parseISO(res.checkOutDate), 'EEEE')}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-1">
+                                        {formatHotelTime(res.checkOutDate, 'EEEE')}
+                                        <span className="ml-2 text-[9px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-md font-black">{'<'} 10:00 EGY</span>
+                                    </span>
                                 </div>
                             </div>
 

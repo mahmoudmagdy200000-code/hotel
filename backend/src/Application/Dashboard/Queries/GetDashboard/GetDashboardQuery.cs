@@ -21,17 +21,20 @@ public record GetDashboardQuery : IRequest<DashboardDto>
 public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, DashboardDto>
 {
     private readonly ISender _sender;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public GetDashboardQueryHandler(ISender sender)
+    public GetDashboardQueryHandler(ISender sender, IDateTimeProvider dateTimeProvider)
     {
         _sender = sender;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<DashboardDto> Handle(GetDashboardQuery request, CancellationToken cancellationToken)
     {
         // 1. Validate & Defaults
-        var from = request.From ?? DateTime.Today;
-        var to = request.To ?? DateTime.Today.AddDays(7);
+        var today = _dateTimeProvider.GetHotelToday();
+        var from = request.From ?? today;
+        var to = request.To ?? today.AddDays(7);
         if (to <= from) to = from.AddDays(1);
         
         var mode = request.Mode ?? "Forecast";
