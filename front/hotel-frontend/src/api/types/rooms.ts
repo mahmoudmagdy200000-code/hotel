@@ -38,6 +38,15 @@ export interface UpdateRoomTypeCommand {
     isActive: boolean;
 }
 
+export interface GetRoomsQuery {
+    roomTypeId?: number;
+    isActive?: boolean;
+    search?: string;
+    availableFrom?: string;
+    availableTo?: string;
+    excludeReservationId?: number;
+}
+
 export interface CreateRoomCommand {
     roomNumber: string;
     roomTypeId: number;

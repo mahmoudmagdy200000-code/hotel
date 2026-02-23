@@ -1,3 +1,5 @@
+using CleanArchitecture.Domain.Enums;
+
 namespace CleanArchitecture.Application.Rooms.Queries.GetRooms;
 
 public record GetRoomsQuery : IRequest<List<RoomDto>>
@@ -5,6 +7,9 @@ public record GetRoomsQuery : IRequest<List<RoomDto>>
     public int? RoomTypeId { get; init; }
     public bool? IsActive { get; init; }
     public string? Search { get; init; }
+    public DateOnly? AvailableFrom { get; init; }
+    public DateOnly? AvailableTo { get; init; }
+    public int? ExcludeReservationId { get; init; }
 }
 
 public class GetRoomsQueryHandler : IRequestHandler<GetRoomsQuery, List<RoomDto>>
@@ -27,6 +32,24 @@ public class GetRoomsQueryHandler : IRequestHandler<GetRoomsQuery, List<RoomDto>
         if (request.RoomTypeId.HasValue)
         {
             query = query.Where(x => x.RoomTypeId == request.RoomTypeId.Value);
+        }
+
+        if (request.AvailableFrom.HasValue && request.AvailableTo.HasValue)
+        {
+            var from = request.AvailableFrom.Value.ToDateTime(TimeOnly.MinValue);
+            var to = request.AvailableTo.Value.ToDateTime(TimeOnly.MinValue);
+            var excludeId = request.ExcludeReservationId ?? 0;
+
+            var occupiedRoomIdsQuery = _context.Reservations
+                .Where(r => r.Id != excludeId &&
+                            r.Status != ReservationStatus.Cancelled &&
+                            r.Status != ReservationStatus.NoShow &&
+                            r.CheckInDate < to &&
+                            r.CheckOutDate > from)
+                .SelectMany(r => r.Lines
+                    .Select(l => l.RoomId));
+
+            query = query.Where(room => !occupiedRoomIdsQuery.Contains(room.Id));
         }
 
         if (request.IsActive.HasValue)

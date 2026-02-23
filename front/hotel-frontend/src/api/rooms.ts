@@ -33,8 +33,8 @@ export const deleteRoomType = async (id: number): Promise<void> => {
 };
 
 // Rooms API
-export const getRooms = async (): Promise<RoomDto[]> => {
-    const response = await http.get<RoomDto[]>('rooms');
+export const getRooms = async (params?: import('./types/rooms').GetRoomsQuery): Promise<RoomDto[]> => {
+    const response = await http.get<RoomDto[]>('rooms', { params });
     return response.data;
 };
 

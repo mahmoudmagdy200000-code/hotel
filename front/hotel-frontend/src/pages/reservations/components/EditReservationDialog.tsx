@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { Loader2, Info } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,12 +25,6 @@ interface Props {
 
 export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, isSubmitting }: Props) {
     const { t } = useTranslation();
-
-    // Fetch rooms
-    const { data: rooms, isLoading: isLoadingRooms } = useQuery({
-        queryKey: ['rooms'],
-        queryFn: getRooms
-    });
 
     const { register, control, handleSubmit, watch, setValue, reset } = useForm<UpdateReservationCommand>({
         defaultValues: {
@@ -77,18 +71,6 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
         }
     }, [isOpen, reservation, reset]);
 
-    const handleSave = async (data: UpdateReservationCommand) => {
-        // Clean up currencyOther if not needed
-        const cleaned: UpdateReservationCommand = {
-            ...data,
-            hotelName: data.hotelName || null,
-            currencyOther: data.currencyCode === CurrencyCodeEnum.Other ? data.currencyOther : null,
-            balanceDue: Number(data.balanceDue) || 0
-        };
-        await onSubmit(reservation.id, cleaned);
-        onClose();
-    };
-
     const checkIn = watch('checkInDate');
     const checkOut = watch('checkOutDate');
     const watchedCurrencyCode = watch('currencyCode');
@@ -97,6 +79,32 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
         to: parseISO(checkOut)
     } : undefined;
 
+    // Fetch rooms (Filtered)
+    const { data: rooms, isLoading: isLoadingRooms } = useQuery({
+        queryKey: ['rooms', checkIn, checkOut, reservation.id],
+        queryFn: () => getRooms({
+            availableFrom: checkIn,
+            availableTo: checkOut,
+            excludeReservationId: reservation.id
+        })
+    });
+
+    const handleSave = async (data: UpdateReservationCommand) => {
+        try {
+            // Clean up currencyOther if not needed
+            const cleaned: UpdateReservationCommand = {
+                ...data,
+                hotelName: data.hotelName || null,
+                currencyOther: data.currencyCode === CurrencyCodeEnum.Other ? data.currencyOther : null,
+                balanceDue: Number(data.balanceDue) || 0
+            };
+            await onSubmit(reservation.id, cleaned);
+            // onClose() is managed by parent if successful
+        } catch (error) {
+            // Parent will toast error message, do nothing here to suppress uncaught promise
+        }
+    };
+
     const isComplex = reservation.lines.length > 1;
 
     return (
@@ -104,6 +112,7 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{t('reservations.edit_reservation', 'Edit Reservation')}</DialogTitle>
+                    <DialogDescription className="sr-only">Edit reservation details and room assignments.</DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(handleSave)} className="space-y-4">

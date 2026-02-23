@@ -5,7 +5,7 @@ import type { UpdateRoomCommand } from '@/api/types/rooms';
 export const useRooms = () => {
     return useQuery({
         queryKey: ['rooms'],
-        queryFn: getRooms,
+        queryFn: () => getRooms(),
     });
 };
 

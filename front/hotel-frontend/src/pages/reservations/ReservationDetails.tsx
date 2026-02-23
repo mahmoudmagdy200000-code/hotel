@@ -619,8 +619,15 @@ const ReservationDetails = () => {
                     onClose={() => setIsEditOpen(false)}
                     reservation={res}
                     onSubmit={async (id, cmd) => {
-                        await actions.update.mutateAsync({ id, command: cmd });
-                        setIsEditOpen(false);
+                        try {
+                            await actions.update.mutateAsync({ id, command: cmd });
+                            setIsEditOpen(false);
+                            toast.success(t('reservations.update_success', 'Reservation updated successfully'));
+                            refetch();
+                        } catch (err: unknown) {
+                            toast.error(extractErrorMessage(err));
+                            throw err;
+                        }
                     }}
                     isSubmitting={actions.update.isPending}
                 />
