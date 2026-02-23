@@ -67,11 +67,15 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     const [dateWasAutoAdjusted, setDateWasAutoAdjusted] = useState(false);
     const [roomAssignments, setRoomAssignments] = useState<Record<number, number>>({});
 
+    // Ref to track which reservation we've initialized the state for
+    const lastInitializedId = React.useRef<number | null>(null);
+
     const { data: statusData } = useReceptionRoomsStatus(businessDate);
     const rooms = statusData?.items || [];
 
     useEffect(() => {
-        if (reservation) {
+        if (reservation && lastInitializedId.current !== reservation.reservationId) {
+            lastInitializedId.current = reservation.reservationId;
             setGuestName(reservation.guestName || '');
             setPhone(reservation.phone || '');
             setBookingNumber(reservation.bookingNumber || '');
@@ -305,22 +309,21 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                 const currentRoomId = roomAssignments[line.id];
                                 const selectedRoom = rooms.find(r => r.roomId === currentRoomId);
 
-                                // A room is "Occupied" if its status is Occupied or Reserved 
-                                // AND it's not currently assigned to this reservation line.
-                                // Note: In our current DTO, we don't know WHOM it is reserved for, 
-                                // but if it's assigned to THIS line, it will be Reserved.
-                                // We check if there's an overlap warning.
-                                const isPotentiallyOccupied = selectedRoom &&
-                                    (selectedRoom.status === 'Occupied' || (selectedRoom.status === 'Reserved' && selectedRoom.roomId !== line.roomId));
+                                // A room is "Occupied" if its status is Occupied
+                                // OR if its status is Reserved (by another reservation)
+                                const isPotentiallyOccupied = selectedRoom && (
+                                    selectedRoom.status === 'Occupied' ||
+                                    (selectedRoom.status === 'Reserved' && selectedRoom.roomId !== line.roomId)
+                                );
 
                                 return (
                                     <div key={line.id} className="flex flex-col gap-2 p-3 border border-slate-100 rounded-xl bg-slate-50/50">
                                         <div className="flex justify-between items-center text-xs text-slate-500 mb-1">
                                             <span className="font-bold">{line.roomNumber} ({line.roomTypeName || t('reception.any_room', 'Any room')})</span>
                                             {isPotentiallyOccupied && (
-                                                <div className="flex items-center gap-1 text-rose-500 font-black animate-pulse">
+                                                <div className="flex items-center gap-1 text-rose-500 font-extrabold animate-pulse">
                                                     <AlertTriangle className="w-3 h-3" />
-                                                    <span>{selectedRoom!.status === 'Occupied' ? 'IN USE' : 'TAKEN'}</span>
+                                                    <span>{selectedRoom.status === 'Occupied' ? t('reception.in_use', 'IN USE') : t('reception.taken', 'TAKEN')}</span>
                                                 </div>
                                             )}
                                         </div>

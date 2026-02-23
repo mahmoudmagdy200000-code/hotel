@@ -43,7 +43,7 @@ const BottomNav = () => {
     ].filter(item => item.roles.includes(role));
 
     return (
-        <nav className="fixed bottom-0 inset-x-0 z-50 lg:hidden">
+        <nav className="fixed bottom-0 inset-x-0 z-40 lg:hidden">
             {/* Frosted glass effect */}
             <div className="bg-white/80 backdrop-blur-xl border-t border-slate-200/60 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
                 <div className="flex items-stretch justify-around h-16 px-2 max-w-md mx-auto">

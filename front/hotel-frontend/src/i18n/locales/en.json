@@ -143,7 +143,9 @@
         "room_assignment": "Room Assignment",
         "select_room": "Select Room",
         "any_room": "Any room",
-        "cannot_checkin_occupied": "Cannot check-in: One or more rooms are already occupied. Please change the room."
+        "cannot_checkin_occupied": "Cannot check-in: One or more rooms are already occupied. Please change the room.",
+        "in_use": "IN USE",
+        "taken": "TAKEN"
     },
     "dashboard": {
         "title": "Dashboard",
