@@ -232,67 +232,69 @@ const ReservationDetails = () => {
             </div>
 
             {/* STICKY OPERATIONAL ACTION BAR */}
-            <div className="fixed bottom-0 left-0 right-0 sm:bottom-8 sm:left-auto sm:right-8 sm:w-auto z-50 p-4 sm:p-0 pointer-events-none">
-                <div className="bg-slate-900/90 backdrop-blur-2xl border border-white/5 p-2 rounded-[32px] shadow-2xl flex items-center gap-2 pointer-events-auto max-w-lg mx-auto sm:mx-0 ring-4 ring-slate-900/10">
-                    {(res.status === ReservationStatus.Draft || res.status === ReservationStatus.Confirmed) && (
-                        <>
-                            <Button
-                                variant="ghost"
-                                onClick={() => setIsEditOpen(true)}
-                                className="flex-1 sm:flex-none h-12 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white hover:bg-white/10"
-                            >
-                                <Pencil className="w-3.5 h-3.5 mr-2" />
-                                {t('edit')}
-                            </Button>
-                            <Button
-                                className="flex-1 sm:flex-none h-12 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
-                                onClick={() => handleConfirmFlow()}
-                                disabled={getPlan.isPending}
-                            >
-                                {getPlan.isPending ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-                                {t('reservations.confirm')}
-                            </Button>
-                        </>
-                    )}
+            <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none sm:bottom-6 sm:left-auto sm:right-6 sm:w-auto">
+                <div className="pointer-events-auto mx-auto max-w-md sm:mx-0 px-3 pb-3 sm:p-0">
+                    <div className="bg-slate-900/95 backdrop-blur-2xl border border-white/10 px-3 py-3 rounded-2xl shadow-2xl shadow-black/30 flex items-center gap-3 ring-1 ring-white/5">
+                        {(res.status === ReservationStatus.Draft || res.status === ReservationStatus.Confirmed) && (
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setIsEditOpen(true)}
+                                    className="flex-1 h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wide transition-all active:scale-[0.97]"
+                                >
+                                    <Pencil className="w-4 h-4 mr-2 opacity-80" />
+                                    {t('edit')}
+                                </Button>
+                                <Button
+                                    className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wide shadow-lg shadow-blue-600/30 transition-all active:scale-[0.97]"
+                                    onClick={() => handleConfirmFlow()}
+                                    disabled={getPlan.isPending}
+                                >
+                                    {getPlan.isPending ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                                    {t('reservations.confirm')}
+                                </Button>
+                            </>
+                        )}
 
-                    {res.status === ReservationStatus.Confirmed && (
-                        <>
+                        {res.status === ReservationStatus.Confirmed && (
+                            <>
+                                <Button
+                                    className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wide shadow-lg shadow-emerald-600/30 transition-all active:scale-[0.97]"
+                                    onClick={() => handleAction('check-in', (id) => actions.checkIn.mutateAsync({ id, businessDate }))}
+                                    disabled={actions.checkIn.isPending}
+                                >
+                                    <LogIn className="w-4 h-4 mr-2" />
+                                    {t('reservations.check_in')}
+                                </Button>
+
+                                <Button
+                                    variant="ghost"
+                                    className="flex-none h-12 w-12 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition-all active:scale-[0.97]"
+                                    onClick={() => handleAction('cancel', (id) => actions.cancel.mutateAsync(id))}
+                                    disabled={actions.cancel.isPending || user?.role === 'Receptionist'}
+                                >
+                                    <XCircle className="w-5 h-5" />
+                                </Button>
+                            </>
+                        )}
+
+                        {res.status === ReservationStatus.CheckedIn && (
                             <Button
-                                className="flex-1 h-12 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
-                                onClick={() => handleAction('check-in', (id) => actions.checkIn.mutateAsync({ id, businessDate }))}
-                                disabled={actions.checkIn.isPending}
+                                className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wide shadow-lg shadow-blue-600/30 transition-all active:scale-[0.97]"
+                                onClick={() => handleAction('check-out', (id) => actions.checkOut.mutateAsync({ id, businessDate }))}
+                                disabled={actions.checkOut.isPending}
                             >
-                                <LogIn className="w-4 h-4 mr-2" />
-                                {t('reservations.check_in')}
+                                <LogOut className="w-4 h-4 mr-2" />
+                                {t('reservations.check_out')}
                             </Button>
+                        )}
 
-                            <Button
-                                variant="ghost"
-                                className="flex-none h-12 w-12 rounded-2xl text-rose-500 hover:bg-rose-500/10"
-                                onClick={() => handleAction('cancel', (id) => actions.cancel.mutateAsync(id))}
-                                disabled={actions.cancel.isPending || user?.role === 'Receptionist'}
-                            >
-                                <XCircle className="w-5 h-5" />
-                            </Button>
-                        </>
-                    )}
-
-                    {res.status === ReservationStatus.CheckedIn && (
-                        <Button
-                            className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
-                            onClick={() => handleAction('check-out', (id) => actions.checkOut.mutateAsync({ id, businessDate }))}
-                            disabled={actions.checkOut.isPending}
-                        >
-                            <LogOut className="w-4 h-4 mr-2" />
-                            {t('reservations.check_out')}
-                        </Button>
-                    )}
-
-                    {res.status === ReservationStatus.CheckedOut && (
-                        <div className="px-6 py-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
-                            Archive Integrity Sealed
-                        </div>
-                    )}
+                        {res.status === ReservationStatus.CheckedOut && (
+                            <div className="flex-1 h-12 flex items-center justify-center text-[11px] font-bold text-slate-500 uppercase tracking-widest italic">
+                                Archive Sealed
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
