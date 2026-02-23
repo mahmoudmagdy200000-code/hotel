@@ -11,7 +11,6 @@ public record CheckInReservationCommand : IRequest<ReservationStatusChangedDto>
 {
     public int ReservationId { get; init; }
     public DateOnly BusinessDate { get; init; }
-    public bool ForceCheckIn { get; init; }
 
     // Phase 7.4 — Editable fields at Check-In
     public string? GuestName { get; init; }
@@ -77,14 +76,6 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         if (entity.Status != ReservationStatus.Confirmed && entity.Status != ReservationStatus.Draft)
         {
             throw new ConflictException($"Cannot check-in reservation with status {entity.Status}. Only Confirmed or Draft reservations can be checked-in.");
-        }
-
-        // Date mismatch validation: check-in date must match business date
-        var reservationCheckInDate = DateOnly.FromDateTime(entity.CheckInDate);
-        if (reservationCheckInDate != request.BusinessDate && !request.ForceCheckIn)
-        {
-            throw new ConflictException(
-                $"DATE_MISMATCH: Reservation check-in date ({reservationCheckInDate:yyyy-MM-dd}) does not match today's date ({request.BusinessDate:yyyy-MM-dd}). Confirm to proceed.");
         }
 
         // Phase 7.4 — Apply edits BEFORE changing status
@@ -173,6 +164,15 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                 }
                 entity.TotalAmount = Math.Round(entity.Lines.Sum(l => l.LineTotal), 2);
             }
+        }
+
+        // Date mismatch validation (AFTER date edits applied):
+        // The final check-in date MUST match the business date
+        var finalCheckInDate = DateOnly.FromDateTime(entity.CheckInDate);
+        if (finalCheckInDate != request.BusinessDate)
+        {
+            throw new ConflictException(
+                $"DATE_MISMATCH: Check-in date ({finalCheckInDate:yyyy-MM-dd}) must match today's date ({request.BusinessDate:yyyy-MM-dd}). Please update the check-in date to today before proceeding.");
         }
 
         var oldStatus = entity.Status;

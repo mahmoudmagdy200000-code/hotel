@@ -84,12 +84,10 @@ export const checkInReservation = async (
     totalAmount?: number,
     balanceDue?: number,
     paymentMethod?: PaymentMethodValue,
-    currencyCode?: number,
-    forceCheckIn?: boolean
+    currencyCode?: number
 ): Promise<ReservationStatusChangedDto> => {
     const response = await http.post<ReservationStatusChangedDto>(`reception/reservations/${id}/check-in`, {
         businessDate,
-        forceCheckIn: forceCheckIn || false,
         guestName,
         phone,
         bookingNumber,
