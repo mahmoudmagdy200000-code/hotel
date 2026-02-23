@@ -128,15 +128,21 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         // Phase 8.6 — Handle Room Changes
         if (request.RoomAssignments != null && request.RoomAssignments.Any())
         {
-            var linesList = entity.Lines.ToList();
+            var dbLines = entity.Lines.ToList();
             for (int i = 0; i < request.RoomAssignments.Count; i++)
             {
                 var assignment = request.RoomAssignments[i];
-                // Try matching by ID first, then by index as a fallback
-                var line = entity.Lines.FirstOrDefault(l => l.Id == assignment.LineId) 
-                           ?? (i < linesList.Count ? linesList[i] : null);
+                
+                // 1. Try match by explicit LineId
+                var targetLine = dbLines.FirstOrDefault(l => l.Id == assignment.LineId);
+                
+                // 2. Fallback: If it's a single room reservation (common for PDF), or IDs mismatch, match by index
+                if (targetLine == null && i < dbLines.Count)
+                {
+                    targetLine = dbLines[i];
+                }
 
-                if (line != null && line.RoomId != assignment.RoomId)
+                if (targetLine != null && targetLine.RoomId != assignment.RoomId)
                 {
                     var room = await _context.Rooms
                         .Include(r => r.RoomType)
@@ -144,8 +150,10 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                         
                     if (room != null)
                     {
-                        line.RoomId = room.Id;
-                        line.RoomTypeId = room.RoomTypeId;
+                        targetLine.RoomId = room.Id;
+                        targetLine.RoomTypeId = room.RoomTypeId;
+                        // Force update navigation to avoid stale data in check
+                        targetLine.Room = room; 
                     }
                 }
             }
