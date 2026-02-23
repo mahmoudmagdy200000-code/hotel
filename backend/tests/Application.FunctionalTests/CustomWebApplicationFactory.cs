@@ -54,8 +54,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 .RemoveAll<DbContextOptions<ApplicationDbContext>>()
                 .AddDbContext<ApplicationDbContext>((sp, options) =>
                 {
-                    options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-                    options.UseSqlite(_connection);
+                    // options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+                    // Ignored DB initialization in test registry
                 });
 
             services.AddTransient<IPdfReservationParser, Reservations.FakePdfReservationParser>();
