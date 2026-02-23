@@ -130,29 +130,47 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         // Phase 8.6 — Handle Room Changes
         if (request.RoomAssignments != null && request.RoomAssignments.Any())
         {
-            var reqAssignments = request.RoomAssignments.OrderBy(a => a.LineId).ToList();
+            var reqAssignments = request.RoomAssignments.ToList(); // Keep original order if possible, or OrderBy if needed
+
+            _logger.LogInformation("[CheckIn] Processing {Count} assignments for Res {ResId}. DB has {DbCount} lines.", 
+                reqAssignments.Count, entity.Id, dbLines.Count);
+
             for (int i = 0; i < reqAssignments.Count; i++)
             {
                 var assignment = reqAssignments[i];
                 
-                // Try match by ID, but if counts match, fallback to index-based matching.
-                // This handles cases where Line IDs might be 0 or desynced (PDF drafts).
-                var targetLine = dbLines.FirstOrDefault(l => l.Id == assignment.LineId) 
-                                 ?? (dbLines.Count == reqAssignments.Count ? dbLines[i] : null);
+                // Matching strategy:
+                // 1. If LineId is provided (> 0), match by ID exactly.
+                // 2. If LineId is 0 or no match found by ID, fallback to index-based matching IF counts match.
+                var targetLine = assignment.LineId > 0 
+                    ? dbLines.FirstOrDefault(l => l.Id == assignment.LineId)
+                    : (dbLines.Count == reqAssignments.Count ? dbLines[i] : null);
 
-                if (targetLine != null)
+                if (targetLine == null)
                 {
-                    // Explicitly load the new room to ensure metadata is correct
-                    var room = await _context.Rooms
-                        .Include(r => r.RoomType)
-                        .FirstOrDefaultAsync(r => r.Id == assignment.RoomId, cancellationToken);
-                        
-                    if (room != null)
-                    {
-                        targetLine.RoomId = room.Id;
-                        targetLine.RoomTypeId = room.RoomTypeId;
-                        targetLine.Room = room; // Force update navigation for overlap check
-                    }
+                    _logger.LogWarning("[CheckIn] Could not match assignment at index {Index} (LineId: {LineId}) to any DB line.", i, assignment.LineId);
+                    continue;
+                }
+
+                // Explicitly load the new room to ensure metadata is correct
+                var room = await _context.Rooms
+                    .Include(r => r.RoomType) // Include RoomType to get its Name
+                    .FirstOrDefaultAsync(r => r.Id == assignment.RoomId, cancellationToken);
+                
+                if (room != null)
+                {
+                    _logger.LogInformation("[CheckIn] Updating Line {LineId} (Room was {OldRoom}) to New Room {NewRoom} (Id: {RoomId})", 
+                        targetLine.Id, targetLine.RoomNumber, room.Number, room.Id);
+                    
+                    targetLine.RoomId = room.Id;
+                    targetLine.RoomNumber = room.Number;
+                    targetLine.RoomTypeId = room.RoomTypeId; // Keep RoomTypeId updated
+                    targetLine.RoomTypeName = room.RoomType?.Name; // Update RoomTypeName
+                    targetLine.Room = room; // Update navigation property for subsequent checks
+                }
+                else
+                {
+                    _logger.LogWarning("[CheckIn] Room with ID {RoomId} not found for assignment LineId {LineId}.", assignment.RoomId, assignment.LineId);
                 }
             }
         }
@@ -167,27 +185,8 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         {
             var line = dbLines[i];
             
-            // Critical: Ensure we check the room ID that was just assigned from the request
+            // Critical: Ensure we check the room ID that was just assigned/updated
             var roomId = line.RoomId;
-
-            // 1. Absolute Check: Is ANY other reservation CURRENTLY CheckedIn to this room?
-            var currentOccupant = await _context.ReservationLines
-                .Include(l => l.Reservation)
-                .Where(l => l.RoomId == roomId &&
-                            l.ReservationId != entity.Id &&
-                            !l.Reservation!.IsDeleted &&
-                            l.Reservation.Status == ReservationStatus.CheckedIn)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (currentOccupant != null)
-            {
-                var roomNum = await _context.Rooms
-                    .Where(r => r.Id == roomId)
-                    .Select(r => r.RoomNumber)
-                    .FirstOrDefaultAsync(cancellationToken);
-
-                throw new ConflictException($"Room {roomNum} is currently occupied by {currentOccupant.Reservation?.GuestName}. The previous guest must be Checked-Out before a new Check-In can be performed for this room.");
-            }
 
             // 2. Standard Date Overlap Check
             var overlappingLine = await _context.ReservationLines
