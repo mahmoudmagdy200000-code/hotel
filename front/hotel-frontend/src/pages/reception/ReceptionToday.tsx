@@ -326,9 +326,9 @@ const ReceptionToday = () => {
                 isPending={actions.checkIn.isPending}
                 onConfirm={async (guestName, phone, bookingNumber, checkInDate, checkOutDate, totalAmount, balanceDue, paymentMethod, currencyCode) => {
                     if (!checkInState.reservation) return;
-                    try {
+                    const doCheckIn = async (force: boolean) => {
                         await actions.checkIn.mutateAsync({
-                            id: checkInState.reservation.reservationId,
+                            id: checkInState.reservation!.reservationId,
                             businessDate: selectedDate,
                             guestName,
                             phone,
@@ -338,13 +338,40 @@ const ReceptionToday = () => {
                             totalAmount,
                             balanceDue,
                             paymentMethod,
-                            currencyCode
+                            currencyCode,
+                            forceCheckIn: force
                         });
+                    };
+                    try {
+                        await doCheckIn(false);
                         toast.success(t('reception.checkin_success', 'Check-in successful!'));
                         setCheckInState(prev => ({ ...prev, isOpen: false }));
                         refetch();
                     } catch (err: unknown) {
-                        toast.error(`Error: ${extractErrorMessage(err)}`);
+                        const errorMsg = extractErrorMessage(err);
+                        if (errorMsg.includes('DATE_MISMATCH')) {
+                            // Close CheckInDialog and show date mismatch confirmation
+                            setCheckInState(prev => ({ ...prev, isOpen: false }));
+                            setConfirmState({
+                                isOpen: true,
+                                title: t('reception.date_mismatch_title', 'Date Mismatch Warning'),
+                                description: t('reception.date_mismatch_desc',
+                                    'The check-in date for this reservation does not match today\'s date. Are you sure you want to proceed with the check-in?'),
+                                variant: 'destructive',
+                                onConfirm: async () => {
+                                    closeConfirm();
+                                    try {
+                                        await doCheckIn(true);
+                                        toast.success(t('reception.checkin_success', 'Check-in successful!'));
+                                        refetch();
+                                    } catch (retryErr: unknown) {
+                                        toast.error(`Error: ${extractErrorMessage(retryErr)}`);
+                                    }
+                                },
+                            });
+                        } else {
+                            toast.error(`Error: ${errorMsg}`);
+                        }
                     }
                 }}
             />
