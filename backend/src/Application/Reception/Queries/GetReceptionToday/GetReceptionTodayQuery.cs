@@ -65,11 +65,6 @@ public class GetReceptionTodayQueryHandler : IRequestHandler<GetReceptionTodayQu
                 // InHouse: Anyone currently checked in
                 inHouse.Add(item);
             }
-            else if (r.Status == ReservationStatus.CheckedOut && r.BalanceDue > 0)
-            {
-                // If checked out but still owes money, keep in departures for visibility/collection
-                departures.Add(item);
-            }
         }
 
         // Deterministic Ordering
