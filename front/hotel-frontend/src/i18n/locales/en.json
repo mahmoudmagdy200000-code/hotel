@@ -139,7 +139,10 @@
         "payment_method": "Payment Method",
         "nights": "Nights",
         "total_amount": "Total Amount",
-        "currency": "Currency"
+        "currency": "Currency",
+        "room_assignment": "Room Assignment",
+        "select_room": "Select Room",
+        "any_room": "Any room"
     },
     "dashboard": {
         "title": "Dashboard",

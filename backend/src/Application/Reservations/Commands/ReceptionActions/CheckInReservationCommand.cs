@@ -22,6 +22,13 @@ public record CheckInReservationCommand : IRequest<ReservationStatusChangedDto>
     public decimal? BalanceDue { get; init; }
     public PaymentMethod? PaymentMethod { get; init; }
     public CurrencyCode? CurrencyCode { get; init; }
+    public List<CheckInRoomAssignmentDto>? RoomAssignments { get; init; }
+}
+
+public record CheckInRoomAssignmentDto
+{
+    public int LineId { get; init; }
+    public int RoomId { get; init; }
 }
 
 public class CheckInReservationCommandValidator : AbstractValidator<CheckInReservationCommand>
@@ -117,76 +124,96 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                               entity.CurrencyCode == CleanArchitecture.Domain.Enums.CurrencyCode.EUR ? "EUR" : "EGP";
         }
 
-        // Handle Date Changes + Overlap Check
-        if (request.CheckInDate.HasValue || request.CheckOutDate.HasValue)
+        // Phase 8.6 — Handle Room Changes
+        if (request.RoomAssignments != null && request.RoomAssignments.Any())
         {
-            var newIn = request.CheckInDate ?? entity.CheckInDate;
-            var newOut = request.CheckOutDate ?? entity.CheckOutDate;
-
-            if (newIn != entity.CheckInDate || newOut != entity.CheckOutDate)
+            foreach (var assignment in request.RoomAssignments)
             {
-                // Check overlaps for all rooms in this reservation
-                foreach (var line in entity.Lines)
+                var line = entity.Lines.FirstOrDefault(l => l.Id == assignment.LineId);
+                if (line != null && line.RoomId != assignment.RoomId)
                 {
-                    var overlapping = await _context.ReservationLines
-                        .Include(l => l.Reservation)
-                        .Where(l => l.RoomId == line.RoomId &&
-                                    l.ReservationId != entity.Id &&
-                                    !l.Reservation!.IsDeleted &&
-                                    (l.Reservation.Status == ReservationStatus.Confirmed || 
-                                     l.Reservation.Status == ReservationStatus.CheckedIn ||
-                                     l.Reservation.Status == ReservationStatus.CheckedOut) &&
-                                    newIn < l.Reservation.CheckOutDate &&
-                                    l.Reservation.CheckInDate < newOut)
-                        .AnyAsync(cancellationToken);
-
-                    if (overlapping)
+                    var room = await _context.Rooms
+                        .Include(r => r.RoomType)
+                        .FirstOrDefaultAsync(r => r.Id == assignment.RoomId, cancellationToken);
+                        
+                    if (room != null)
                     {
-                        var roomNumber = await _context.Rooms
-                            .Where(r => r.Id == line.RoomId)
-                            .Select(r => r.RoomNumber)
-                            .FirstOrDefaultAsync(cancellationToken);
-                        throw new ConflictException($"Room {roomNumber} is occupied during the selected dates.");
+                        line.RoomId = room.Id;
+                        line.RoomTypeId = room.RoomTypeId;
                     }
                 }
+            }
+        }
 
-                entity.CheckInDate = newIn;
-                entity.CheckOutDate = newOut;
+        // Handle Date Changes + ALWAYS check occupancy for current/new dates
+        var newIn = request.CheckInDate ?? entity.CheckInDate;
+        var newOut = request.CheckOutDate ?? entity.CheckOutDate;
 
-                // Recalculate nights
-                var nights = (newOut.Date - newIn.Date).Days;
-                if (nights < 1) nights = 1;
+        // Check overlaps for all rooms in this reservation
+        foreach (var line in entity.Lines)
+        {
+            var overlappingLine = await _context.ReservationLines
+                .Include(l => l.Reservation)
+                .Where(l => l.RoomId == line.RoomId &&
+                            l.ReservationId != entity.Id &&
+                            !l.Reservation!.IsDeleted &&
+                            (l.Reservation.Status == ReservationStatus.Confirmed || 
+                                l.Reservation.Status == ReservationStatus.CheckedIn ||
+                                l.Reservation.Status == ReservationStatus.CheckedOut) &&
+                            newIn < l.Reservation.CheckOutDate &&
+                            l.Reservation.CheckInDate < newOut)
+                .FirstOrDefaultAsync(cancellationToken);
 
-                foreach (var line in entity.Lines)
-                {
-                    line.Nights = nights;
+            if (overlappingLine != null)
+            {
+                var roomNumber = await _context.Rooms
+                    .Where(r => r.Id == line.RoomId)
+                    .Select(r => r.RoomNumber)
+                    .FirstOrDefaultAsync(cancellationToken);
                     
-                    // If we have a manual total from request, we'll set it at the end.
-                    // But we should try to keep RatePerNight consistent.
-                    if (request.TotalAmount.HasValue && entity.Lines.Count > 0)
-                    {
-                        // Distribute total amount to lines if they had 0 rate (common for PDF drafts)
-                        if (line.RatePerNight == 0)
-                        {
-                            line.RatePerNight = Math.Round(request.TotalAmount.Value / (nights * entity.Lines.Count), 2);
-                        }
-                        line.LineTotal = Math.Round(line.RatePerNight * nights, 2);
-                    }
-                    else
-                    {
-                        line.LineTotal = Math.Round(line.RatePerNight * nights, 2);
-                    }
-                }
+                var existingGuest = overlappingLine.Reservation?.GuestName ?? "Unknown";
+                throw new ConflictException($"Room {roomNumber} is occupied by {existingGuest} during the selected dates. Please assign a different room.");
+            }
+        }
 
-                // Final safety: if user provided a total, USE IT. Do not overwrite with 0.
-                if (request.TotalAmount.HasValue)
+        if (newIn != entity.CheckInDate || newOut != entity.CheckOutDate)
+        {
+            entity.CheckInDate = newIn;
+            entity.CheckOutDate = newOut;
+
+            // Recalculate nights
+            var nights = (newOut.Date - newIn.Date).Days;
+            if (nights < 1) nights = 1;
+
+            foreach (var line in entity.Lines)
+            {
+                line.Nights = nights;
+                
+                // If we have a manual total from request, we'll set it at the end.
+                // But we should try to keep RatePerNight consistent.
+                if (request.TotalAmount.HasValue && entity.Lines.Count > 0)
                 {
-                    entity.TotalAmount = request.TotalAmount.Value;
+                    // Distribute total amount to lines if they had 0 rate (common for PDF drafts)
+                    if (line.RatePerNight == 0)
+                    {
+                        line.RatePerNight = Math.Round(request.TotalAmount.Value / (nights * entity.Lines.Count), 2);
+                    }
+                    line.LineTotal = Math.Round(line.RatePerNight * nights, 2);
                 }
                 else
                 {
-                    entity.TotalAmount = Math.Round(entity.Lines.Sum(l => l.LineTotal), 2);
+                    line.LineTotal = Math.Round(line.RatePerNight * nights, 2);
                 }
+            }
+
+            // Final safety: if user provided a total, USE IT. Do not overwrite with 0.
+            if (request.TotalAmount.HasValue)
+            {
+                entity.TotalAmount = request.TotalAmount.Value;
+            }
+            else
+            {
+                entity.TotalAmount = Math.Round(entity.Lines.Sum(l => l.LineTotal), 2);
             }
         }
 

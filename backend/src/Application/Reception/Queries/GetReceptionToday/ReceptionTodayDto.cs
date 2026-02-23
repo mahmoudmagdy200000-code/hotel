@@ -32,4 +32,13 @@ public record ReceptionReservationItemDto
     public string Currency { get; init; } = string.Empty;
     public int CurrencyCode { get; init; }
     public string PaymentMethod { get; init; } = string.Empty;
+    public List<ReceptionReservationLineDto> Lines { get; init; } = new();
+}
+
+public record ReceptionReservationLineDto
+{
+    public int Id { get; init; }
+    public int RoomId { get; init; }
+    public string RoomNumber { get; init; } = string.Empty;
+    public int RoomTypeId { get; init; }
 }

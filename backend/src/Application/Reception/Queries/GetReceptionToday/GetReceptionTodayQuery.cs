@@ -138,7 +138,14 @@ public class GetReceptionTodayQueryHandler : IRequestHandler<GetReceptionTodayQu
             BalanceDue = r.BalanceDue,
             Currency = r.Currency,
             CurrencyCode = (int)r.CurrencyCode,
-            PaymentMethod = r.PaymentMethod.ToString()
+            PaymentMethod = r.PaymentMethod.ToString(),
+            Lines = r.Lines.Select(l => new ReceptionReservationLineDto
+            {
+                Id = l.Id,
+                RoomId = l.RoomId,
+                RoomNumber = l.Room?.RoomNumber ?? "??",
+                RoomTypeId = l.RoomTypeId
+            }).ToList()
         };
     }
 }

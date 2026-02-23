@@ -16,8 +16,16 @@ import { format, parseISO } from 'date-fns';
 import { PaymentMethodEnum, CurrencyCodeEnum } from '@/api/types/reservations';
 import type { PaymentMethodValue } from '@/api/types/reservations';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
-import { Wallet, CreditCard, MoreHorizontal, Banknote, AlertTriangle } from 'lucide-react';
+import { Wallet, CreditCard, MoreHorizontal, Banknote, AlertTriangle, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRooms } from '@/hooks/rooms/useRooms';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface CheckInDialogProps {
     isOpen: boolean;
@@ -31,7 +39,8 @@ interface CheckInDialogProps {
         totalAmount: number,
         balanceDue: number,
         paymentMethod: PaymentMethodValue,
-        currencyCode: number
+        currencyCode: number,
+        roomAssignments?: Array<{ lineId: number; roomId: number }>
     ) => void;
     reservation: ReceptionReservationItemDto | null;
     isPending: boolean;
@@ -49,14 +58,13 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     const { t } = useTranslation();
     const [guestName, setGuestName] = useState<string>('');
     const [phone, setPhone] = useState<string>('');
-    const [bookingNumber, setBookingNumber] = useState<string>('');
-    const [checkInDate, setCheckInDate] = useState<Date | undefined>(undefined);
-    const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(undefined);
-    const [totalAmount, setTotalAmount] = useState<number>(0);
     const [balanceDue, setBalanceDue] = useState<number>(0);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethodValue>(PaymentMethodEnum.Cash);
     const [currencyCode, setCurrencyCode] = useState<number>(CurrencyCodeEnum.USD);
     const [dateWasAutoAdjusted, setDateWasAutoAdjusted] = useState(false);
+    const [roomAssignments, setRoomAssignments] = useState<Record<number, number>>({});
+
+    const { data: rooms } = useRooms();
 
     useEffect(() => {
         if (reservation) {
@@ -65,6 +73,13 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             setBookingNumber(reservation.bookingNumber || '');
             setTotalAmount(reservation.totalAmount || 0);
             setBalanceDue(reservation.balanceDue);
+
+            // Initialize room assignments from reservation lines
+            const initialAssignments: Record<number, number> = {};
+            reservation.lines.forEach(line => {
+                initialAssignments[line.id] = line.roomId;
+            });
+            setRoomAssignments(initialAssignments);
 
             // Map string from DTO to enum value
             const method = reservation.paymentMethod as keyof typeof PaymentMethodEnum;
@@ -122,7 +137,11 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             totalAmount,
             balanceDue,
             paymentMethod,
-            currencyCode
+            currencyCode,
+            Object.entries(roomAssignments).map(([lineId, roomId]) => ({
+                lineId: parseInt(lineId),
+                roomId
+            }))
         );
     };
 
@@ -255,6 +274,44 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                         />
+                    </div>
+
+                    {/* Room Assignment Section */}
+                    <div className="space-y-3">
+                        <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                            <Home className="w-4 h-4" />
+                            {t('reception.room_assignment', 'Room Assignment')}
+                        </Label>
+                        <div className="space-y-2">
+                            {reservation.lines.map((line) => {
+                                // Filter rooms of the same type
+                                const availableForType = rooms?.filter(r => r.roomTypeId === line.roomTypeId && r.isActive) || [];
+                                const currentRoomId = roomAssignments[line.id];
+
+                                return (
+                                    <div key={line.id} className="flex flex-col gap-2 p-3 border border-slate-100 rounded-xl bg-slate-50/50">
+                                        <div className="flex justify-between items-center text-xs text-slate-500 mb-1">
+                                            <span>{line.roomNumber} ({rooms?.find(r => r.id === line.roomId)?.roomTypeName || t('reception.any_room', 'Any room')})</span>
+                                        </div>
+                                        <Select
+                                            value={currentRoomId?.toString()}
+                                            onValueChange={(val) => setRoomAssignments(prev => ({ ...prev, [line.id]: parseInt(val) }))}
+                                        >
+                                            <SelectTrigger className="h-10 bg-white border-slate-200 rounded-lg">
+                                                <SelectValue placeholder={t('reception.select_room', 'Select Room')} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableForType.map(r => (
+                                                    <SelectItem key={r.id} value={r.id.toString()}>
+                                                        {r.roomNumber}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

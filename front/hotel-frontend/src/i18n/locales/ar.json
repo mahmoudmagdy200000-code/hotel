@@ -139,7 +139,10 @@
         "payment_method": "طريقة الدفع",
         "nights": "ليالي",
         "total_amount": "إجمالي المبلغ",
-        "currency": "العملة"
+        "currency": "العملة",
+        "room_assignment": "تخصيص الغرفة",
+        "select_room": "اختر الغرفة",
+        "any_room": "أي غرفة"
     },
     "dashboard": {
         "title": "لوحة التحكم",

@@ -84,7 +84,8 @@ export const checkInReservation = async (
     totalAmount?: number,
     balanceDue?: number,
     paymentMethod?: PaymentMethodValue,
-    currencyCode?: number
+    currencyCode?: number,
+    roomAssignments?: Array<{ lineId: number; roomId: number }>
 ): Promise<ReservationStatusChangedDto> => {
     const response = await http.post<ReservationStatusChangedDto>(`reception/reservations/${id}/check-in`, {
         businessDate,
@@ -96,7 +97,8 @@ export const checkInReservation = async (
         totalAmount,
         balanceDue,
         paymentMethod,
-        currencyCode
+        currencyCode,
+        roomAssignments
     });
     return response.data;
 };

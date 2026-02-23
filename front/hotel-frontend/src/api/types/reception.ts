@@ -13,6 +13,14 @@ export interface ReceptionReservationItemDto {
     currency: string;
     currencyCode: number;
     paymentMethod: string;
+    lines: ReceptionReservationLineDto[];
+}
+
+export interface ReceptionReservationLineDto {
+    id: number;
+    roomId: number;
+    roomNumber: string;
+    roomTypeId: number;
 }
 
 export interface ReceptionTodaySummaryDto {
