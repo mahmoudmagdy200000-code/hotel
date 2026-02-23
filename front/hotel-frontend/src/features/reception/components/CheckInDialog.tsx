@@ -276,14 +276,14 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                             onClick={onClose}
                             className="flex-1 h-11 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50"
                         >
-                            {t('common.cancel', 'Cancel')}
+                            {t('cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleConfirm}
                             disabled={isPending}
                             className="flex-1 h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg active:scale-95 transition-all"
                         >
-                            {isPending ? t('common.loading', 'Loading...') : t('reception.checkin', 'Check In')}
+                            {isPending ? t('loading', 'Loading...') : t('reception.checkin', 'Check In')}
                         </Button>
                     </div>
                 </DialogFooter>

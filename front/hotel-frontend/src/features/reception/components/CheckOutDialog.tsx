@@ -177,7 +177,7 @@ const CheckOutDialog: React.FC<CheckOutDialogProps> = ({
                             onClick={onClose}
                             className="flex-1 h-11 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50"
                         >
-                            {t('common.cancel', 'Cancel')}
+                            {t('cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleConfirm}
@@ -187,7 +187,7 @@ const CheckOutDialog: React.FC<CheckOutDialogProps> = ({
                                 hasBalance && !confirmPayment ? "bg-slate-200" : "bg-slate-900 hover:bg-slate-800 text-white"
                             )}
                         >
-                            {isPending ? t('common.loading', 'Loading...') : t('reception.checkout', 'Check Out')}
+                            {isPending ? t('loading', 'Loading...') : t('reception.checkout', 'Check Out')}
                         </Button>
                     </div>
                 </DialogFooter>

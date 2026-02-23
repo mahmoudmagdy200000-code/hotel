@@ -63,7 +63,7 @@ const ReservationsList = () => {
                     </h1>
                     <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
                         <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
-                        {reservations?.length || 0} {t('common.total', 'Total')}
+                        {reservations?.length || 0} {t('total', 'Total')}
                     </div>
                 </div>
 
@@ -93,7 +93,7 @@ const ReservationsList = () => {
                     <div className="relative w-full sm:flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                         <Input
-                            placeholder={t('common.search_placeholder', 'Search guest or booking...')}
+                            placeholder={t('search_placeholder', 'Search guest or booking...')}
                             className="pl-9 h-10 rounded-xl border-slate-200 bg-white shadow-sm text-xs font-bold"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -107,13 +107,13 @@ const ReservationsList = () => {
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value === 'all' ? 'all' : Number(e.target.value) as ReservationStatus)}
                             >
-                                <option value="all">{t('common.all_statuses', 'All Statuses')}</option>
-                                <option value={ReservationStatus.Draft}>{t('status.draft', 'Draft')}</option>
-                                <option value={ReservationStatus.Confirmed}>{t('status.confirmed', 'Confirmed')}</option>
-                                <option value={ReservationStatus.CheckedIn}>{t('status.check_in', 'In')}</option>
-                                <option value={ReservationStatus.CheckedOut}>{t('status.check_out', 'Out')}</option>
-                                <option value={ReservationStatus.Cancelled}>{t('status.cancelled', 'Cancelled')}</option>
-                                <option value={ReservationStatus.NoShow}>{t('status.no_show', 'No Show')}</option>
+                                <option value="all">{t('all_statuses', 'All Statuses')}</option>
+                                <option value={ReservationStatus.Draft}>{t('draft', 'Draft')}</option>
+                                <option value={ReservationStatus.Confirmed}>{t('confirmed', 'Confirmed')}</option>
+                                <option value={ReservationStatus.CheckedIn}>{t('check_in', 'In')}</option>
+                                <option value={ReservationStatus.CheckedOut}>{t('check_out', 'Out')}</option>
+                                <option value={ReservationStatus.Cancelled}>{t('cancelled', 'Cancelled')}</option>
+                                <option value={ReservationStatus.NoShow}>{t('no_show', 'No Show')}</option>
                             </select>
                         </div>
                         <DatePickerWithRange
@@ -136,7 +136,7 @@ const ReservationsList = () => {
                 ) : isError ? (
                     <div className="flex flex-col items-center justify-center py-12 text-rose-500 bg-rose-50/50 rounded-2xl border border-rose-100">
                         <AlertCircle className="w-8 h-8 mb-2" />
-                        <span className="font-bold text-sm">{error instanceof Error ? error.message : t('common.error_loading')}</span>
+                        <span className="font-bold text-sm">{error instanceof Error ? error.message : t('error_loading')}</span>
                     </div>
                 ) : reservations?.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-slate-400 bg-slate-50/50 rounded-2xl border border-slate-100">
@@ -168,7 +168,7 @@ const ReservationsList = () => {
                                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
                                                     <Hash className="w-3 h-3" />
-                                                    <span>{res.bookingNumber || t('common.pending')}</span>
+                                                    <span>{res.bookingNumber || t('pending')}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600/80">
                                                     <CalendarDays className="w-3 h-3" />
@@ -225,7 +225,7 @@ const ReservationsList = () => {
                                         >
                                             <TableCell className="px-6 py-4">
                                                 <div className="font-black text-slate-900 uppercase tracking-tight">{res.guestName}</div>
-                                                <div className="text-[10px] font-bold text-slate-400 mt-0.5">{res.phone || t('common.no_phone')}</div>
+                                                <div className="text-[10px] font-bold text-slate-400 mt-0.5">{res.phone || t('no_phone')}</div>
                                             </TableCell>
                                             <TableCell>
                                                 <span className="bg-slate-100 px-2 py-1 rounded text-[10px] font-bold text-slate-600">

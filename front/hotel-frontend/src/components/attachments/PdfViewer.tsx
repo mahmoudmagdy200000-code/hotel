@@ -96,7 +96,7 @@ export const PdfViewer = ({ attachmentId, fileName, onClose }: PdfViewerProps) =
                 {error && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                         <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-                        <p className="text-slate-900 font-semibold mb-2">{t('common.error')}</p>
+                        <p className="text-slate-900 font-semibold mb-2">{t('error')}</p>
                         <p className="text-sm text-slate-500 mb-6">{error}</p>
                         <Button onClick={handleDownload} className="gap-2">
                             <Download className="w-4 h-4" />

@@ -68,9 +68,9 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
         const base = "font-black text-[8px] sm:text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded border whitespace-nowrap ";
         switch (status) {
             case 'Proposed':
-                return <span className={cn(base, "bg-emerald-50 text-emerald-600 border-emerald-100", className)}>{t('common.ready', 'Ready')}</span>;
+                return <span className={cn(base, "bg-emerald-50 text-emerald-600 border-emerald-100", className)}>{t('ready', 'Ready')}</span>;
             case 'NeedsManual':
-                return <span className={cn(base, "bg-amber-50 text-amber-600 border-amber-100", className)}>{t('common.manual', 'Manual')}</span>;
+                return <span className={cn(base, "bg-amber-50 text-amber-600 border-amber-100", className)}>{t('manual', 'Manual')}</span>;
             case 'PriceUnknown':
                 return <span className={cn(base, "bg-blue-50 text-blue-600 border-blue-100", className)}>{t('reception.check_price', 'Price?')}</span>;
             case 'NoRooms':

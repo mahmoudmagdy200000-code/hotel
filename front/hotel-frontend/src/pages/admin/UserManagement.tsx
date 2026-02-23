@@ -236,7 +236,7 @@ const UserManagement = () => {
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="none">{t('common.no_branch', 'Universal Node')}</SelectItem>
+                                                        <SelectItem value="none">{t('no_branch', 'Universal Node')}</SelectItem>
                                                         {branches?.map((branch) => (
                                                             <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
                                                         ))}

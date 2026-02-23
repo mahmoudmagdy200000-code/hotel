@@ -83,7 +83,7 @@ const RoomTypes = () => {
             }
             setIsDialogOpen(false);
             resetForm();
-            toast.success(editingRoomType ? t('common.update_success') : t('common.create_success'));
+            toast.success(editingRoomType ? t('update_success') : t('create_success'));
         } catch (err: unknown) {
             setError(extractErrorMessage(err) || 'Operation failed');
         }
@@ -121,13 +121,13 @@ const RoomTypes = () => {
         setConfirmState({
             isOpen: true,
             title: t('rooms.delete_room_type_title', 'Delete Room Type'),
-            description: t('common.confirm_delete', 'Are you sure you want to delete this room type?'),
+            description: t('confirm_delete', 'Are you sure you want to delete this room type?'),
             variant: 'destructive',
             onConfirm: async () => {
                 closeConfirm();
                 try {
                     await actions.delete.mutateAsync(id);
-                    toast.success(t('common.delete_success', 'Deleted successfully'));
+                    toast.success(t('delete_success', 'Deleted successfully'));
                 } catch (err: unknown) {
                     toast.error(extractErrorMessage(err) || 'Delete failed');
                 }
@@ -206,9 +206,9 @@ const RoomTypes = () => {
             ) : isError ? (
                 <Alert variant="destructive" className="rounded-2xl border-rose-200 bg-rose-50">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle className="font-black uppercase tracking-widest text-[10px]">{t('common.error')}</AlertTitle>
+                    <AlertTitle className="font-black uppercase tracking-widest text-[10px]">{t('error')}</AlertTitle>
                     <AlertDescription className="text-sm font-medium">
-                        {t('common.error_loading_room_types', 'Failed to synchronize category templates.')}
+                        {t('error_loading_room_types', 'Failed to synchronize category templates.')}
                     </AlertDescription>
                 </Alert>
             ) : roomTypes?.length === 0 ? (
@@ -250,14 +250,14 @@ const RoomTypes = () => {
                         {error && (
                             <Alert variant="destructive" className="mb-4 rounded-xl py-2 px-3">
                                 <AlertCircle className="h-4 w-4" />
-                                <AlertTitle className="text-[10px] uppercase font-black tracking-widest">{t('common.error')}</AlertTitle>
+                                <AlertTitle className="text-[10px] uppercase font-black tracking-widest">{t('error')}</AlertTitle>
                                 <AlertDescription className="text-xs font-bold">{error}</AlertDescription>
                             </Alert>
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <Label htmlFor="name" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('common.name')}</Label>
+                                <Label htmlFor="name" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('name')}</Label>
                                 <Input
                                     id="name"
                                     value={formData.name}
@@ -305,7 +305,7 @@ const RoomTypes = () => {
                             <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                 <div className="flex-1">
                                     <Label htmlFor="isActive" className="text-xs font-black text-slate-900 uppercase tracking-tight block cursor-pointer">
-                                        {t('common.active_status', 'Available for New Rooms')}
+                                        {t('active_status', 'Available for New Rooms')}
                                     </Label>
                                     <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-tighter">
                                         {t('rooms.active_type_desc', 'Inactive types cannot be assigned to new physical rooms.')}
@@ -322,10 +322,10 @@ const RoomTypes = () => {
 
                             <div className="flex items-center justify-end gap-3 pt-2">
                                 <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="h-12 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400">
-                                    {t('common.cancel')}
+                                    {t('cancel')}
                                 </Button>
                                 <Button type="submit" className="h-12 px-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-slate-200" disabled={actions.create.isPending || actions.update.isPending}>
-                                    {editingRoomType ? t('common.save_changes') : t('common.create_template', 'Create Template')}
+                                    {editingRoomType ? t('save_changes') : t('create_template', 'Create Template')}
                                 </Button>
                             </div>
                         </form>
@@ -340,8 +340,8 @@ const RoomTypes = () => {
                 onConfirm={confirmState.onConfirm}
                 onCancel={closeConfirm}
                 variant={confirmState.variant}
-                confirmText={t('common.confirm')}
-                cancelText={t('common.cancel')}
+                confirmText={t('confirm')}
+                cancelText={t('cancel')}
             />
         </div>
     );
@@ -382,7 +382,7 @@ const RoomTypeCard = ({ roomType, onEdit, onDelete }: { roomType: RoomTypeDto, o
                             <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight truncate max-w-[140px]">{roomType.name}</h3>
                             <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                 <Users className="w-2.5 h-2.5" />
-                                <span>{roomType.capacity} {t('common.guests_plural', 'Guests')}</span>
+                                <span>{roomType.capacity} {t('guests_plural', 'Guests')}</span>
                             </div>
                         </div>
                     </div>
@@ -391,12 +391,12 @@ const RoomTypeCard = ({ roomType, onEdit, onDelete }: { roomType: RoomTypeDto, o
                         {roomType.isActive ? (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border bg-emerald-50 text-emerald-600 border-emerald-100">
                                 <CheckCircle2 className="w-2.5 h-2.5" />
-                                {t('common.active')}
+                                {t('active')}
                             </span>
                         ) : (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border bg-slate-50 text-slate-400 border-slate-100">
                                 <XCircle className="w-2.5 h-2.5" />
-                                {t('common.inactive')}
+                                {t('inactive')}
                             </span>
                         )}
                     </div>
@@ -405,7 +405,7 @@ const RoomTypeCard = ({ roomType, onEdit, onDelete }: { roomType: RoomTypeDto, o
                 <div className="pt-2">
                     <div className="flex items-baseline gap-1">
                         <span className="text-lg font-black text-slate-900">{formatCurrency(roomType.defaultRate)}</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">/ {t('common.night')}</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">/ {t('night')}</span>
                     </div>
                 </div>
             </div>
@@ -417,7 +417,7 @@ const RoomTypeCard = ({ roomType, onEdit, onDelete }: { roomType: RoomTypeDto, o
                     onClick={onEdit}
                 >
                     <Edit className="w-3.5 h-3.5 mr-2" />
-                    {t('common.edit')}
+                    {t('edit')}
                 </Button>
                 <div className="w-px h-4 bg-slate-200" />
                 <Button
@@ -426,7 +426,7 @@ const RoomTypeCard = ({ roomType, onEdit, onDelete }: { roomType: RoomTypeDto, o
                     onClick={onDelete}
                 >
                     <Trash2 className="w-3.5 h-3.5 mr-2" />
-                    {t('common.delete')}
+                    {t('delete')}
                 </Button>
             </div>
         </Card>

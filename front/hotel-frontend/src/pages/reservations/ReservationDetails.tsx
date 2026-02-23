@@ -134,7 +134,7 @@ const ReservationDetails = () => {
 
     const handleAction = async (type: string, actionFn: (id: number) => Promise<unknown>) => {
         const title = type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' ');
-        const description = `${t('common.are_you_sure')} ${type}?`;
+        const description = `${t('are_you_sure')} ${type}?`;
 
         setConfirmState({
             isOpen: true,
@@ -242,7 +242,7 @@ const ReservationDetails = () => {
                                 className="flex-1 sm:flex-none h-12 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white hover:bg-white/10"
                             >
                                 <Pencil className="w-3.5 h-3.5 mr-2" />
-                                {t('common.edit')}
+                                {t('edit')}
                             </Button>
                             <Button
                                 className="flex-1 sm:flex-none h-12 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
@@ -509,8 +509,8 @@ const ReservationDetails = () => {
                 onConfirm={confirmState.onConfirm}
                 onCancel={closeConfirm}
                 variant={confirmState.variant}
-                confirmText={t('common.confirm')}
-                cancelText={t('common.cancel')}
+                confirmText={t('confirm')}
+                cancelText={t('cancel')}
             >
                 {confirmState.title === t('reservations.delete_title') && (
                     <div className="space-y-4 pt-4">

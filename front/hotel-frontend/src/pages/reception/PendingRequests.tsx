@@ -330,7 +330,7 @@ const PendingRequests = () => {
                         </h1>
                         <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
                             <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
-                            {dateRange?.from?.toLocaleDateString() === today.toLocaleDateString() ? t('common.today', 'Today') : format(dateRange?.from || today, 'MMM d')}
+                            {dateRange?.from?.toLocaleDateString() === today.toLocaleDateString() ? t('today', 'Today') : format(dateRange?.from || today, 'MMM d')}
                             <span>→</span>
                             {format(dateRange?.to || nextWeek, 'MMM d, yyyy')}
                         </div>
@@ -382,7 +382,7 @@ const PendingRequests = () => {
                             disabled={uploadBatch.isPending || !selectedListingId}
                         >
                             <Upload className={cn("w-3.5 h-3.5 me-2", uploadBatch.isPending && "animate-bounce")} />
-                            {uploadBatch.isPending ? t('common.uploading') : t('reception.upload_pdfs')}
+                            {uploadBatch.isPending ? t('uploading') : t('reception.upload_pdfs')}
                         </Button>
                     </div>
 
@@ -431,7 +431,7 @@ const PendingRequests = () => {
                         <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
                             {isRangeTooLarge ? t('reception.limit_exceeded', 'Operational Limit Exceeded') :
                                 isRangeInvalid ? t('reception.invalid_dates', 'Invalid Date Sequence') :
-                                    t('common.service_error', 'System Connection Error')}
+                                    t('service_error', 'System Connection Error')}
                         </h3>
                         <p className="text-slate-600 leading-relaxed max-w-2xl text-sm">
                             {isRangeTooLarge ? (
@@ -467,7 +467,7 @@ const PendingRequests = () => {
                                     onClick={() => refetch()}
                                 >
                                     <RefreshCw className="w-4 h-4 me-2" />
-                                    {t('common.reconnect', 'Reconnect Now')}
+                                    {t('reconnect', 'Reconnect Now')}
                                 </Button>
                             )}
                         </div>
@@ -484,7 +484,7 @@ const PendingRequests = () => {
                         <Card className="border border-slate-100 shadow-sm group bg-slate-50/20">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
                                 <CardTitle className="text-[9px] uppercase font-black text-slate-400 tracking-wider">
-                                    {t('common.total')}
+                                    {t('total')}
                                 </CardTitle>
                                 <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400">
                                     <Clock className="h-3 w-3" />
@@ -580,7 +580,7 @@ const PendingRequests = () => {
                                                 className="rounded-lg h-5 w-5 border-slate-200"
                                             />
                                             <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tight">
-                                                {item.guestName && item.guestName !== 'PDF Guest' ? item.guestName : t('common.pending_extraction')}
+                                                {item.guestName && item.guestName !== 'PDF Guest' ? item.guestName : t('pending_extraction')}
                                             </h3>
                                             <div className="flex items-center gap-1">
                                                 {getParsingStatusIcon(item.parsingStatus)}
@@ -600,7 +600,7 @@ const PendingRequests = () => {
                                             <div className="flex items-center justify-between">
                                                 <div className="text-[10px] text-slate-400 font-bold flex items-center gap-1.5">
                                                     <Hotel className="w-3 h-3" />
-                                                    {item.hotelName || t('common.unknown_hotel')}
+                                                    {item.hotelName || t('unknown_hotel')}
                                                 </div>
                                                 {hasExtractedData && (item.totalAmount ?? 0) > 0 && (
                                                     <div className="text-xs font-black text-blue-600">
@@ -664,9 +664,9 @@ const PendingRequests = () => {
                                 <TableHead className="py-4">{t('reception.guest_info')}</TableHead>
                                 <TableHead className="py-4">{t('reception.dates')}</TableHead>
                                 <TableHead className="py-4 text-center">{t('reception.rooms')}</TableHead>
-                                <TableHead className="py-4 text-right">{t('common.total')}</TableHead>
+                                <TableHead className="py-4 text-right">{t('total')}</TableHead>
                                 <TableHead className="py-4">{t('reception.availability')}</TableHead>
-                                <TableHead className="py-4 px-6 text-right">{t('common.actions')}</TableHead>
+                                <TableHead className="py-4 px-6 text-right">{t('actions')}</TableHead>
                             </tr>
                         </TableHeader>
                         <TableBody>
@@ -700,13 +700,13 @@ const PendingRequests = () => {
                                         </TableCell>
                                         <TableCell>
                                             <div className="font-black text-slate-900 uppercase tracking-tight text-sm">
-                                                {item.guestName && item.guestName !== 'PDF Guest' ? item.guestName : <span className="text-slate-300 font-normal italic">{t('common.pending')}</span>}
+                                                {item.guestName && item.guestName !== 'PDF Guest' ? item.guestName : <span className="text-slate-300 font-normal italic">{t('pending')}</span>}
                                             </div>
                                             <div className="text-[10px] font-bold text-slate-400 mt-0.5">{item.bookingNumber}</div>
                                         </TableCell>
                                         <TableCell className="font-bold text-slate-600 text-xs">
                                             {item.checkIn} → {item.checkOut}
-                                            <div className="text-[10px] text-slate-400 mt-0.5">{item.nights} {t('common.nights')}</div>
+                                            <div className="text-[10px] text-slate-400 mt-0.5">{item.nights} {t('nights')}</div>
                                         </TableCell>
                                         <TableCell className="text-center">
                                             <div className="bg-slate-100 text-slate-700 font-black text-[10px] px-2 py-0.5 rounded-md inline-block">
@@ -753,8 +753,8 @@ const PendingRequests = () => {
                 onConfirm={confirmState.onConfirm}
                 onCancel={closeConfirm}
                 variant={confirmState.variant}
-                confirmText={t('common.confirm', 'Confirm')}
-                cancelText={t('common.cancel', 'Cancel')}
+                confirmText={t('confirm', 'Confirm')}
+                cancelText={t('cancel', 'Cancel')}
             />
 
             {/* View PDF Dialog */}

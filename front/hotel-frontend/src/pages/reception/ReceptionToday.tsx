@@ -67,7 +67,7 @@ const ReceptionToday = () => {
 
     const handleAction = async (type: string, res: ReceptionReservationItemDto) => {
         const title = type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' ');
-        const description = `${t('common.are_you_sure', 'Are you sure you want to')} ${type.replace('-', ' ')} ${res.bookingNumber}?`;
+        const description = `${t('are_you_sure', 'Are you sure you want to')} ${type.replace('-', ' ')} ${res.bookingNumber}?`;
 
         if (type === 'check-in') {
             setCheckInState({ isOpen: true, reservation: res });
@@ -136,7 +136,7 @@ const ReceptionToday = () => {
                 </div>
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>{t('common.error')}</AlertTitle>
+                    <AlertTitle>{t('error')}</AlertTitle>
                     <AlertDescription>Invalid date format. Please select a valid date.</AlertDescription>
                 </Alert>
             </div>
@@ -148,12 +148,12 @@ const ReceptionToday = () => {
             <div className="space-y-6">
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>{t('common.error')}</AlertTitle>
+                    <AlertTitle>{t('error')}</AlertTitle>
                     <AlertDescription>
                         {error instanceof Error ? error.message : "Failed to load reception data"}
                     </AlertDescription>
                 </Alert>
-                <Button onClick={() => refetch()}>{t('common.retry', 'Retry')}</Button>
+                <Button onClick={() => refetch()}>{t('retry', 'Retry')}</Button>
             </div>
         );
     }
@@ -168,7 +168,7 @@ const ReceptionToday = () => {
                     </h1>
                     <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
                         <span className={`w-1.5 h-1.5 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
-                        {businessDate === selectedDate ? t('common.today', 'Today') : selectedDate}
+                        {businessDate === selectedDate ? t('today', 'Today') : selectedDate}
                     </div>
                 </div>
 
@@ -315,8 +315,8 @@ const ReceptionToday = () => {
                 onConfirm={confirmState.onConfirm}
                 onCancel={closeConfirm}
                 variant={confirmState.variant}
-                confirmText={t('common.confirm', 'Confirm')}
-                cancelText={t('common.cancel', 'Cancel')}
+                confirmText={t('confirm', 'Confirm')}
+                cancelText={t('cancel', 'Cancel')}
             />
 
             <CheckInDialog

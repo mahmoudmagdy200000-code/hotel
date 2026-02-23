@@ -386,7 +386,7 @@ const Listings = () => {
                             <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="flex-1 h-12 rounded-2xl font-black text-[11px] uppercase tracking-widest text-slate-400">Abort</Button>
                             <Button onClick={handleSave} className="flex-[2] h-12 rounded-2xl bg-slate-900 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-slate-900/10">
                                 <Save className="w-4 h-4 me-2" />
-                                {t('common.save', 'Commit Configuration')}
+                                {t('save', 'Commit Configuration')}
                             </Button>
                         </div>
                     </div>

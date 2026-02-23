@@ -66,7 +66,7 @@ const ReceptionSearch = () => {
                                 date={searchDate ? parseISO(searchDate) : undefined}
                                 setDate={(d) => setSearchDate(d ? format(d, 'yyyy-MM-dd') : '')}
                                 className="h-11 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white justify-start text-left font-normal w-full"
-                                placeholder={t('common.filter_date', 'Filter by Date')}
+                                placeholder={t('filter_date', 'Filter by Date')}
                             />
                         </div>
                     </div>
@@ -130,7 +130,7 @@ const ReceptionSearch = () => {
                                             <TableCell className="text-sm font-mono">{res.bookingNumber}</TableCell>
                                             <TableCell>
                                                 <div className="text-sm">{res.checkIn} → {res.checkOut}</div>
-                                                <div className="text-xs text-slate-400">{res.totalNights} {t('common.nights', 'nights')}</div>
+                                                <div className="text-xs text-slate-400">{res.totalNights} {t('nights', 'nights')}</div>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex flex-wrap gap-1">

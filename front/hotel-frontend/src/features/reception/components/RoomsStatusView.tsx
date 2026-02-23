@@ -67,7 +67,7 @@ const RoomsStatusView: React.FC<RoomsStatusViewProps> = ({ date }) => {
         return (
             <Alert variant="destructive" className="border-rose-200 bg-rose-50/50">
                 <AlertCircle className="h-4 w-4 text-rose-600" />
-                <AlertTitle className="font-black text-rose-700 uppercase tracking-widest text-[10px]">{t('common.error')}</AlertTitle>
+                <AlertTitle className="font-black text-rose-700 uppercase tracking-widest text-[10px]">{t('error')}</AlertTitle>
                 <AlertDescription className="text-xs text-rose-600">
                     {error instanceof Error ? error.message : "Failed to load rooms status"}
                 </AlertDescription>
@@ -148,7 +148,7 @@ const RoomsStatusView: React.FC<RoomsStatusViewProps> = ({ date }) => {
                 ))}
                 {filteredItems.length === 0 && (
                     <div className="text-center py-12 px-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('common.no_results')}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('no_results')}</p>
                     </div>
                 )}
             </div>

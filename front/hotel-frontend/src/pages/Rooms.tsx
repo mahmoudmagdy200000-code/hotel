@@ -100,7 +100,7 @@ const Rooms = () => {
             }
             setIsDialogOpen(false);
             resetForm();
-            toast.success(editingRoom ? t('common.update_success') : t('common.create_success'));
+            toast.success(editingRoom ? t('update_success') : t('create_success'));
         } catch (err: unknown) {
             const axiosErr = err as AxiosError;
             setError(extractErrorMessage(axiosErr) || 'Operation failed');
@@ -139,13 +139,13 @@ const Rooms = () => {
         setConfirmState({
             isOpen: true,
             title: t('rooms.delete_room_title', 'Delete Room'),
-            description: t('common.confirm_delete', 'Are you sure you want to delete this room?'),
+            description: t('confirm_delete', 'Are you sure you want to delete this room?'),
             variant: 'destructive',
             onConfirm: async () => {
                 closeConfirm();
                 try {
                     await actions.delete.mutateAsync(id);
-                    toast.success(t('common.delete_success', 'Deleted successfully'));
+                    toast.success(t('delete_success', 'Deleted successfully'));
                 } catch (err: unknown) {
                     const axiosErr = err as AxiosError;
                     toast.error(extractErrorMessage(axiosErr) || 'Delete failed');
@@ -168,7 +168,7 @@ const Rooms = () => {
                         </span>
                         <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            {stats.total} {t('common.active_units', 'Units Registered')}
+                            {stats.total} {t('active_units', 'Units Registered')}
                         </div>
                     </div>
                 </div>
@@ -224,9 +224,9 @@ const Rooms = () => {
             ) : isError ? (
                 <Alert variant="destructive" className="rounded-2xl border-rose-200 bg-rose-50">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle className="font-black uppercase tracking-widest text-[10px]">{t('common.error')}</AlertTitle>
+                    <AlertTitle className="font-black uppercase tracking-widest text-[10px]">{t('error')}</AlertTitle>
                     <AlertDescription className="text-sm font-medium">
-                        {t('common.error_loading_rooms', 'Failed to synchronize room inventory.')}
+                        {t('error_loading_rooms', 'Failed to synchronize room inventory.')}
                     </AlertDescription>
                 </Alert>
             ) : rooms?.length === 0 ? (
@@ -277,7 +277,7 @@ const Rooms = () => {
                         {error && (
                             <Alert variant="destructive" className="mb-4 rounded-xl py-2 px-3">
                                 <AlertCircle className="h-4 w-4" />
-                                <AlertTitle className="text-[10px] uppercase font-black tracking-widest">{t('common.error')}</AlertTitle>
+                                <AlertTitle className="text-[10px] uppercase font-black tracking-widest">{t('error')}</AlertTitle>
                                 <AlertDescription className="text-xs font-bold">{error}</AlertDescription>
                             </Alert>
                         )}
@@ -328,7 +328,7 @@ const Rooms = () => {
                             <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                 <div className="flex-1">
                                     <Label htmlFor="isActive" className="text-xs font-black text-slate-900 uppercase tracking-tight block cursor-pointer">
-                                        {t('common.active_inventory', 'Active in Inventory')}
+                                        {t('active_inventory', 'Active in Inventory')}
                                     </Label>
                                     <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-tighter">
                                         {t('rooms.active_desc', 'Show this room in reception search and occupancy.')}
@@ -345,10 +345,10 @@ const Rooms = () => {
 
                             <div className="flex items-center justify-end gap-3 pt-2">
                                 <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="h-12 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400">
-                                    {t('common.cancel')}
+                                    {t('cancel')}
                                 </Button>
                                 <Button type="submit" className="h-12 px-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-slate-200" disabled={actions.create.isPending || actions.update.isPending}>
-                                    {editingRoom ? t('common.save_changes') : t('common.create_room', 'Create Room')}
+                                    {editingRoom ? t('save_changes') : t('create_room', 'Create Room')}
                                 </Button>
                             </div>
                         </form>
@@ -363,8 +363,8 @@ const Rooms = () => {
                 onConfirm={confirmState.onConfirm}
                 onCancel={closeConfirm}
                 variant={confirmState.variant}
-                confirmText={t('common.confirm')}
-                cancelText={t('common.cancel')}
+                confirmText={t('confirm')}
+                cancelText={t('cancel')}
             />
         </div>
     );
@@ -424,7 +424,7 @@ const RoomCard = ({ room, onEdit, onDelete }: { room: RoomDto, onEdit: () => voi
                         </span>
                         {!room.isActive && (
                             <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none text-[8px] font-black tracking-tighter uppercase rounded-md px-1 py-0 h-4 shadow-sm border border-amber-200">
-                                {t('common.hidden')}
+                                {t('hidden')}
                             </Badge>
                         )}
                     </div>
@@ -449,7 +449,7 @@ const RoomCard = ({ room, onEdit, onDelete }: { room: RoomDto, onEdit: () => voi
                     onClick={onEdit}
                 >
                     <Edit className="w-3.5 h-3.5 mr-2" />
-                    {t('common.edit')}
+                    {t('edit')}
                 </Button>
                 <div className="w-px h-4 bg-slate-200" />
                 <Button
@@ -458,7 +458,7 @@ const RoomCard = ({ room, onEdit, onDelete }: { room: RoomDto, onEdit: () => voi
                     onClick={onDelete}
                 >
                     <Trash2 className="w-3.5 h-3.5 mr-2" />
-                    {t('common.delete')}
+                    {t('delete')}
                 </Button>
             </div>
         </Card>

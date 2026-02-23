@@ -184,7 +184,7 @@ const ReservationCreate = () => {
                             </CardHeader>
                             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="sm:col-span-2 space-y-2">
-                                    <Label htmlFor="guestName">{t('common.name', 'Guest Name')}</Label>
+                                    <Label htmlFor="guestName">{t('name', 'Guest Name')}</Label>
                                     <Input
                                         id="guestName"
                                         name="guestName"
@@ -195,7 +195,7 @@ const ReservationCreate = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">{t('common.email', 'Email')}</Label>
+                                    <Label htmlFor="email">{t('email', 'Email')}</Label>
                                     <Input
                                         id="email"
                                         name="email"
@@ -206,7 +206,7 @@ const ReservationCreate = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone">{t('common.phone', 'Phone')}</Label>
+                                    <Label htmlFor="phone">{t('phone', 'Phone')}</Label>
                                     <Input
                                         id="phone"
                                         name="phone"
@@ -258,7 +258,7 @@ const ReservationCreate = () => {
                             </CardHeader>
                             <CardContent className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2 space-y-2">
-                                    <Label>{t('common.period', 'Stay Period')}</Label>
+                                    <Label>{t('period', 'Stay Period')}</Label>
                                     <DatePickerWithRange
                                         date={{
                                             from: formData.checkInDate ? parseISO(formData.checkInDate) : undefined,
@@ -375,7 +375,7 @@ const ReservationCreate = () => {
                                         <option value={CurrencyCodeEnum.EGP}>EGP - جنيه مصري</option>
                                         <option value={CurrencyCodeEnum.USD}>USD - دولار</option>
                                         <option value={CurrencyCodeEnum.EUR}>EUR - يورو</option>
-                                        <option value={CurrencyCodeEnum.Other}>{t('common.other', 'Other')}</option>
+                                        <option value={CurrencyCodeEnum.Other}>{t('other', 'Other')}</option>
                                     </select>
                                 </div>
 
@@ -402,7 +402,7 @@ const ReservationCreate = () => {
                                     >
                                         <option value={PaymentMethodEnum.Cash}>{t('reservations.cash', 'Cash')}</option>
                                         <option value={PaymentMethodEnum.Visa}>{t('reservations.visa', 'Visa')}</option>
-                                        <option value={PaymentMethodEnum.Other}>{t('common.other', 'Other')}</option>
+                                        <option value={PaymentMethodEnum.Other}>{t('other', 'Other')}</option>
                                     </select>
                                 </div>
 
@@ -466,7 +466,7 @@ const ReservationCreate = () => {
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-slate-400">{t('common.total', 'Total Estimate')}</span>
+                                            <span className="text-slate-400">{t('total', 'Total Estimate')}</span>
                                             <span className="font-bold text-lg">
                                                 {formData.currency} {(() => {
                                                     const nights = formData.checkInDate && formData.checkOutDate
@@ -484,7 +484,7 @@ const ReservationCreate = () => {
                                         disabled={create.isPending}
                                     >
                                         <Save className="w-5 h-5 me-2" />
-                                        {create.isPending ? t('common.saving', 'Saving...') : t('common.save_reservation', 'Save Reservation')}
+                                        {create.isPending ? t('saving', 'Saving...') : t('save_reservation', 'Save Reservation')}
                                     </Button>
                                 </div>
                             </CardContent>

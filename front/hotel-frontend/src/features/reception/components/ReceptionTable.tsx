@@ -149,7 +149,7 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                             <TableHead className="py-5 px-4">Temporal Range</TableHead>
                             <TableHead className="py-5 px-4 text-center">{t('reception.status')}</TableHead>
                             <TableHead className="py-5 px-4">{t('reception.rooms')}</TableHead>
-                            <TableHead className="py-5 px-8 text-right">{t('common.actions')}</TableHead>
+                            <TableHead className="py-5 px-8 text-right">{t('actions')}</TableHead>
                         </tr>
                     </TableHeader>
                     <TableBody>

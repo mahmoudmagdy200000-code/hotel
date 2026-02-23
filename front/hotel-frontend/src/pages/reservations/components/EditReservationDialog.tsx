@@ -123,7 +123,7 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
                     </div>
 
                     <div className="space-y-2">
-                        <Label>{t('common.dates', 'Dates')}</Label>
+                        <Label>{t('dates', 'Dates')}</Label>
                         <DatePickerWithRange
                             date={dateRange}
                             setDate={(range) => {
@@ -160,7 +160,7 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
                                             <option value={CurrencyCodeEnum.EGP}>EGP</option>
                                             <option value={CurrencyCodeEnum.USD}>USD</option>
                                             <option value={CurrencyCodeEnum.EUR}>EUR</option>
-                                            <option value={CurrencyCodeEnum.Other}>{t('common.other', 'Other')}</option>
+                                            <option value={CurrencyCodeEnum.Other}>{t('other', 'Other')}</option>
                                         </select>
                                     )}
                                 />
@@ -179,7 +179,7 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
                                         >
                                             <option value={PaymentMethodEnum.Cash}>{t('reservations.cash', 'Cash')}</option>
                                             <option value={PaymentMethodEnum.Visa}>{t('reservations.visa', 'Visa')}</option>
-                                            <option value={PaymentMethodEnum.Other}>{t('common.other', 'Other')}</option>
+                                            <option value={PaymentMethodEnum.Other}>{t('other', 'Other')}</option>
                                         </select>
                                     )}
                                 />
@@ -247,11 +247,11 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
 
                     <DialogFooter>
                         <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
-                            {t('common.cancel', 'Cancel')}
+                            {t('cancel', 'Cancel')}
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>
                             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {t('common.save', 'Save Changes')}
+                            {t('save', 'Save Changes')}
                         </Button>
                     </DialogFooter>
                 </form>

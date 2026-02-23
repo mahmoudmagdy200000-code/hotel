@@ -66,7 +66,7 @@ const Dashboard = () => {
     const { data, isLoading, refetch, isFetching, dataUpdatedAt } = useDashboard(params);
 
     const lastUpdated = useMemo(() => {
-        if (!dataUpdatedAt) return t('common.never');
+        if (!dataUpdatedAt) return t('never');
         return new Date(dataUpdatedAt).toLocaleTimeString();
     }, [dataUpdatedAt, t]);
 

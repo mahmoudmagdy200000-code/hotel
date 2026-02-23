@@ -70,7 +70,7 @@ const Occupancy = () => {
     const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = useOccupancy(params);
 
     const lastUpdated = useMemo(() => {
-        if (!dataUpdatedAt) return t('common.never', 'Never');
+        if (!dataUpdatedAt) return t('never', 'Never');
         return new Date(dataUpdatedAt).toLocaleTimeString();
     }, [dataUpdatedAt, t]);
 
@@ -221,7 +221,7 @@ const Occupancy = () => {
                             className="hidden sm:flex h-11 rounded-2xl border-slate-200 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all"
                         >
                             <CalendarDays className="w-4 h-4 me-2 text-slate-400" />
-                            {t('common.today', 'Jump to Today')}
+                            {t('today', 'Jump to Today')}
                         </Button>
                     </div>
 
@@ -289,7 +289,7 @@ const Occupancy = () => {
                                 <AlertCircle className="w-6 h-6" />
                             </div>
                             <div className="space-y-1 text-center sm:text-left">
-                                <h3 className="font-black text-lg leading-none uppercase tracking-tight">{t('common.error_loading')}</h3>
+                                <h3 className="font-black text-lg leading-none uppercase tracking-tight">{t('error_loading')}</h3>
                                 <p className="text-sm text-rose-600/80 font-medium">{(error as Error)?.message || 'Synchronisation failure'}</p>
                             </div>
                             <Button
@@ -298,7 +298,7 @@ const Occupancy = () => {
                                 onClick={() => refetch()}
                                 className="sm:ml-auto border-rose-200 hover:bg-rose-100 text-rose-700 font-black uppercase tracking-widest text-[10px] h-11 px-6 rounded-xl"
                             >
-                                {t('common.retry')}
+                                {t('retry')}
                             </Button>
                         </div>
                     </CardContent>

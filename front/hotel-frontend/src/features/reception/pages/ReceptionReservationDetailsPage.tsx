@@ -28,7 +28,7 @@ const ReceptionReservationDetailsPage = () => {
                 </CardHeader>
                 <CardContent>
                     <p className="text-slate-500">
-                        {t('common.coming_soon', 'Feature coming soon...')}
+                        {t('coming_soon', 'Feature coming soon...')}
                     </p>
                 </CardContent>
             </Card>
