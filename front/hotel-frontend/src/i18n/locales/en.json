@@ -215,6 +215,8 @@
         "title": "Reservations",
         "new": "New Reservation",
         "no_results": "No results found",
+        "try_different_filter": "Try adjusting your filters or search term",
+        "quick_today": "Today's Arrivals",
         "no_price": "Price not set",
         "missing_price": "Missing price",
         "guest": "Guest",

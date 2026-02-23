@@ -97,34 +97,63 @@ const Dashboard = () => {
         return `${(value * 100).toFixed(1)}%`;
     };
 
+    // Compute trend direction from daily series (first half vs second half)
+    const trends = useMemo(() => {
+        const days = data?.byDay;
+        if (!days || days.length < 2) return { occ: 0, rev: 0, adr: 0, revpar: 0 };
+        const mid = Math.floor(days.length / 2);
+        const firstHalf = days.slice(0, mid);
+        const secondHalf = days.slice(mid);
+        const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+        const pctChange = (first: number, second: number) => first === 0 ? 0 : ((second - first) / first) * 100;
+        return {
+            occ: pctChange(avg(firstHalf.map(d => d.occupancyRate)), avg(secondHalf.map(d => d.occupancyRate))),
+            rev: pctChange(avg(firstHalf.map(d => d.revenue)), avg(secondHalf.map(d => d.revenue))),
+            adr: pctChange(avg(firstHalf.map(d => d.adr)), avg(secondHalf.map(d => d.adr))),
+            revpar: pctChange(avg(firstHalf.map(d => d.revPar)), avg(secondHalf.map(d => d.revPar))),
+        };
+    }, [data?.byDay]);
+
+    const TrendIndicator = ({ value }: { value: number }) => {
+        if (Math.abs(value) < 0.5) return <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Stable</span>;
+        const isUp = value > 0;
+        return (
+            <span className={cn("inline-flex items-center gap-0.5 text-[9px] font-black tracking-tight", isUp ? "text-emerald-600" : "text-rose-500")}>
+                <span className={cn("inline-block transition-transform", isUp ? "rotate-0" : "rotate-180")}
+                    style={{ fontSize: '10px', lineHeight: 1 }}>▲</span>
+                {Math.abs(value).toFixed(1)}%
+            </span>
+        );
+    };
+
     const kpiCards = data?.summary ? [
         {
             title: t('dashboard.occupancy_rate'),
             value: formatPercent(data.summary.occupancyRateOverall),
             icon: <TrendingUp className="w-4 h-4 text-purple-600" />,
             bg: 'bg-purple-100',
-            trend: 'Overall Utilization'
+            trendValue: trends.occ,
         },
         {
             title: t('dashboard.total_revenue'),
             value: formatCurrency(data.summary.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
             icon: <DollarSign className="w-4 h-4 text-emerald-600" />,
             bg: 'bg-emerald-100',
-            trend: 'Gross Yield'
+            trendValue: trends.rev,
         },
         {
             title: t('dashboard.adr'),
             value: formatCurrency(data.summary.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
             icon: <Target className="w-4 h-4 text-blue-600" />,
             bg: 'bg-blue-100',
-            trend: 'Average Daily Rate'
+            trendValue: trends.adr,
         },
         {
             title: t('dashboard.revpar'),
             value: formatCurrency(data.summary.revPar, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
             icon: <Zap className="w-4 h-4 text-amber-600" />,
             bg: 'bg-amber-100',
-            trend: 'Rev. Per Available'
+            trendValue: trends.revpar,
         },
     ] : [];
 
@@ -217,7 +246,7 @@ const Dashboard = () => {
                                     <div className={cn("p-1.5 rounded-xl shadow-sm transition-all", card.bg)}>{card.icon}</div>
                                 </div>
                                 <h3 className="text-2xl font-black text-slate-900 tracking-tighter leading-none">{card.value}</h3>
-                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{card.trend}</span>
+                                <TrendIndicator value={card.trendValue} />
                             </CardContent>
                         </Card>
                     ))

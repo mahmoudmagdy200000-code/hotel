@@ -24,7 +24,8 @@ import {
     AlertCircle,
     Hash,
     CalendarDays,
-    RefreshCw
+    RefreshCw,
+    Hotel
 } from 'lucide-react';
 import { ReservationStatus } from '@/api/types/reservations';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -54,7 +55,7 @@ const ReservationsList = () => {
     });
 
     return (
-        <div className="space-y-6 pb-20 sm:pb-0">
+        <div className="space-y-6">
             {/* Header: Core Navigation & Status */}
             <div className="flex flex-row items-center justify-between gap-4">
                 <div className="space-y-1">
@@ -139,58 +140,81 @@ const ReservationsList = () => {
                         <span className="font-bold text-sm">{error instanceof Error ? error.message : t('error_loading')}</span>
                     </div>
                 ) : reservations?.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-slate-400 bg-slate-50/50 rounded-2xl border border-slate-100">
-                        <Filter className="w-8 h-8 mb-2 opacity-20" />
-                        <span className="font-bold text-xs uppercase tracking-widest">{t('reservations.no_results', 'No results found')}</span>
+                    <div className="flex flex-col items-center justify-center py-16 text-slate-400 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                            <Filter className="w-7 h-7 opacity-30" />
+                        </div>
+                        <span className="font-bold text-sm text-slate-500 mb-1">{t('reservations.no_results', 'No results found')}</span>
+                        <span className="text-xs text-slate-400 mb-5">{t('reservations.try_different_filter', 'Try adjusting your filters or search term')}</span>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 rounded-xl text-[10px] font-bold uppercase tracking-widest border-blue-200 text-blue-600 hover:bg-blue-50"
+                                onClick={() => navigate('/reception/today')}
+                            >
+                                <Hotel className="w-3.5 h-3.5 me-1.5" />
+                                {t('reservations.quick_today', "Today's Arrivals")}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 rounded-xl text-[10px] font-bold uppercase tracking-widest border-slate-200 text-slate-600 hover:bg-slate-50"
+                                onClick={() => navigate('/reservations/new')}
+                            >
+                                <Plus className="w-3.5 h-3.5 me-1.5" />
+                                {t('reservations.new', 'New Reservation')}
+                            </Button>
+                        </div>
                     </div>
                 ) : (
                     <>
                         {/* Mobile: List Cards */}
-                        <div className="grid grid-cols-1 gap-3 sm:hidden">
+                        <div className="grid grid-cols-1 gap-4 sm:hidden">
                             {reservations?.map((res) => (
                                 <div
                                     key={res.id}
                                     className={cn(
-                                        "bg-white border border-slate-100 rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-all hover:border-blue-200 group relative overflow-hidden",
+                                        "bg-white border border-slate-100 rounded-2xl p-5 shadow-sm active:scale-[0.98] transition-all hover:border-blue-200 group relative overflow-hidden",
                                         res.totalAmount === 0 && "border-l-4 border-l-amber-400"
                                     )}
                                     onClick={() => navigate(`/reservations/${res.id}`)}
                                 >
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="min-w-0 flex-1 space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tight">
-                                                    {res.guestName}
-                                                </h3>
-                                                <StatusBadge status={res.status} />
-                                            </div>
+                                    {/* Row 1: Guest Name (primary) + Status (top-right) */}
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                        <h3 className="font-black text-slate-900 text-base truncate uppercase tracking-tight leading-tight flex-1">
+                                            {res.guestName}
+                                        </h3>
+                                        <StatusBadge status={res.status} />
+                                    </div>
 
-                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
-                                                    <Hash className="w-3 h-3" />
-                                                    <span>{res.bookingNumber || t('pending')}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600/80">
-                                                    <CalendarDays className="w-3 h-3" />
-                                                    <span>
-                                                        {format(parseISO(res.checkInDate), 'MMM d')} → {format(parseISO(res.checkOutDate), 'MMM d')}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                    {/* Row 2: Subtle metadata */}
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-3">
+                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                                            <Hash className="w-3 h-3 opacity-60" />
+                                            <span>{res.bookingNumber || t('pending')}</span>
                                         </div>
-
-                                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                                            <div className={cn(
-                                                "font-black text-xs",
-                                                res.totalAmount === 0 ? "text-rose-500" : "text-slate-900"
-                                            )}>
-                                                {res.totalAmount === 0 ? t('reservations.no_price', 'Price not set') : formatCurrency(res.totalAmount, res.currency)}
-                                            </div>
-                                            <ChevronRight className="w-4 h-4 text-slate-200 group-hover:text-blue-500 transition-colors" />
+                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600/70">
+                                            <CalendarDays className="w-3 h-3 opacity-60" />
+                                            <span>
+                                                {format(parseISO(res.checkInDate), 'MMM d')} → {format(parseISO(res.checkOutDate), 'MMM d')}
+                                            </span>
                                         </div>
                                     </div>
+
+                                    {/* Row 3: Price (prominent) + Arrow */}
+                                    <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                                        <div className={cn(
+                                            "font-black text-sm",
+                                            res.totalAmount === 0 ? "text-rose-500" : "text-slate-900"
+                                        )}>
+                                            {res.totalAmount === 0 ? t('reservations.no_price', 'Price not set') : formatCurrency(res.totalAmount, res.currency)}
+                                        </div>
+                                        <ChevronRight className="w-4 h-4 text-slate-200 group-hover:text-blue-500 transition-colors" />
+                                    </div>
+
                                     {res.totalAmount === 0 && (
-                                        <div className="mt-2 py-1 px-2 bg-amber-50 rounded-lg flex items-center gap-1.5">
+                                        <div className="mt-2.5 py-1.5 px-2.5 bg-amber-50 rounded-lg flex items-center gap-1.5">
                                             <AlertCircle className="w-3 h-3 text-amber-600" />
                                             <span className="text-[9px] font-black text-amber-700 uppercase tracking-tight">{t('reservations.missing_price')}</span>
                                         </div>
@@ -260,7 +284,7 @@ const ReservationsList = () => {
             {/* Floating Action Button (Mobile) */}
             <Button
                 onClick={() => navigate('/reservations/new')}
-                className="sm:hidden fixed bottom-20 right-4 h-14 w-14 rounded-2xl bg-slate-900 text-white shadow-xl shadow-slate-900/20 active:scale-95 transition-all z-40 border-4 border-white/10"
+                className="sm:hidden fixed bottom-24 right-4 h-14 w-14 rounded-2xl bg-slate-900 text-white shadow-xl shadow-slate-900/20 active:scale-95 transition-all z-40 border-4 border-white/10"
                 size="icon"
             >
                 <Plus className="w-7 h-7" />
