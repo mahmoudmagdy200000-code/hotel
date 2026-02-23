@@ -73,31 +73,29 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     const { data: statusData } = useReceptionRoomsStatus(businessDate);
     const rooms = statusData?.items || [];
 
+    // State initialization effect
     useEffect(() => {
-        if (!reservation) return;
+        if (!reservation || !isOpen) return;
 
-        // Check if we need to initialize (new reservation or ID mismatch)
-        const currentLineIds = Object.keys(roomAssignments).map(Number);
-        const newLineIds = reservation.lines.map(l => l.id);
-        const idsMismatch = newLineIds.some(id => !currentLineIds.includes(id)) || newLineIds.length !== currentLineIds.length;
-        const isNewReservation = lastInitializedId.current !== reservation.reservationId;
-
-        if (isNewReservation || idsMismatch) {
+        // ONLY initialize if we're opening a DIFFERENT reservation
+        if (lastInitializedId.current !== reservation.reservationId) {
             lastInitializedId.current = reservation.reservationId;
+
+            // Basic fields
             setGuestName(reservation.guestName || '');
             setPhone(reservation.phone || '');
             setBookingNumber(reservation.bookingNumber || '');
             setTotalAmount(reservation.totalAmount || 0);
             setBalanceDue(reservation.balanceDue);
 
-            // Initialize room assignments from reservation lines
+            // Room assignments - initialize from scratch
             const initialAssignments: Record<number, number> = {};
             reservation.lines.forEach(line => {
                 initialAssignments[line.id] = line.roomId;
             });
             setRoomAssignments(initialAssignments);
 
-            // Map string from DTO to enum value
+            // Payment / Currency
             if (reservation.paymentMethod) {
                 setPaymentMethod(reservation.paymentMethod === 'Cash' ? 1 : reservation.paymentMethod === 'Card' ? 2 : 1);
             }
@@ -105,7 +103,7 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                 setCurrencyCode(reservation.currencyCode);
             }
 
-            // Date auto-adjustment
+            // Date processing
             const origCheckIn = reservation.checkIn ? parseISO(reservation.checkIn) : undefined;
             const origCheckOut = reservation.checkOut ? parseISO(reservation.checkOut) : undefined;
             const today = parseISO(businessDate);
@@ -131,6 +129,17 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             }
         }
     }, [reservation, isOpen, businessDate]);
+
+    // Safety synchronization: if roomAssignments is empty but reservation has lines while open, re-fill
+    useEffect(() => {
+        if (isOpen && reservation && Object.keys(roomAssignments).length === 0 && reservation.lines.length > 0) {
+            const initialAssignments: Record<number, number> = {};
+            reservation.lines.forEach(line => {
+                initialAssignments[line.id] = line.roomId;
+            });
+            setRoomAssignments(initialAssignments);
+        }
+    }, [isOpen, reservation, roomAssignments]);
 
     // Client-side validation: checkout must be after check-in
     const isDateInvalid = useMemo(() => {
