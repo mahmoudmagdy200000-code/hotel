@@ -125,19 +125,20 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                               entity.CurrencyCode == CleanArchitecture.Domain.Enums.CurrencyCode.EUR ? "EUR" : "EGP";
         }
 
-        var dbLines = entity.Lines.ToList();
+        var dbLines = entity.Lines.OrderBy(l => l.Id).ToList();
 
         // Phase 8.6 — Handle Room Changes
         if (request.RoomAssignments != null && request.RoomAssignments.Any())
         {
-            for (int i = 0; i < request.RoomAssignments.Count; i++)
+            var reqAssignments = request.RoomAssignments.OrderBy(a => a.LineId).ToList();
+            for (int i = 0; i < reqAssignments.Count; i++)
             {
-                var assignment = request.RoomAssignments[i];
+                var assignment = reqAssignments[i];
                 
-                // Try match by ID, but if counts match and it's 1-1, just take the line.
-                // This is vital for PDF drafts where IDs might be 0 or desynced.
+                // Try match by ID, but if counts match, fallback to index-based matching.
+                // This handles cases where Line IDs might be 0 or desynced (PDF drafts).
                 var targetLine = dbLines.FirstOrDefault(l => l.Id == assignment.LineId) 
-                                 ?? (dbLines.Count == request.RoomAssignments.Count ? dbLines[i] : null);
+                                 ?? (dbLines.Count == reqAssignments.Count ? dbLines[i] : null);
 
                 if (targetLine != null)
                 {
@@ -150,7 +151,7 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                     {
                         targetLine.RoomId = room.Id;
                         targetLine.RoomTypeId = room.RoomTypeId;
-                        targetLine.Room = room; // Force update navigation
+                        targetLine.Room = room; // Force update navigation for overlap check
                     }
                 }
             }
