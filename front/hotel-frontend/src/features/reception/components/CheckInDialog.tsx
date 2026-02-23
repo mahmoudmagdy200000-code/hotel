@@ -66,6 +66,8 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     const [currencyCode, setCurrencyCode] = useState<number>(1); // Default to USD
     const [dateWasAutoAdjusted, setDateWasAutoAdjusted] = useState(false);
     const [roomAssignments, setRoomAssignments] = useState<Record<number, number>>({});
+    // Helper to store an index-based map for fallback matching if IDs are 0 or desynced
+    const [roomAssignmentsByIndex, setRoomAssignmentsByIndex] = useState<Record<number, number>>({});
 
     // Ref to track which reservation we've initialized the state for
     const lastInitializedId = React.useRef<number | null>(null);
@@ -75,10 +77,14 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
 
     // State initialization effect
     useEffect(() => {
-        if (!reservation || !isOpen) return;
+        if (!reservation || !isOpen) {
+            if (!isOpen) lastInitializedId.current = null;
+            return;
+        }
 
-        // ONLY initialize if we're opening a DIFFERENT reservation
+        // ONLY initialize if we haven't for this specific open session
         if (lastInitializedId.current !== reservation.reservationId) {
+            console.log(`[CheckIn] Initializing state for Res ${reservation.reservationId}. Room: ${reservation.lines[0]?.roomNumber}`);
             lastInitializedId.current = reservation.reservationId;
 
             // Basic fields
@@ -88,12 +94,17 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             setTotalAmount(reservation.totalAmount || 0);
             setBalanceDue(reservation.balanceDue);
 
-            // Room assignments - initialize from scratch
+            // Room assignments
             const initialAssignments: Record<number, number> = {};
-            reservation.lines.forEach(line => {
+            const initialAssignmentsByIndex: Record<number, number> = {};
+
+            reservation.lines.forEach((line, idx) => {
                 initialAssignments[line.id] = line.roomId;
+                initialAssignmentsByIndex[idx] = line.roomId;
             });
+
             setRoomAssignments(initialAssignments);
+            setRoomAssignmentsByIndex(initialAssignmentsByIndex);
 
             // Payment / Currency
             if (reservation.paymentMethod) {
@@ -130,17 +141,6 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
         }
     }, [reservation, isOpen, businessDate]);
 
-    // Safety synchronization: if roomAssignments is empty but reservation has lines while open, re-fill
-    useEffect(() => {
-        if (isOpen && reservation && Object.keys(roomAssignments).length === 0 && reservation.lines.length > 0) {
-            const initialAssignments: Record<number, number> = {};
-            reservation.lines.forEach(line => {
-                initialAssignments[line.id] = line.roomId;
-            });
-            setRoomAssignments(initialAssignments);
-        }
-    }, [isOpen, reservation, roomAssignments]);
-
     // Client-side validation: checkout must be after check-in
     const isDateInvalid = useMemo(() => {
         if (!checkInDate || !checkOutDate) return false;
@@ -149,16 +149,20 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
 
     const isAnyRoomOccupied = useMemo(() => {
         if (!reservation) return false;
-        const result = reservation.lines.some(line => {
-            const currentRoomId = roomAssignments[line.id];
+        let foundConflict = false;
+
+        reservation.lines.forEach((line, idx) => {
+            // Priority: ID mapping, Fallback: Index mapping
+            const currentRoomId = roomAssignments[line.id] ?? roomAssignmentsByIndex[idx];
             const selectedRoom = rooms.find(r => r.roomId === currentRoomId);
 
-            if (!selectedRoom) return false;
+            if (!selectedRoom) return;
 
             // Occupied status is always a block (someone is physically there)
             if (selectedRoom.status === 'Occupied') {
                 console.log(`[CheckIn] Room ${selectedRoom.roomNumber} is OCCUPIED by someone else.`);
-                return true;
+                foundConflict = true;
+                return;
             }
 
             // Reserved status is only a block if it's reserved by someone ELSE
@@ -166,28 +170,29 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                 const isDifferentReservation = selectedRoom.reservation?.reservationId !== reservation.reservationId;
                 if (isDifferentReservation) {
                     console.log(`[CheckIn] Room ${selectedRoom.roomNumber} is RESERVED by Guest ID ${selectedRoom.reservation?.reservationId} (Current is ${reservation.reservationId}).`);
+                    foundConflict = true;
                 }
-                return isDifferentReservation;
             }
-
-            return false;
         });
-        return result;
-    }, [reservation, roomAssignments, rooms]);
+
+        return foundConflict;
+    }, [reservation, roomAssignments, roomAssignmentsByIndex, rooms]);
 
     if (!reservation) return null;
 
     const handleConfirm = () => {
-        if (isDateInvalid || isAnyRoomOccupied) {
-            console.warn("[CheckIn] Cannot confirm: Date Invalid or Room Occupied", { isDateInvalid, isAnyRoomOccupied });
+        if (isAnyRoomOccupied) {
+            console.warn("[CheckIn] Cannot confirm: Room(s) occupied/reserved by others.");
             return;
         }
 
-        // Generate assignments array carefully to ensure we pick up current state
-        const assignments = reservation.lines.map(line => ({
+        // Generate assignments array carefully
+        const assignments = reservation.lines.map((line, idx) => ({
             lineId: line.id,
-            roomId: roomAssignments[line.id]
+            roomId: roomAssignments[line.id] ?? roomAssignmentsByIndex[idx]
         })).filter(a => a.roomId !== undefined);
+
+        console.log("[CheckIn] Submitting assignments:", assignments);
 
         const safeFormat = (date: Date | undefined) => {
             if (!date || isNaN(date.getTime())) return undefined;
@@ -344,10 +349,10 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                             {t('reception.room_assignment', 'Room Assignment')}
                         </Label>
                         <div className="space-y-2">
-                            {reservation.lines.map((line) => {
+                            {reservation.lines.map((line, idx) => {
                                 // Filter rooms of the same type
                                 const availableForType = rooms.filter(r => r.roomTypeName === line.roomTypeName);
-                                const currentRoomId = roomAssignments[line.id];
+                                const currentRoomId = roomAssignments[line.id] ?? roomAssignmentsByIndex[idx];
                                 const selectedRoom = rooms.find(r => r.roomId === currentRoomId);
 
                                 // Occupied status is always a block
@@ -360,21 +365,25 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                 const isPotentiallyOccupied = isOccupied || isTakenByOther;
 
                                 return (
-                                    <div key={line.id} className="flex flex-col gap-2 p-3 border border-slate-100 rounded-xl bg-slate-50/50">
+                                    <div key={line.id || idx} className="flex flex-col gap-2 p-3 border border-slate-100 rounded-xl bg-slate-50/50">
                                         <div className="flex justify-between items-center text-xs text-slate-500 mb-1">
                                             <span className="font-bold">
-                                                {selectedRoom?.roomNumber || line.roomNumber} ({line.roomTypeName || t('reception.any_room', 'Any room')})
+                                                {selectedRoom?.roomNumber || line.roomNumber || '???'} ({line.roomTypeName || t('reception.any_room', 'Any room')})
                                             </span>
                                             {isPotentiallyOccupied && (
                                                 <div className="flex items-center gap-1 text-rose-500 font-extrabold animate-pulse">
                                                     <AlertTriangle className="w-3 h-3" />
-                                                    <span>{selectedRoom.status === 'Occupied' ? t('reception.in_use', 'IN USE') : t('reception.taken', 'TAKEN')}</span>
+                                                    <span>{selectedRoom?.status === 'Occupied' ? t('reception.in_use', 'IN USE') : t('reception.taken', 'TAKEN')}</span>
                                                 </div>
                                             )}
                                         </div>
                                         <Select
                                             value={currentRoomId?.toString()}
-                                            onValueChange={(val) => setRoomAssignments(prev => ({ ...prev, [line.id]: parseInt(val) }))}
+                                            onValueChange={(val) => {
+                                                const id = parseInt(val);
+                                                setRoomAssignments(prev => ({ ...prev, [line.id]: id }));
+                                                setRoomAssignmentsByIndex(prev => ({ ...prev, [idx]: id }));
+                                            }}
                                         >
                                             <SelectTrigger className={cn(
                                                 "h-10 bg-white border-slate-200 rounded-lg",
