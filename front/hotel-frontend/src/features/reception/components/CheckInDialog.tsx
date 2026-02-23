@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { useReceptionRoomsStatus } from '@/features/reception/hooks/useReceptionRoomsStatus';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format, parseISO } from 'date-fns';
-import { PaymentMethodEnum, CurrencyCodeEnum } from '@/api/types/reservations';
+import { PaymentMethodEnum, CurrencyCodeEnum, type PaymentMethodValue, type CurrencyCodeValue } from '@/api/types/reservations';
 import {
     Select,
     SelectContent,
@@ -37,8 +37,8 @@ interface CheckInDialogProps {
         checkOutDate: string | undefined, // yyyy-MM-dd
         totalAmount: number,
         balanceDue: number,
-        paymentMethod: any, // Using any temporarily if typed value is missing, but restoring type below
-        currencyCode: number,
+        paymentMethod: PaymentMethodValue,
+        currencyCode: CurrencyCodeValue,
         roomAssignments?: Array<{ lineId: number; roomId: number }>
     ) => void;
     reservation: ReceptionReservationItemDto | null;
@@ -62,8 +62,8 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(undefined);
     const [totalAmount, setTotalAmount] = useState<number>(0);
     const [balanceDue, setBalanceDue] = useState<number>(0);
-    const [paymentMethod, setPaymentMethod] = useState<number>(1); // Default to Cash
-    const [currencyCode, setCurrencyCode] = useState<number>(1); // Default to USD
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethodValue>(PaymentMethodEnum.Cash);
+    const [currencyCode, setCurrencyCode] = useState<CurrencyCodeValue>(CurrencyCodeEnum.USD);
     const [dateWasAutoAdjusted, setDateWasAutoAdjusted] = useState(false);
     const [roomAssignments, setRoomAssignments] = useState<Record<number, number>>({});
     // Helper to store an index-based map for fallback matching if IDs are 0 or desynced
@@ -108,10 +108,10 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
 
             // Payment / Currency
             if (reservation.paymentMethod) {
-                setPaymentMethod(reservation.paymentMethod === 'Cash' ? 1 : reservation.paymentMethod === 'Card' ? 2 : 1);
+                setPaymentMethod((reservation.paymentMethod === 'Cash' ? PaymentMethodEnum.Cash : reservation.paymentMethod === 'Card' ? PaymentMethodEnum.Visa : PaymentMethodEnum.Cash) as PaymentMethodValue);
             }
             if (reservation.currencyCode) {
-                setCurrencyCode(reservation.currencyCode);
+                setCurrencyCode(reservation.currencyCode as CurrencyCodeValue);
             }
 
             // Date processing
@@ -470,7 +470,7 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                     </div>
 
                     <div className="flex gap-1">
-                        {[CurrencyCodeEnum.EGP, CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR].map((code) => (
+                        {([CurrencyCodeEnum.EGP, CurrencyCodeEnum.USD, CurrencyCodeEnum.EUR] as CurrencyCodeValue[]).map((code) => (
                             <button
                                 key={code}
                                 type="button"

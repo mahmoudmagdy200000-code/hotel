@@ -7,7 +7,8 @@ import {
     noShowReservation,
     parsePendingRequest
 } from '@/api/reception';
-import type { PaymentMethodValue } from '@/api/types/reservations';
+import { getReservationDetails, updateReservation } from '@/api/reservations';
+import type { PaymentMethodValue, CurrencyCodeValue } from '@/api/types/reservations';
 
 
 export const useReceptionActions = () => {
@@ -21,7 +22,7 @@ export const useReceptionActions = () => {
     });
 
     const checkIn = useMutation({
-        mutationFn: ({ id, businessDate, guestName, phone, bookingNumber, checkInDate, checkOutDate, totalAmount, balanceDue, paymentMethod, currencyCode, roomAssignments }: {
+        mutationFn: async ({ id, businessDate, guestName, phone, bookingNumber, checkInDate, checkOutDate, totalAmount, balanceDue, paymentMethod, currencyCode, roomAssignments }: {
             id: number;
             businessDate: string;
             guestName?: string;
@@ -32,10 +33,52 @@ export const useReceptionActions = () => {
             totalAmount?: number;
             balanceDue?: number;
             paymentMethod?: PaymentMethodValue;
-            currencyCode?: number;
+            currencyCode?: CurrencyCodeValue;
             roomAssignments?: Array<{ lineId: number; roomId: number }>;
-        }) =>
-            checkInReservation(id, businessDate, guestName, phone, bookingNumber, checkInDate, checkOutDate, totalAmount, balanceDue, paymentMethod, currencyCode, roomAssignments),
+        }) => {
+            if (roomAssignments && roomAssignments.length > 0) {
+                const details = await getReservationDetails(id);
+
+                const newLines = details.lines.map(line => {
+                    const assignment = roomAssignments.find(a => a.lineId === line.id);
+                    return {
+                        roomId: assignment ? assignment.roomId : line.roomId,
+                        ratePerNight: line.ratePerNight
+                    };
+                });
+
+                const checkInDateNormalized = checkInDate ? (checkInDate.includes('T') ? checkInDate.split('T')[0] : checkInDate) : null;
+                const checkOutDateNormalized = checkOutDate ? (checkOutDate.includes('T') ? checkOutDate.split('T')[0] : checkOutDate) : null;
+                const origCheckIn = details.checkInDate ? (details.checkInDate.includes('T') ? details.checkInDate.split('T')[0] : details.checkInDate) : null;
+                const origCheckOut = details.checkOutDate ? (details.checkOutDate.includes('T') ? details.checkOutDate.split('T')[0] : details.checkOutDate) : null;
+
+                const hasRoomChanges = newLines.some((nl, i) => nl.roomId !== details.lines[i].roomId);
+                const hasHeaderChanges =
+                    (guestName !== undefined && guestName !== details.guestName) ||
+                    (phone !== undefined && phone !== details.phone) ||
+                    (balanceDue !== undefined && balanceDue !== details.balanceDue) ||
+                    (paymentMethod !== undefined && paymentMethod !== details.paymentMethod) ||
+                    (currencyCode !== undefined && currencyCode !== details.currencyCode) ||
+                    (checkInDateNormalized !== null && checkInDateNormalized !== origCheckIn) ||
+                    (checkOutDateNormalized !== null && checkOutDateNormalized !== origCheckOut);
+
+                if (hasRoomChanges || hasHeaderChanges) {
+                    await updateReservation(id, {
+                        ...details,
+                        guestName: guestName !== undefined ? guestName : details.guestName,
+                        phone: phone !== undefined ? phone : details.phone,
+                        checkInDate: checkInDateNormalized || details.checkInDate,
+                        checkOutDate: checkOutDateNormalized || details.checkOutDate,
+                        lines: newLines,
+                        balanceDue: balanceDue !== undefined ? balanceDue : details.balanceDue,
+                        paymentMethod: paymentMethod !== undefined ? paymentMethod : details.paymentMethod,
+                        currencyCode: currencyCode !== undefined ? currencyCode : details.currencyCode,
+                    });
+                }
+            }
+
+            return checkInReservation(id, businessDate, guestName, phone, bookingNumber, checkInDate, checkOutDate, totalAmount, balanceDue, paymentMethod, currencyCode, roomAssignments);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['reception'] });
             queryClient.invalidateQueries({ queryKey: ['reservations'] });
