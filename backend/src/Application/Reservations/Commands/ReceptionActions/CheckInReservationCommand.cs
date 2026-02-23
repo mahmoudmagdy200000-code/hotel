@@ -153,16 +153,40 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                 entity.CheckInDate = newIn;
                 entity.CheckOutDate = newOut;
 
-                // Recalculate financial breakdown for each line
+                // Recalculate nights
                 var nights = (newOut.Date - newIn.Date).Days;
                 if (nights < 1) nights = 1;
 
                 foreach (var line in entity.Lines)
                 {
                     line.Nights = nights;
-                    line.LineTotal = Math.Round(line.RatePerNight * nights, 2);
+                    
+                    // If we have a manual total from request, we'll set it at the end.
+                    // But we should try to keep RatePerNight consistent.
+                    if (request.TotalAmount.HasValue && entity.Lines.Count > 0)
+                    {
+                        // Distribute total amount to lines if they had 0 rate (common for PDF drafts)
+                        if (line.RatePerNight == 0)
+                        {
+                            line.RatePerNight = Math.Round(request.TotalAmount.Value / (nights * entity.Lines.Count), 2);
+                        }
+                        line.LineTotal = Math.Round(line.RatePerNight * nights, 2);
+                    }
+                    else
+                    {
+                        line.LineTotal = Math.Round(line.RatePerNight * nights, 2);
+                    }
                 }
-                entity.TotalAmount = Math.Round(entity.Lines.Sum(l => l.LineTotal), 2);
+
+                // Final safety: if user provided a total, USE IT. Do not overwrite with 0.
+                if (request.TotalAmount.HasValue)
+                {
+                    entity.TotalAmount = request.TotalAmount.Value;
+                }
+                else
+                {
+                    entity.TotalAmount = Math.Round(entity.Lines.Sum(l => l.LineTotal), 2);
+                }
             }
         }
 
