@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Dialog,
@@ -16,7 +16,7 @@ import { format, parseISO } from 'date-fns';
 import { PaymentMethodEnum, CurrencyCodeEnum } from '@/api/types/reservations';
 import type { PaymentMethodValue } from '@/api/types/reservations';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
-import { Wallet, CreditCard, MoreHorizontal, Banknote } from 'lucide-react';
+import { Wallet, CreditCard, MoreHorizontal, Banknote, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CheckInDialogProps {
@@ -35,6 +35,7 @@ interface CheckInDialogProps {
     ) => void;
     reservation: ReceptionReservationItemDto | null;
     isPending: boolean;
+    businessDate: string; // yyyy-MM-dd — today's business date
 }
 
 const CheckInDialog: React.FC<CheckInDialogProps> = ({
@@ -42,7 +43,8 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     onClose,
     onConfirm,
     reservation,
-    isPending
+    isPending,
+    businessDate
 }) => {
     const { t } = useTranslation();
     const [guestName, setGuestName] = useState<string>('');
@@ -54,14 +56,13 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
     const [balanceDue, setBalanceDue] = useState<number>(0);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethodValue>(PaymentMethodEnum.Cash);
     const [currencyCode, setCurrencyCode] = useState<number>(CurrencyCodeEnum.USD);
+    const [dateWasAutoAdjusted, setDateWasAutoAdjusted] = useState(false);
 
     useEffect(() => {
         if (reservation) {
             setGuestName(reservation.guestName || '');
             setPhone(reservation.phone || '');
             setBookingNumber(reservation.bookingNumber || '');
-            setCheckInDate(reservation.checkIn ? parseISO(reservation.checkIn) : undefined);
-            setCheckOutDate(reservation.checkOut ? parseISO(reservation.checkOut) : undefined);
             setTotalAmount(reservation.totalAmount || 0);
             setBalanceDue(reservation.balanceDue);
 
@@ -73,10 +74,45 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                 setPaymentMethod(PaymentMethodEnum.Cash);
             }
             setCurrencyCode(reservation.currencyCode || CurrencyCodeEnum.USD);
+
+            // ── Date auto-adjustment ──────────────────────────────
+            // If check-in date doesn't match today, auto-set it to today
+            // and shift checkout to preserve the same number of nights.
+            const origCheckIn = reservation.checkIn ? parseISO(reservation.checkIn) : undefined;
+            const origCheckOut = reservation.checkOut ? parseISO(reservation.checkOut) : undefined;
+            const today = parseISO(businessDate);
+
+            if (origCheckIn && origCheckOut) {
+                const checkInDateOnly = format(origCheckIn, 'yyyy-MM-dd');
+                if (checkInDateOnly !== businessDate) {
+                    // Preserve number of nights
+                    const nights = Math.max(1, Math.round((origCheckOut.getTime() - origCheckIn.getTime()) / (1000 * 60 * 60 * 24)));
+                    const adjustedCheckOut = new Date(today);
+                    adjustedCheckOut.setDate(adjustedCheckOut.getDate() + nights);
+                    setCheckInDate(today);
+                    setCheckOutDate(adjustedCheckOut);
+                    setDateWasAutoAdjusted(true);
+                } else {
+                    setCheckInDate(origCheckIn);
+                    setCheckOutDate(origCheckOut);
+                    setDateWasAutoAdjusted(false);
+                }
+            } else {
+                setCheckInDate(origCheckIn || today);
+                setCheckOutDate(origCheckOut);
+                setDateWasAutoAdjusted(!origCheckIn || format(origCheckIn!, 'yyyy-MM-dd') !== businessDate);
+            }
         }
-    }, [reservation, isOpen]);
+    }, [reservation, isOpen, businessDate]);
+
+    // Client-side validation: checkout must be after check-in
+    const isDateInvalid = useMemo(() => {
+        if (!checkInDate || !checkOutDate) return false;
+        return checkOutDate.getTime() <= checkInDate.getTime();
+    }, [checkInDate, checkOutDate]);
 
     const handleConfirm = () => {
+        if (isDateInvalid) return;
         onConfirm(
             guestName,
             phone,
@@ -150,6 +186,25 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                             />
                         </div>
                     </div>
+
+                    {dateWasAutoAdjusted && (
+                        <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-xs text-amber-800">
+                                <span className="font-bold">{t('reception.dates_auto_adjusted', 'Dates auto-adjusted')}: </span>
+                                {t('reception.dates_auto_adjusted_desc', 'Check-in shifted to today. The number of nights has been preserved. Review below before confirming.')}
+                            </div>
+                        </div>
+                    )}
+
+                    {isDateInvalid && (
+                        <div className="flex items-start gap-2.5 p-3 bg-red-50 border border-red-200 rounded-xl">
+                            <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-xs text-red-800 font-bold">
+                                {t('reception.checkout_before_checkin', 'Check-out date must be after check-in date.')}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -324,8 +379,8 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                         </Button>
                         <Button
                             onClick={handleConfirm}
-                            disabled={isPending}
-                            className="flex-1 h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg active:scale-95 transition-all"
+                            disabled={isPending || isDateInvalid}
+                            className="flex-1 h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isPending ? t('loading', 'Loading...') : t('reception.checkin', 'Check In')}
                         </Button>

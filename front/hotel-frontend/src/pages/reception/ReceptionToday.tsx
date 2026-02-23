@@ -324,6 +324,7 @@ const ReceptionToday = () => {
                 onClose={() => setCheckInState(prev => ({ ...prev, isOpen: false }))}
                 reservation={checkInState.reservation}
                 isPending={actions.checkIn.isPending}
+                businessDate={selectedDate}
                 onConfirm={async (guestName, phone, bookingNumber, checkInDate, checkOutDate, totalAmount, balanceDue, paymentMethod, currencyCode) => {
                     if (!checkInState.reservation) return;
                     try {
