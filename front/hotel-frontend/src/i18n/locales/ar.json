@@ -142,7 +142,8 @@
         "currency": "العملة",
         "room_assignment": "تخصيص الغرفة",
         "select_room": "اختر الغرفة",
-        "any_room": "أي غرفة"
+        "any_room": "أي غرفة",
+        "cannot_checkin_occupied": "لا يمكن تسجيل الدخول: غرفة أو أكثر مشغولة حالياً. يرجى تغيير تخصيص الغرفة."
     },
     "dashboard": {
         "title": "لوحة التحكم",

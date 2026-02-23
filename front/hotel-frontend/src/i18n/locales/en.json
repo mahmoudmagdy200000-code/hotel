@@ -142,7 +142,8 @@
         "currency": "Currency",
         "room_assignment": "Room Assignment",
         "select_room": "Select Room",
-        "any_room": "Any room"
+        "any_room": "Any room",
+        "cannot_checkin_occupied": "Cannot check-in: One or more rooms are already occupied. Please change the room."
     },
     "dashboard": {
         "title": "Dashboard",

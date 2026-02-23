@@ -130,8 +130,20 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
         return checkOutDate.getTime() <= checkInDate.getTime();
     }, [checkInDate, checkOutDate]);
 
+    const isAnyRoomOccupied = useMemo(() => {
+        if (!reservation) return false;
+        return reservation.lines.some(line => {
+            const currentRoomId = roomAssignments[line.id];
+            const selectedRoom = rooms.find(r => r.roomId === currentRoomId);
+            return selectedRoom && (
+                selectedRoom.status === 'Occupied' ||
+                (selectedRoom.status === 'Reserved' && currentRoomId !== line.roomId)
+            );
+        });
+    }, [reservation, roomAssignments, rooms]);
+
     const handleConfirm = () => {
-        if (isDateInvalid) return;
+        if (isDateInvalid || isAnyRoomOccupied) return;
         onConfirm(
             guestName,
             phone,
@@ -458,21 +470,29 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                 </div>
 
                 <DialogFooter className="p-6 pt-0 bg-white">
-                    <div className="flex gap-3 w-full">
-                        <Button
-                            variant="outline"
-                            onClick={onClose}
-                            className="flex-1 h-11 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50"
-                        >
-                            {t('cancel', 'Cancel')}
-                        </Button>
-                        <Button
-                            onClick={handleConfirm}
-                            disabled={isPending || isDateInvalid}
-                            className="flex-1 h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isPending ? t('loading', 'Loading...') : t('reception.checkin', 'Check In')}
-                        </Button>
+                    <div className="flex flex-col gap-3 w-full">
+                        {isAnyRoomOccupied && (
+                            <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
+                                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                                <span>{t('reception.cannot_checkin_occupied', 'Cannot check-in: One or more rooms are already occupied. Please change the room.')}</span>
+                            </div>
+                        )}
+                        <div className="flex gap-3 w-full">
+                            <Button
+                                variant="outline"
+                                onClick={onClose}
+                                className="flex-1 h-11 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50"
+                            >
+                                {t('cancel', 'Cancel')}
+                            </Button>
+                            <Button
+                                onClick={handleConfirm}
+                                disabled={isPending || isDateInvalid || isAnyRoomOccupied}
+                                className="flex-1 h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isPending ? t('loading', 'Loading...') : t('reception.checkin', 'Check In')}
+                            </Button>
+                        </div>
                     </div>
                 </DialogFooter>
             </DialogContent>
