@@ -125,10 +125,11 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                               entity.CurrencyCode == CleanArchitecture.Domain.Enums.CurrencyCode.EUR ? "EUR" : "EGP";
         }
 
+        var dbLines = entity.Lines.ToList();
+
         // Phase 8.6 — Handle Room Changes
         if (request.RoomAssignments != null && request.RoomAssignments.Any())
         {
-            var dbLines = entity.Lines.ToList();
             for (int i = 0; i < request.RoomAssignments.Count; i++)
             {
                 var assignment = request.RoomAssignments[i];
@@ -160,7 +161,6 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         var newOut = request.CheckOutDate ?? entity.CheckOutDate;
 
         // Check overlaps for all rooms in this reservation
-        var dbLines = entity.Lines.ToList();
         for (int i = 0; i < dbLines.Count; i++)
         {
             var line = dbLines[i];
