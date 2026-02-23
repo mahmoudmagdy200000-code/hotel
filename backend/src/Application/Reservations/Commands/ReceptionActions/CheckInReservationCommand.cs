@@ -4,6 +4,7 @@ using CleanArchitecture.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CleanArchitecture.Application.Reservations.Commands.ReceptionActions;
 
@@ -57,10 +58,12 @@ public class CheckInReservationCommandValidator : AbstractValidator<CheckInReser
 public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservationCommand, ReservationStatusChangedDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILogger<CheckInReservationCommandHandler> _logger;
 
-    public CheckInReservationCommandHandler(IApplicationDbContext context)
+    public CheckInReservationCommandHandler(IApplicationDbContext context, ILogger<CheckInReservationCommandHandler> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<ReservationStatusChangedDto> Handle(CheckInReservationCommand request, CancellationToken cancellationToken)
@@ -159,13 +162,11 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                 
                 if (room != null)
                 {
-                    _logger.LogInformation("[CheckIn] Updating Line {LineId} (Room was {OldRoom}) to New Room {NewRoom} (Id: {RoomId})", 
-                        targetLine.Id, targetLine.RoomNumber, room.Number, room.Id);
+                    _logger.LogInformation("[CheckIn] Updating Line {LineId} (RoomId: {OldRoomId}) to New Room {NewRoom} (Id: {RoomId})", 
+                        targetLine.Id, targetLine.RoomId, room.RoomNumber, room.Id);
                     
                     targetLine.RoomId = room.Id;
-                    targetLine.RoomNumber = room.Number;
                     targetLine.RoomTypeId = room.RoomTypeId; // Keep RoomTypeId updated
-                    targetLine.RoomTypeName = room.RoomType?.Name; // Update RoomTypeName
                     targetLine.Room = room; // Update navigation property for subsequent checks
                 }
                 else
@@ -203,13 +204,8 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
 
             if (overlappingLine != null)
             {
-                var roomNumber = await _context.Rooms
-                    .Where(r => r.Id == roomId)
-                    .Select(r => r.RoomNumber)
-                    .FirstOrDefaultAsync(cancellationToken);
-                    
-                var existingGuest = overlappingLine.Reservation?.GuestName ?? "Unknown";
-                throw new ConflictException($"Room {roomNumber} is occupied by {existingGuest} during the selected dates. Please assign a different room.");
+                _logger.LogWarning("[CheckIn] Conflict detected for RoomId {RoomId} (Line {LineId})", roomId, line.Id);
+                throw new ConflictException($"Room {line.Room?.RoomNumber ?? roomId.ToString()} is currently occupied or reserved by another guest for these dates. Please change the room assignment before a new Check-In can be performed for this room.");
             }
         }
 
