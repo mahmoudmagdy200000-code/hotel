@@ -158,7 +158,21 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                             </Label>
                             <DatePicker
                                 date={checkInDate}
-                                setDate={setCheckInDate}
+                                setDate={(newCheckIn) => {
+                                    if (newCheckIn && checkInDate && checkOutDate) {
+                                        // Preserve the same number of nights
+                                        const originalNights = Math.max(1, Math.round((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)));
+                                        const newCheckOut = new Date(newCheckIn);
+                                        newCheckOut.setDate(newCheckOut.getDate() + originalNights);
+                                        setCheckOutDate(newCheckOut);
+                                    } else if (newCheckIn && checkOutDate && newCheckIn >= checkOutDate) {
+                                        // If no original check-in but new check-in is after checkout, push checkout to +1 night
+                                        const newCheckOut = new Date(newCheckIn);
+                                        newCheckOut.setDate(newCheckOut.getDate() + 1);
+                                        setCheckOutDate(newCheckOut);
+                                    }
+                                    setCheckInDate(newCheckIn);
+                                }}
                                 className="h-11 rounded-xl"
                             />
                         </div>
