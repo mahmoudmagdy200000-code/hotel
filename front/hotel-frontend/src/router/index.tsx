@@ -1,26 +1,46 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import AppLayout from '@/layouts/AppLayout';
-import Dashboard from '@/pages/Dashboard';
-import ReceptionToday from '@/pages/reception/ReceptionToday';
-import PendingRequests from '@/pages/reception/PendingRequests';
-import ReservationsList from '@/pages/reservations/ReservationsList';
-import ReservationDetails from '@/pages/reservations/ReservationDetails';
-import ReservationCreate from '@/pages/reservations/ReservationCreate';
-import ReceptionSearch from '@/pages/ReceptionSearch';
-import Rooms from '@/pages/Rooms';
-import RoomTypes from '@/pages/RoomTypes';
-import Occupancy from '@/pages/Occupancy';
-import Financials from '@/pages/Financials';
-import Expenses from '@/pages/Expenses';
-import Login from '@/pages/Login';
-import AuditDeletes from '@/pages/admin/AuditDeletes';
-import Listings from '@/pages/admin/Listings';
-import UserManagement from '@/pages/admin/UserManagement';
-import NotFound from '@/pages/NotFound';
 import { ProtectedRoute } from '@/components/routes/ProtectedRoute';
 import { AdminRoute } from '@/components/routes/AdminRoute';
 import { OwnerRoute } from '@/components/routes/OwnerRoute';
 import { useAuth } from '@/hooks/useAuth';
+
+// ─── Critical path (eagerly loaded) ────────────────────────────
+import ReceptionToday from '@/pages/reception/ReceptionToday';
+import Login from '@/pages/Login';
+
+// ─── Lazy-loaded pages (code-split) ────────────────────────────
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const PendingRequests = lazy(() => import('@/pages/reception/PendingRequests'));
+const ReservationsList = lazy(() => import('@/pages/reservations/ReservationsList'));
+const ReservationDetails = lazy(() => import('@/pages/reservations/ReservationDetails'));
+const ReservationCreate = lazy(() => import('@/pages/reservations/ReservationCreate'));
+const ReceptionSearch = lazy(() => import('@/pages/ReceptionSearch'));
+const Rooms = lazy(() => import('@/pages/Rooms'));
+const RoomTypes = lazy(() => import('@/pages/RoomTypes'));
+const Occupancy = lazy(() => import('@/pages/Occupancy'));
+const Financials = lazy(() => import('@/pages/Financials'));
+const Expenses = lazy(() => import('@/pages/Expenses'));
+const AuditDeletes = lazy(() => import('@/pages/admin/AuditDeletes'));
+const Listings = lazy(() => import('@/pages/admin/Listings'));
+const UserManagement = lazy(() => import('@/pages/admin/UserManagement'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
+
+// ─── Suspense wrapper with minimal loading state ────────────────
+function LazyPage({ children }: { children: React.ReactNode }) {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex items-center justify-center min-h-[40vh]">
+                    <div className="w-6 h-6 border-2 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+                </div>
+            }
+        >
+            {children}
+        </Suspense>
+    );
+}
 
 /** Redirects based on user role: Receptionist → Reception Today, others → Dashboard */
 function RoleRedirect() {
@@ -50,7 +70,7 @@ const router = createBrowserRouter([
             },
             {
                 path: 'dashboard',
-                element: <Dashboard />,
+                element: <LazyPage><Dashboard /></LazyPage>,
             },
             {
                 path: 'reception/today',
@@ -58,53 +78,53 @@ const router = createBrowserRouter([
             },
             {
                 path: 'reception/reservations/:id',
-                element: <ReservationDetails />,
+                element: <LazyPage><ReservationDetails /></LazyPage>,
             },
             {
                 path: 'reception/search',
-                element: <ReceptionSearch />,
+                element: <LazyPage><ReceptionSearch /></LazyPage>,
             },
             {
                 path: 'reception/pending',
-                element: <PendingRequests />,
+                element: <LazyPage><PendingRequests /></LazyPage>,
             },
             {
                 path: 'reservations',
-                element: <ReservationsList />,
+                element: <LazyPage><ReservationsList /></LazyPage>,
             },
             {
                 path: 'reservations/new',
-                element: <ReservationCreate />,
+                element: <LazyPage><ReservationCreate /></LazyPage>,
             },
             {
                 path: 'reservations/:id',
-                element: <ReservationDetails />,
+                element: <LazyPage><ReservationDetails /></LazyPage>,
             },
             {
                 path: 'rooms',
-                element: <Rooms />,
+                element: <LazyPage><Rooms /></LazyPage>,
             },
             {
                 path: 'room-types',
-                element: <RoomTypes />,
+                element: <LazyPage><RoomTypes /></LazyPage>,
             },
             {
                 path: 'occupancy',
-                element: <Occupancy />,
+                element: <LazyPage><Occupancy /></LazyPage>,
             },
             {
                 path: 'financials',
-                element: <Financials />,
+                element: <LazyPage><Financials /></LazyPage>,
             },
             {
                 path: 'expenses',
-                element: <Expenses />,
+                element: <LazyPage><Expenses /></LazyPage>,
             },
             {
                 path: 'admin/audit/deletes',
                 element: (
                     <AdminRoute>
-                        <AuditDeletes />
+                        <LazyPage><AuditDeletes /></LazyPage>
                     </AdminRoute>
                 ),
             },
@@ -112,7 +132,7 @@ const router = createBrowserRouter([
                 path: 'admin/listings',
                 element: (
                     <AdminRoute>
-                        <Listings />
+                        <LazyPage><Listings /></LazyPage>
                     </AdminRoute>
                 ),
             },
@@ -120,7 +140,7 @@ const router = createBrowserRouter([
                 path: 'admin/users',
                 element: (
                     <OwnerRoute>
-                        <UserManagement />
+                        <LazyPage><UserManagement /></LazyPage>
                     </OwnerRoute>
                 ),
             },
@@ -128,7 +148,7 @@ const router = createBrowserRouter([
     },
     {
         path: '*',
-        element: <NotFound />,
+        element: <LazyPage><NotFound /></LazyPage>,
     },
 ]);
 

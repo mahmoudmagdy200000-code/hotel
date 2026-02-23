@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import type { DateRange } from "react-day-picker";
 import { format, parseISO } from "date-fns";
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useReservationsList } from '@/hooks/reservations/useReservationsList';
 import {
     Table,
@@ -28,6 +30,7 @@ import {
     Hotel
 } from 'lucide-react';
 import { ReservationStatus } from '@/api/types/reservations';
+import type { ReservationDto } from '@/api/types/reservations';
 import { cn, formatCurrency } from '@/lib/utils';
 import { StatusBadge } from '@/components/reservation/StatusBadge';
 
@@ -169,114 +172,11 @@ const ReservationsList = () => {
                     </div>
                 ) : (
                     <>
-                        {/* Mobile: List Cards */}
-                        <div className="grid grid-cols-1 gap-4 sm:hidden">
-                            {reservations?.map((res) => (
-                                <div
-                                    key={res.id}
-                                    className={cn(
-                                        "bg-white border border-slate-100 rounded-2xl p-5 shadow-sm active:scale-[0.98] transition-all hover:border-blue-200 group relative overflow-hidden",
-                                        res.totalAmount === 0 && "border-l-4 border-l-amber-400"
-                                    )}
-                                    onClick={() => navigate(`/reservations/${res.id}`)}
-                                >
-                                    {/* Row 1: Guest Name (primary) + Status (top-right) */}
-                                    <div className="flex items-start justify-between gap-3 mb-3">
-                                        <h3 className="font-black text-slate-900 text-base truncate uppercase tracking-tight leading-tight flex-1">
-                                            {res.guestName}
-                                        </h3>
-                                        <StatusBadge status={res.status} />
-                                    </div>
+                        {/* Mobile: List Cards (Virtualized when > 50 items) */}
+                        <MobileCardList reservations={reservations ?? []} navigate={navigate} t={t} />
 
-                                    {/* Row 2: Subtle metadata */}
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-3">
-                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
-                                            <Hash className="w-3 h-3 opacity-60" />
-                                            <span>{res.bookingNumber || t('pending')}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600/70">
-                                            <CalendarDays className="w-3 h-3 opacity-60" />
-                                            <span>
-                                                {format(parseISO(res.checkInDate), 'MMM d')} → {format(parseISO(res.checkOutDate), 'MMM d')}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Row 3: Price (prominent) + Arrow */}
-                                    <div className="flex items-center justify-between pt-2 border-t border-slate-50">
-                                        <div className={cn(
-                                            "font-black text-sm",
-                                            res.totalAmount === 0 ? "text-rose-500" : "text-slate-900"
-                                        )}>
-                                            {res.totalAmount === 0 ? t('reservations.no_price', 'Price not set') : formatCurrency(res.totalAmount, res.currency)}
-                                        </div>
-                                        <ChevronRight className="w-4 h-4 text-slate-200 group-hover:text-blue-500 transition-colors" />
-                                    </div>
-
-                                    {res.totalAmount === 0 && (
-                                        <div className="mt-2.5 py-1.5 px-2.5 bg-amber-50 rounded-lg flex items-center gap-1.5">
-                                            <AlertCircle className="w-3 h-3 text-amber-600" />
-                                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-tight">{t('reservations.missing_price')}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Desktop: Premium Table */}
-                        <div className="hidden sm:block rounded-2xl border border-slate-100 shadow-sm overflow-hidden bg-white">
-                            <Table>
-                                <TableHeader className="bg-slate-50/50">
-                                    <TableRow className="border-b border-slate-100 font-black text-[10px] uppercase tracking-tighter text-slate-400">
-                                        <TableHead className="px-6 py-4">{t('reservations.guest', 'Guest')}</TableHead>
-                                        <TableHead className="py-4">{t('reservations.booking_number', 'Booking #')}</TableHead>
-                                        <TableHead className="py-4">{t('reservations.check_in', 'Check In')}</TableHead>
-                                        <TableHead className="py-4">{t('reservations.check_out', 'Check Out')}</TableHead>
-                                        <TableHead className="py-4">{t('reservations.status', 'Status')}</TableHead>
-                                        <TableHead className="py-4 text-right">{t('reservations.total', 'Total')}</TableHead>
-                                        <TableHead className="px-6 py-4 text-right"></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {reservations?.map((res) => (
-                                        <TableRow
-                                            key={res.id}
-                                            className={cn(
-                                                "cursor-pointer group hover:bg-blue-50/30 transition-all border-b border-slate-100",
-                                                res.totalAmount === 0 && "bg-amber-50/30 hover:bg-amber-50/50"
-                                            )}
-                                            onClick={() => navigate(`/reservations/${res.id}`)}
-                                        >
-                                            <TableCell className="px-6 py-4">
-                                                <div className="font-black text-slate-900 uppercase tracking-tight">{res.guestName}</div>
-                                                <div className="text-[10px] font-bold text-slate-400 mt-0.5">{res.phone || t('no_phone')}</div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="bg-slate-100 px-2 py-1 rounded text-[10px] font-bold text-slate-600">
-                                                    {res.bookingNumber || '—'}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="text-xs font-bold text-slate-600">{res.checkInDate}</TableCell>
-                                            <TableCell className="text-xs font-bold text-slate-600">{res.checkOutDate}</TableCell>
-                                            <TableCell>
-                                                <StatusBadge status={res.status} />
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className={cn(
-                                                    "font-black text-sm",
-                                                    res.totalAmount === 0 ? "text-rose-500" : "text-slate-900"
-                                                )}>
-                                                    {res.totalAmount === 0 ? t('reservations.no_price') : formatCurrency(res.totalAmount, res.currency)}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="px-6 py-4 text-right">
-                                                <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500 transition-all group-hover:translate-x-1 inline-block" />
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
+                        {/* Desktop: Premium Table (Virtualized when > 50 items) */}
+                        <DesktopTable reservations={reservations ?? []} navigate={navigate} t={t} />
                     </>
                 )}
             </div>
@@ -294,3 +194,256 @@ const ReservationsList = () => {
 };
 
 export default ReservationsList;
+
+
+// ─── Virtualized Sub-Components ─────────────────────────────────
+// Render normally if ≤ 50 items, virtualize if > 50 to cap DOM nodes.
+
+const VIRTUALIZE_THRESHOLD = 50;
+const MOBILE_CARD_HEIGHT = 140; // estimated px per card
+const DESKTOP_ROW_HEIGHT = 56;  // estimated px per table row
+
+
+
+interface ListProps {
+    reservations: ReservationDto[];
+    navigate: (path: string) => void;
+    t: TFunction;
+}
+
+function MobileCardList({ reservations, navigate, t }: ListProps) {
+    const parentRef = useRef<HTMLDivElement>(null);
+    const shouldVirtualize = reservations.length > VIRTUALIZE_THRESHOLD;
+
+    const virtualizer = useVirtualizer({
+        count: reservations.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => MOBILE_CARD_HEIGHT,
+        overscan: 5,
+        enabled: shouldVirtualize,
+    });
+
+    const renderCard = useCallback((res: ListProps['reservations'][0]) => (
+        <div
+            key={res.id}
+            className={cn(
+                "bg-white border border-slate-100 rounded-2xl p-5 shadow-sm active:scale-[0.98] transition-all hover:border-blue-200 group relative overflow-hidden",
+                res.totalAmount === 0 && "border-l-4 border-l-amber-400"
+            )}
+            onClick={() => navigate(`/reservations/${res.id}`)}
+        >
+            <div className="flex items-start justify-between gap-3 mb-3">
+                <h3 className="font-black text-slate-900 text-base truncate uppercase tracking-tight leading-tight flex-1">
+                    {res.guestName}
+                </h3>
+                <StatusBadge status={res.status} />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-3">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                    <Hash className="w-3 h-3 opacity-60" />
+                    <span>{res.bookingNumber || t('pending')}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600/70">
+                    <CalendarDays className="w-3 h-3 opacity-60" />
+                    <span>
+                        {format(parseISO(res.checkInDate), 'MMM d')} → {format(parseISO(res.checkOutDate), 'MMM d')}
+                    </span>
+                </div>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                <div className={cn(
+                    "font-black text-sm",
+                    res.totalAmount === 0 ? "text-rose-500" : "text-slate-900"
+                )}>
+                    {res.totalAmount === 0 ? t('reservations.no_price', 'Price not set') : formatCurrency(res.totalAmount, res.currency)}
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-200 group-hover:text-blue-500 transition-colors" />
+            </div>
+            {res.totalAmount === 0 && (
+                <div className="mt-2.5 py-1.5 px-2.5 bg-amber-50 rounded-lg flex items-center gap-1.5">
+                    <AlertCircle className="w-3 h-3 text-amber-600" />
+                    <span className="text-[9px] font-black text-amber-700 uppercase tracking-tight">{t('reservations.missing_price')}</span>
+                </div>
+            )}
+        </div>
+    ), [navigate, t]);
+
+    if (!shouldVirtualize) {
+        return (
+            <div className="grid grid-cols-1 gap-4 sm:hidden">
+                {reservations.map(renderCard)}
+            </div>
+        );
+    }
+
+    return (
+        <div ref={parentRef} className="sm:hidden overflow-y-auto" style={{ maxHeight: '70vh' }}>
+            <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+                {virtualizer.getVirtualItems().map((virtualRow) => {
+                    const res = reservations[virtualRow.index];
+                    return (
+                        <div
+                            key={virtualRow.key}
+                            style={{
+                                position: 'absolute',
+                                top: virtualRow.start,
+                                left: 0,
+                                right: 0,
+                                padding: '0 0 16px 0',
+                            }}
+                            data-index={virtualRow.index}
+                            ref={virtualizer.measureElement}
+                        >
+                            {renderCard(res)}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function DesktopTable({ reservations, navigate, t }: ListProps) {
+    const parentRef = useRef<HTMLDivElement>(null);
+    const shouldVirtualize = reservations.length > VIRTUALIZE_THRESHOLD;
+
+    const virtualizer = useVirtualizer({
+        count: reservations.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => DESKTOP_ROW_HEIGHT,
+        overscan: 10,
+        enabled: shouldVirtualize,
+    });
+
+    const renderRow = useCallback((res: ListProps['reservations'][0]) => (
+        <TableRow
+            key={res.id}
+            className={cn(
+                "cursor-pointer group hover:bg-blue-50/30 transition-all border-b border-slate-100",
+                res.totalAmount === 0 && "bg-amber-50/30 hover:bg-amber-50/50"
+            )}
+            onClick={() => navigate(`/reservations/${res.id}`)}
+        >
+            <TableCell className="px-6 py-4">
+                <div className="font-black text-slate-900 uppercase tracking-tight">{res.guestName}</div>
+                <div className="text-[10px] font-bold text-slate-400 mt-0.5">{res.phone || t('no_phone')}</div>
+            </TableCell>
+            <TableCell>
+                <span className="bg-slate-100 px-2 py-1 rounded text-[10px] font-bold text-slate-600">
+                    {res.bookingNumber || '—'}
+                </span>
+            </TableCell>
+            <TableCell className="text-xs font-bold text-slate-600">{res.checkInDate}</TableCell>
+            <TableCell className="text-xs font-bold text-slate-600">{res.checkOutDate}</TableCell>
+            <TableCell>
+                <StatusBadge status={res.status} />
+            </TableCell>
+            <TableCell className="text-right">
+                <div className={cn(
+                    "font-black text-sm",
+                    res.totalAmount === 0 ? "text-rose-500" : "text-slate-900"
+                )}>
+                    {res.totalAmount === 0 ? t('reservations.no_price') : formatCurrency(res.totalAmount, res.currency)}
+                </div>
+            </TableCell>
+            <TableCell className="px-6 py-4 text-right">
+                <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500 transition-all group-hover:translate-x-1 inline-block" />
+            </TableCell>
+        </TableRow>
+    ), [navigate, t]);
+
+    if (!shouldVirtualize) {
+        return (
+            <div className="hidden sm:block rounded-2xl border border-slate-100 shadow-sm overflow-hidden bg-white">
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow className="border-b border-slate-100 font-black text-[10px] uppercase tracking-tighter text-slate-400">
+                            <TableHead className="px-6 py-4">{t('reservations.guest', 'Guest')}</TableHead>
+                            <TableHead className="py-4">{t('reservations.booking_number', 'Booking #')}</TableHead>
+                            <TableHead className="py-4">{t('reservations.check_in', 'Check In')}</TableHead>
+                            <TableHead className="py-4">{t('reservations.check_out', 'Check Out')}</TableHead>
+                            <TableHead className="py-4">{t('reservations.status', 'Status')}</TableHead>
+                            <TableHead className="py-4 text-right">{t('reservations.total', 'Total')}</TableHead>
+                            <TableHead className="px-6 py-4 text-right"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {reservations.map(renderRow)}
+                    </TableBody>
+                </Table>
+            </div>
+        );
+    }
+
+    return (
+        <div className="hidden sm:block rounded-2xl border border-slate-100 shadow-sm overflow-hidden bg-white">
+            <Table>
+                <TableHeader className="bg-slate-50/50">
+                    <TableRow className="border-b border-slate-100 font-black text-[10px] uppercase tracking-tighter text-slate-400">
+                        <TableHead className="px-6 py-4">{t('reservations.guest', 'Guest')}</TableHead>
+                        <TableHead className="py-4">{t('reservations.booking_number', 'Booking #')}</TableHead>
+                        <TableHead className="py-4">{t('reservations.check_in', 'Check In')}</TableHead>
+                        <TableHead className="py-4">{t('reservations.check_out', 'Check Out')}</TableHead>
+                        <TableHead className="py-4">{t('reservations.status', 'Status')}</TableHead>
+                        <TableHead className="py-4 text-right">{t('reservations.total', 'Total')}</TableHead>
+                        <TableHead className="px-6 py-4 text-right"></TableHead>
+                    </TableRow>
+                </TableHeader>
+            </Table>
+            <div ref={parentRef} style={{ maxHeight: '65vh', overflowY: 'auto' }}>
+                <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+                    <Table>
+                        <TableBody>
+                            {virtualizer.getVirtualItems().map((virtualRow) => {
+                                const res = reservations[virtualRow.index];
+                                return (
+                                    <tr
+                                        key={virtualRow.key}
+                                        ref={virtualizer.measureElement}
+                                        data-index={virtualRow.index}
+                                        style={{
+                                            position: 'absolute',
+                                            top: virtualRow.start,
+                                            left: 0,
+                                            right: 0,
+                                            display: 'table-row',
+                                        }}
+                                        className={cn(
+                                            "cursor-pointer group hover:bg-blue-50/30 transition-all border-b border-slate-100",
+                                            res.totalAmount === 0 && "bg-amber-50/30 hover:bg-amber-50/50"
+                                        )}
+                                        onClick={() => navigate(`/reservations/${res.id}`)}
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className="font-black text-slate-900 uppercase tracking-tight">{res.guestName}</div>
+                                            <div className="text-[10px] font-bold text-slate-400 mt-0.5">{res.phone || t('no_phone')}</div>
+                                        </td>
+                                        <td className="py-4">
+                                            <span className="bg-slate-100 px-2 py-1 rounded text-[10px] font-bold text-slate-600">
+                                                {res.bookingNumber || '—'}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 text-xs font-bold text-slate-600">{res.checkInDate}</td>
+                                        <td className="py-4 text-xs font-bold text-slate-600">{res.checkOutDate}</td>
+                                        <td className="py-4"><StatusBadge status={res.status} /></td>
+                                        <td className="py-4 text-right">
+                                            <div className={cn(
+                                                "font-black text-sm",
+                                                res.totalAmount === 0 ? "text-rose-500" : "text-slate-900"
+                                            )}>
+                                                {res.totalAmount === 0 ? t('reservations.no_price') : formatCurrency(res.totalAmount, res.currency)}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500 transition-all group-hover:translate-x-1 inline-block" />
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+        </div>
+    );
+}
