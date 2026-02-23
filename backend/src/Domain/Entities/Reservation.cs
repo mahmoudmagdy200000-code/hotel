@@ -20,7 +20,7 @@ public class Reservation : BaseAuditableEntity
     public string? HotelName { get; set; }
     public decimal BalanceDue { get; set; }
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
-    public CurrencyCode CurrencyCode { get; set; } = CurrencyCode.EGP;
+    public CurrencyCode CurrencyCode { get; set; } = CurrencyCode.USD;
     public string? CurrencyOther { get; set; }
 
     public ReservationStatus Status { get; set; } = ReservationStatus.Draft;

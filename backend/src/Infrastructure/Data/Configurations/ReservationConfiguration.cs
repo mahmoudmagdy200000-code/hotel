@@ -85,7 +85,7 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
 
         builder.Property(t => t.CurrencyCode)
             .HasConversion<int>()
-            .HasDefaultValue(CurrencyCode.EGP);
+            .HasDefaultValue(CurrencyCode.USD);
 
         builder.Property(t => t.CurrencyOther)
             .HasMaxLength(12);

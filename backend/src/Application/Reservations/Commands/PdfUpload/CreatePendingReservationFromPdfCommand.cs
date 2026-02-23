@@ -93,7 +93,7 @@ public class CreatePendingReservationFromPdfCommandHandler : IRequestHandler<Cre
             Status = ReservationStatus.Draft,
             CheckInDate = DateTime.UtcNow.Date.AddDays(1), // Placeholder dates until parsing
             CheckOutDate = DateTime.UtcNow.Date.AddDays(2),
-            Currency = "EGP", // Default to EGP to match CurrencyCode default
+            Currency = "USD", // Default to USD until parsing extracts actual currency
             HotelName = listing.Name,
             Notes = $"[PDF_UPLOAD] File: {request.FileName} | Internal Path: {filePath}"
         };

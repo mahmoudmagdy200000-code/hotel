@@ -311,16 +311,6 @@ public static class PdfExtractionRules
                         // Debug: What did we find?
                         Console.WriteLine($"[DEBUG] Found currency: {currency}");
 
-                        // CURRENCY CONVERSION RULE: Unify to USD
-                        // Assuming Rate: 1 USD = 50 EGP
-                        if (currency == "EGP")
-                        {
-                            normalizedAmount = normalizedAmount.Value / 50.0m;
-                            normalizedAmount = Math.Round(normalizedAmount.Value, 2);
-                            currency = "USD";
-                            Console.WriteLine($"[DEBUG] Converted EGP to USD: {normalizedAmount}");
-                        }
-
                         return (normalizedAmount, currency);
                     }
                 }
@@ -361,14 +351,8 @@ public static class PdfExtractionRules
                          }
                      }
                      
-                     // CURRENCY CONVERSION RULE: Unify to USD (Fallback path)
-                     if (currency == "EGP")
-                     {
-                         normalizedAmount = normalizedAmount.Value / 50.0m;
-                         normalizedAmount = Math.Round(normalizedAmount.Value, 2);
-                         currency = "USD";
-                     } else if (currency == null) {
-                         // Default to USD if no currency found but user wants unity?
+                     // Default to USD if no currency symbol/code was found near the amount
+                     if (currency == null) {
                          currency = "USD";
                      }
 
