@@ -130,7 +130,7 @@ const ReceptionToday = () => {
                         <DatePicker
                             date={isDateValid ? parseISO(selectedDate) : undefined}
                             setDate={(d) => setSelectedDate(d ? format(d, 'yyyy-MM-dd') : '')}
-                            className="w-[180px] border-red-500"
+                            className="w-[200px] border-red-500"
                         />
                     </div>
                 </div>
@@ -176,7 +176,7 @@ const ReceptionToday = () => {
                     <DatePicker
                         date={isDateValid ? parseISO(selectedDate) : undefined}
                         setDate={(d) => setSelectedDate(d ? format(d, 'yyyy-MM-dd') : '')}
-                        className="w-[140px] h-9 text-xs font-bold border-slate-200"
+                        className="w-[200px] h-9 text-xs font-bold border-slate-200"
                     />
                     <Button
                         variant="ghost"
