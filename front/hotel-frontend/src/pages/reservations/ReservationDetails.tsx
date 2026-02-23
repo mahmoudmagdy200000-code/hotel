@@ -43,6 +43,9 @@ import { useGetConfirmationPlan, useApplyConfirmationPlan } from '@/features/rec
 import { AllocationReviewModal } from '@/pages/reception/components/AllocationReviewModal';
 import type { ReservationAllocationPlanDto } from '@/api/types/reception';
 import { useBusinessDate } from '@/app/providers/BusinessDateProvider';
+import CheckInDialog from '@/features/reception/components/CheckInDialog';
+import { useReceptionActions } from '@/features/reception/hooks/useReceptionActions';
+import type { ReceptionReservationItemDto } from '@/api/types/reception';
 
 /**
  * Ras Sedr Rental - Stay Operations Detail
@@ -72,6 +75,39 @@ const ReservationDetails = () => {
     const applyPlan = useApplyConfirmationPlan();
     const [allocationPlan, setAllocationPlan] = useState<ReservationAllocationPlanDto | null>(null);
     const [isAllocationOpen, setIsAllocationOpen] = useState(false);
+
+    const receptionActions = useReceptionActions();
+    const [checkInState, setCheckInState] = useState<{
+        isOpen: boolean;
+        reservation: ReceptionReservationItemDto | null;
+    }>({
+        isOpen: false,
+        reservation: null,
+    });
+
+    const mapToReceptionDto = (reservationData: any): ReceptionReservationItemDto => ({
+        reservationId: reservationData.id,
+        bookingNumber: reservationData.bookingNumber || '',
+        guestName: reservationData.guestName,
+        phone: reservationData.phone,
+        checkIn: reservationData.checkInDate,
+        checkOut: reservationData.checkOutDate,
+        status: reservationData.status.toString(),
+        roomNumbers: reservationData.lines.map((l: any) => l.roomNumber),
+        roomTypeNames: reservationData.lines.map((l: any) => l.roomTypeName),
+        totalAmount: reservationData.totalAmount,
+        balanceDue: reservationData.balanceDue,
+        currency: reservationData.currency,
+        currencyCode: reservationData.currencyCode,
+        paymentMethod: reservationData.paymentMethod === 1 ? 'Cash' : reservationData.paymentMethod === 2 ? 'Card' : 'Other',
+        lines: reservationData.lines.map((l: any) => ({
+            id: l.id,
+            roomId: l.roomId,
+            roomNumber: l.roomNumber || '',
+            roomTypeId: l.roomTypeId,
+            roomTypeName: l.roomTypeName,
+        }))
+    });
 
     const [attachment, setAttachment] = useState<any>(null);
     const [isCheckingAttachment, setIsCheckingAttachment] = useState(false);
@@ -260,8 +296,8 @@ const ReservationDetails = () => {
                             <>
                                 <Button
                                     className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wide shadow-lg shadow-emerald-600/30 transition-all active:scale-[0.97]"
-                                    onClick={() => handleAction('check-in', (id) => actions.checkIn.mutateAsync({ id, businessDate }))}
-                                    disabled={actions.checkIn.isPending}
+                                    onClick={() => setCheckInState({ isOpen: true, reservation: mapToReceptionDto(res) })}
+                                    disabled={receptionActions.checkIn.isPending}
                                 >
                                     <LogIn className="w-4 h-4 mr-2" />
                                     {t('reservations.check_in')}
@@ -529,6 +565,47 @@ const ReservationDetails = () => {
                     </div>
                 )}
             </ConfirmDialog>
+
+            {res && (
+                <CheckInDialog
+                    isOpen={checkInState.isOpen}
+                    onClose={() => setCheckInState(prev => ({ ...prev, isOpen: false }))}
+                    reservation={checkInState.reservation}
+                    isPending={receptionActions.checkIn.isPending}
+                    businessDate={businessDate}
+                    onConfirm={async (guestName, phone, bookingNumber, checkInDate, checkOutDate, totalAmount, balanceDue, paymentMethod, currencyCode, roomAssignments) => {
+                        if (!checkInState.reservation) return;
+                        try {
+                            await receptionActions.checkIn.mutateAsync({
+                                id: checkInState.reservation.reservationId,
+                                businessDate: businessDate,
+                                guestName,
+                                phone,
+                                bookingNumber,
+                                checkInDate,
+                                checkOutDate,
+                                totalAmount,
+                                balanceDue,
+                                paymentMethod,
+                                currencyCode,
+                                roomAssignments
+                            });
+                            toast.success(t('reception.checkin_success', 'Check-in successful!'));
+                            setCheckInState(prev => ({ ...prev, isOpen: false }));
+                            refetch();
+                        } catch (err: unknown) {
+                            const errorMsg = extractErrorMessage(err);
+                            if (errorMsg.includes('DATE_MISMATCH')) {
+                                toast.error(t('reception.date_mismatch_desc', 'Check-in date must match today\'s date. Please update the check-in date before proceeding.'), {
+                                    duration: 6000,
+                                });
+                            } else {
+                                toast.error(`Error: ${errorMsg}`);
+                            }
+                        }
+                    }}
+                />
+            )}
 
             {res && (
                 <EditReservationDialog
