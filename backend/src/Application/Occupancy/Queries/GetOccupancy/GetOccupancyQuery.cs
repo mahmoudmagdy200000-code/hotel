@@ -35,14 +35,14 @@ public class GetOccupancyQueryHandler : IRequestHandler<GetOccupancyQuery, Occup
         var groupBy = (request.GroupBy ?? "both").ToLower();
 
         // 2. Supply
-        // Count active rooms
-        var totalRooms = await _context.Rooms.CountAsync(x => x.IsActive, cancellationToken);
+        // Count active rooms excluding Out Of Order / Out Of Service
+        var totalRooms = await _context.Rooms.CountAsync(x => x.IsActive && x.Status != RoomStatus.OutOfService, cancellationToken);
         var supplyRoomNights = totalRooms * nightsCount;
 
-        // 3. Status Filter (Actual includes CheckedOut only by accounting policy)
+        // 3. Status Filter
         var statuses = mode == "actual"
-            ? new[] { ReservationStatus.CheckedOut }
-            : new[] { ReservationStatus.Confirmed, ReservationStatus.CheckedIn, ReservationStatus.CheckedOut };
+            ? new[] { ReservationStatus.CheckedIn, ReservationStatus.CheckedOut }
+            : new[] { ReservationStatus.Confirmed, ReservationStatus.Draft };
 
         // 4. Fetch Data
         // Overlap: CheckIn <= To AND CheckOut > From (to is inclusive)
