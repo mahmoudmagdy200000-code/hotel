@@ -13,8 +13,8 @@ export const QueryProvider = ({ children }: QueryProviderProps) => {
                 defaultOptions: {
                     queries: {
                         retry: 1,
-                        refetchOnWindowFocus: false,
-                        staleTime: 5 * 60 * 1000,
+                        refetchOnWindowFocus: true,
+                        staleTime: 60 * 1000,
                     },
                 },
             })

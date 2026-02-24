@@ -4,9 +4,8 @@ public static class TestDatabaseFactory
 {
     public static async Task<ITestDatabase> CreateAsync()
     {
-        // var database = new SqliteTestDatabase();
-        // await database.InitialiseAsync();
-        // return database;
-        return null; // Disabled SQLite factory
+        var database = new MySqlTestDatabase();
+        await database.InitialiseAsync();
+        return database;
     }
 }

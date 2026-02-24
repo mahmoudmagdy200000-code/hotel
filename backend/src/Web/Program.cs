@@ -38,6 +38,21 @@ app.UseHealthChecks("/health");
 app.UseCors("ViteDev");
 // app.UseHttpsRedirection();
 app.UseStaticFiles();
+// Global Anti-Cache Middleware for API Endpoints to ensure mobile browsers fetch real-time data
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        context.Response.OnStarting(() =>
+        {
+            context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+            context.Response.Headers["Pragma"] = "no-cache";
+            context.Response.Headers["Expires"] = "-1";
+            return Task.CompletedTask;
+        });
+    }
+    await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

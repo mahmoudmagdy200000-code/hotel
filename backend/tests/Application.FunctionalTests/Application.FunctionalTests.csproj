@@ -19,6 +19,7 @@
     </ItemGroup>
     <!--#endif-->
     <ItemGroup>
+      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" />
       <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" />
@@ -35,6 +36,7 @@
       <PackageReference Include="Moq" />
       <PackageReference Include="Respawn" />
       <PackageReference Include="Shouldly" />
+      <PackageReference Include="Testcontainers.MySql" />
       <!--#if (UsePostgreSQL)-->
       <PackageReference Include="Testcontainers.PostgreSql" />
       <!--#endif-->
