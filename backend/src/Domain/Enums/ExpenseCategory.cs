@@ -5,5 +5,7 @@ public enum ExpenseCategory
     Maintenance = 1,
     Purchases = 2,
     Breakfast = 3,
-    Other = 4
+    Other = 4,
+    Salaries = 5,
+    Utilities = 6
 }

@@ -31,6 +31,8 @@ export interface DashboardKpiSummaryDto {
     soldRoomNights: number;
     occupancyRateOverall: number;
     totalRevenue: number;
+    totalExpenses: number;
+    netProfit: number;
     adr: number;
     revPar: number;
 }
@@ -41,6 +43,8 @@ export interface DashboardSeriesPointDto {
     occupiedRooms: number;
     occupancyRate: number;
     revenue: number;
+    expenses: number;
+    netProfit: number;
     adr: number;
     revPar: number;
 }

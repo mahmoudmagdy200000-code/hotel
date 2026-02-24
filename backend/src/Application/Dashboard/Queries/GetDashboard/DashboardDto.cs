@@ -18,6 +18,8 @@ public record DashboardKpiSummaryDto
     public int SoldRoomNights { get; init; }
     public double OccupancyRateOverall { get; init; }
     public decimal TotalRevenue { get; init; }
+    public decimal TotalExpenses { get; init; }
+    public decimal NetProfit { get; init; }
     public decimal Adr { get; init; }
     public decimal RevPar { get; init; }
 }
@@ -29,6 +31,8 @@ public record DashboardSeriesPointDto
     public int OccupiedRooms { get; init; }
     public double OccupancyRate { get; init; }
     public decimal Revenue { get; init; }
+    public decimal Expenses { get; init; }
+    public decimal NetProfit { get; init; }
     public decimal Adr { get; init; }
     public decimal RevPar { get; init; }
 }

@@ -22,11 +22,13 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
 {
     private readonly ISender _sender;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IApplicationDbContext _context;
 
-    public GetDashboardQueryHandler(ISender sender, IDateTimeProvider dateTimeProvider)
+    public GetDashboardQueryHandler(ISender sender, IDateTimeProvider dateTimeProvider, IApplicationDbContext context)
     {
         _sender = sender;
         _dateTimeProvider = dateTimeProvider;
+        _context = context;
     }
 
     public async Task<DashboardDto> Handle(GetDashboardQuery request, CancellationToken cancellationToken)
@@ -62,6 +64,17 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             Currency = request.Currency
         };
         var revenueByDay = await _sender.Send(revenueByDayQuery, cancellationToken);
+        
+        // 3.5 Get Expenses
+        var fromDate = DateOnly.FromDateTime(from.Date);
+        var toDate = DateOnly.FromDateTime(to.Date);
+        var expensesList = await _context.Expenses
+            .Where(e => e.BusinessDate >= fromDate && e.BusinessDate < toDate)
+            .ToListAsync(cancellationToken);
+            
+        var expensesByDayDict = expensesList
+            .GroupBy(e => e.BusinessDate.ToString("yyyy-MM-dd"))
+            .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
 
         RevenueSummaryDto? revenueByRoomType = null;
         if (includeRoomType)
@@ -80,6 +93,8 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         foreach (var occDay in occupancy.ByDay)
         {
             var rev = revenueDayDict.GetValueOrDefault(occDay.Date, 0m); // Default 0
+            var exp = expensesByDayDict.GetValueOrDefault(occDay.Date, 0m);
+            var net = rev - exp;
             
             // ADR = Revenue / OccupiedRooms
             decimal adr = occDay.OccupiedRooms > 0 ? rev / occDay.OccupiedRooms : 0;
@@ -94,6 +109,8 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
                 OccupiedRooms = occDay.OccupiedRooms,
                 OccupancyRate = occDay.OccupancyRate,
                 Revenue = rev,
+                Expenses = exp,
+                NetProfit = net,
                 Adr = Math.Round(adr, 2),
                 RevPar = Math.Round(revPar, 2)
             });
@@ -101,6 +118,8 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
 
         // 5. Build Summary
         var totalRev = revenueByDay.TotalRevenue; // Sum of daily revenue matches total
+        var totalExp = expensesList.Sum(e => e.Amount);
+        var netProfit = totalRev - totalExp;
         
         decimal avgAdr = occupancy.SoldRoomNights > 0 ? totalRev / occupancy.SoldRoomNights : 0;
         decimal avgRevPar = occupancy.SupplyRoomNights > 0 ? totalRev / occupancy.SupplyRoomNights : 0;
@@ -116,6 +135,8 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             SoldRoomNights = occupancy.SoldRoomNights,
             OccupancyRateOverall = occupancy.OccupancyRateOverall,
             TotalRevenue = totalRev,
+            TotalExpenses = totalExp,
+            NetProfit = netProfit,
             Adr = Math.Round(avgAdr, 2),
             RevPar = Math.Round(avgRevPar, 2)
         };

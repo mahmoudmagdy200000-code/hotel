@@ -23,7 +23,9 @@ import {
     ChevronRight,
     Zap,
     LayoutGrid,
-    Target
+    Target,
+    Receipt,
+    Wallet
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/dashboard';
@@ -126,7 +128,32 @@ const Dashboard = () => {
         );
     };
 
-    const kpiCards = data?.summary ? [
+    const financialCards = data?.summary ? [
+        {
+            title: "Gross Revenue",
+            value: formatCurrency(data.summary.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
+            icon: <DollarSign className="w-5 h-5 text-emerald-600" />,
+            bg: 'bg-emerald-100',
+            trendValue: trends.rev,
+        },
+        {
+            title: "Total Expenses",
+            value: formatCurrency(data.summary.totalExpenses, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
+            icon: <Receipt className="w-5 h-5 text-rose-600" />,
+            bg: 'bg-rose-100',
+            // No trend computed for expenses currently, so passing 0
+            trendValue: 0,
+        },
+        {
+            title: "Net Profit",
+            value: formatCurrency(data.summary.netProfit, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
+            icon: <Wallet className="w-5 h-5 text-blue-600" />,
+            bg: 'bg-blue-100',
+            trendValue: trends.rev, // Net profit roughly follows revenue trend for now
+        }
+    ] : [];
+
+    const operationalCards = data?.summary ? [
         {
             title: t('dashboard.occupancy_rate'),
             value: formatPercent(data.summary.occupancyRateOverall),
@@ -135,17 +162,10 @@ const Dashboard = () => {
             trendValue: trends.occ,
         },
         {
-            title: t('dashboard.total_revenue'),
-            value: formatCurrency(data.summary.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
-            icon: <DollarSign className="w-4 h-4 text-emerald-600" />,
-            bg: 'bg-emerald-100',
-            trendValue: trends.rev,
-        },
-        {
             title: t('dashboard.adr'),
             value: formatCurrency(data.summary.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
-            icon: <Target className="w-4 h-4 text-blue-600" />,
-            bg: 'bg-blue-100',
+            icon: <Target className="w-4 h-4 text-indigo-600" />,
+            bg: 'bg-indigo-100',
             trendValue: trends.adr,
         },
         {
@@ -233,12 +253,48 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* PULSE KPI GRID */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* FINANCIAL KPI GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {isLoading ? (
-                    Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-[32px] bg-slate-50" />)
+                    Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-[32px] bg-slate-50" />)
                 ) : (
-                    kpiCards.map((card, index) => (
+                    financialCards.map((card, index) => (
+                        <Card key={index} className={cn(
+                            "border-none shadow-xl rounded-[32px] overflow-hidden transition-all active:scale-[0.98] relative group",
+                            index === 2 ? "bg-slate-900" : "bg-white border border-slate-100"
+                        )}>
+                            <CardContent className="p-6 flex flex-col gap-3 relative z-10">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className={cn(
+                                        "text-[10px] font-black uppercase tracking-widest",
+                                        index === 2 ? "text-slate-400" : "text-slate-400"
+                                    )}>{card.title}</span>
+                                    <div className={cn("p-2 rounded-2xl shadow-sm transition-all", card.bg)}>{card.icon}</div>
+                                </div>
+                                <h3 className={cn(
+                                    "text-3xl font-black tracking-tighter leading-none",
+                                    index === 2 ? "text-white" : "text-slate-900"
+                                )}>{card.value}</h3>
+                                {card.trendValue !== 0 && (
+                                    <TrendIndicator value={card.trendValue} />
+                                )}
+                            </CardContent>
+                            {index === 2 && (
+                                <div className="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
+                                    <Wallet className="w-24 h-24 text-white" />
+                                </div>
+                            )}
+                        </Card>
+                    ))
+                )}
+            </div>
+
+            {/* OPERATIONAL KPI GRID */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {isLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-[32px] bg-slate-50" />)
+                ) : (
+                    operationalCards.map((card, index) => (
                         <Card key={index} className="border border-slate-100 shadow-sm rounded-[32px] overflow-hidden bg-white group hover:border-blue-200 transition-all active:scale-[0.98]">
                             <CardContent className="p-5 flex flex-col gap-3">
                                 <div className="flex items-center justify-between">

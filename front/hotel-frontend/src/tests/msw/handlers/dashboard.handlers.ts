@@ -17,6 +17,8 @@ export const normalDashboard: DashboardDto = {
         soldRoomNights: 5,
         occupancyRateOverall: 50,
         totalRevenue: 500,
+        totalExpenses: 200,
+        netProfit: 300,
         adr: 100,
         revPar: 50
     },
@@ -27,6 +29,8 @@ export const normalDashboard: DashboardDto = {
             occupiedRooms: 5,
             occupancyRate: 50,
             revenue: 500,
+            expenses: 200,
+            netProfit: 300,
             adr: 100,
             revPar: 50
         }
@@ -44,6 +48,8 @@ export const zeroDashboard: DashboardDto = {
         soldRoomNights: 0,
         occupancyRateOverall: 0,
         totalRevenue: 0,
+        totalExpenses: 0,
+        netProfit: 0,
         adr: 0,
         revPar: 0
     },
@@ -54,6 +60,8 @@ export const zeroDashboard: DashboardDto = {
             occupiedRooms: 0,
             occupancyRate: 0,
             revenue: 0,
+            expenses: 0,
+            netProfit: 0,
             adr: 0,
             revPar: 0
         }
