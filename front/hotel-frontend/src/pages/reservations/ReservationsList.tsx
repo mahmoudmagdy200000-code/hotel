@@ -270,7 +270,7 @@ function MobileCardList({ reservations, navigate, t }: ListProps) {
 
     if (!shouldVirtualize) {
         return (
-            <div className="grid grid-cols-1 gap-4 sm:hidden">
+            <div className="grid grid-cols-1 gap-4 px-2 sm:px-0 sm:hidden">
                 {reservations.map(renderCard)}
             </div>
         );
