@@ -1,5 +1,5 @@
 # HOTEL_CHANGE_PHASES_EXTENSIONS_2026-02-12.md
-> Change Phases — Hotel PMS (Backend .NET Clean Architecture + CQRS) + React Frontend  
+> Change Phases — Nexa PMS (Backend .NET Clean Architecture + CQRS) + React Frontend  
 > Timezone: Africa/Cairo (+02:00)  
 > Scope: Implements the new requests discussed (multi-currency, hotel name, editable check-in, room availability view, expenses, etc.)
 

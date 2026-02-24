@@ -1,6 +1,6 @@
 # CURRENT_SYSTEM_STATE.md
 
-## Hotel PMS Backend — Current System State (Source of Truth)
+## Nexa PMS Backend — Current System State (Source of Truth)
 
 > This document represents the **actual implemented state** of the Hotel PMS backend.
 > It supersedes any earlier template or draft documents.

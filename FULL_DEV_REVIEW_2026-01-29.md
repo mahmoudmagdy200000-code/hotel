@@ -1,4 +1,4 @@
-# 🏨 Hotel PMS – Full Dev Review Report
+# 🏨 Nexa PMS – Full Dev Review Report
 
 ## Overview
 

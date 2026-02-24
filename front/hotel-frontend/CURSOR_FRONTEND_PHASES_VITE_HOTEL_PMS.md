@@ -1,4 +1,4 @@
-You are working in the Hotel PMS frontend foundation (Phase 1 already done).
+You are working in the Nexa PMS frontend foundation (Phase 1 already done).
 Now implement i18n + API + React Query wiring.
 
 CONSTRAINTS:

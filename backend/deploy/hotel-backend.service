@@ -1,5 +1,5 @@
 [Unit]
-Description=Hotel PMS Backend API (.NET 10)
+Description=Nexa PMS Backend API (.NET 10)
 After=network.target mysql.service
 Wants=mysql.service
 

@@ -1,4 +1,4 @@
-# Project Diagnostic Report: Hotel PMS Integration Audit
+# Project Diagnostic Report: Nexa PMS Integration Audit
 
 ## A) Executive Summary
 The Hotel PMS project has a functional foundation for PDF reservation processing, but currently suffers from **critical logic errors in data extraction** and **mismatches in the API contract**. While the frontend UI is professional and integrated with `sonner` and `ConfirmDialog`, the underlying data reliability is low.

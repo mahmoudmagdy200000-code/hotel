@@ -1,6 +1,6 @@
-# Hotel PMS Frontend
+# Nexa PMS Frontend
 
-A modern Hotel Property Management System dashboard built with React, TypeScript, and Tailwind CSS.
+A modern Nexa PMS dashboard built with React, TypeScript, and Tailwind CSS.
 
 ## 🚀 Tech Stack
 
@@ -72,7 +72,7 @@ The current configuration points to `https://localhost:5003/api/` to match the b
 
 ## 📄 License
 
-Private - Hotel PMS Project
+Private - Nexa PMS Project
 
 ## 👥 Team
 

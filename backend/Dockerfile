@@ -1,4 +1,4 @@
-# .NET 10 optimized Dockerfile for Hotel PMS deployment (Inside backend folder)
+# .NET 10 optimized Dockerfile for Nexa PMS deployment (Inside backend folder)
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 

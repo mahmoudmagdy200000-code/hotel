@@ -87,7 +87,7 @@ const Login = () => {
                             <Hotel className="w-8 h-8 text-white" />
                         </div>
                     </div>
-                    <CardTitle className="text-3xl font-bold tracking-tight">Hotel PMS</CardTitle>
+                    <CardTitle className="text-3xl font-bold tracking-tight">Nexa PMS</CardTitle>
                     <CardDescription>
                         Enter your credentials to access the management system
                     </CardDescription>

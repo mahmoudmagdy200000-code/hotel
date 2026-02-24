@@ -1,7 +1,7 @@
 # Actual vs Forecast Metrics Policy
 
 ## Overview
-This document defines the metrics logic used throughout the Hotel PMS for performance reporting, dashboard KPIs, and financial summaries.
+This document defines the metrics logic used throughout the Nexa PMS for performance reporting, dashboard KPIs, and financial summaries.
 
 ## Core Definitions
 

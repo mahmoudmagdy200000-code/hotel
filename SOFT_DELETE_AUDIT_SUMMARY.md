@@ -1,6 +1,6 @@
 # Reservation Soft Delete & Audit Trail Implementation Summary
 
-This document summarizes the changes made to implement the **Soft Delete** and **Audit Trail** system for the Hotel PMS.
+This document summarizes the changes made to implement the **Soft Delete** and **Audit Trail** system for the Nexa PMS.
 
 ## 1. Backend Changes (.NET Core)
 

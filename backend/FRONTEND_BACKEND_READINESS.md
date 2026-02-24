@@ -1,6 +1,6 @@
 # FRONTEND_BACKEND_READINESS.md
 
-**Project:** Hotel PMS (Backend: .NET Web API + Clean Architecture + CQRS)  
+**Project:** Nexa PMS (Backend: .NET Web API + Clean Architecture + CQRS)  
 **Goal:** Document **everything the React frontend needs** to integrate safely and correctly.
 
 ---
