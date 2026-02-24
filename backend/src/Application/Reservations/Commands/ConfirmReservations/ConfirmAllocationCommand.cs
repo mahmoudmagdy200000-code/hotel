@@ -74,6 +74,9 @@ public class ConfirmAllocationCommandHandler : IRequestHandler<ConfirmAllocation
                         !r.IsDeleted)
             .ToListAsync(cancellationToken);
 
+        // Track rooms we allocate during this loop so we don't assign the same room twice
+        var newlyAddedLines = new List<ReservationLine>();
+
         foreach (var approval in command.Request.Approvals)
         {
             var reservation = reservations.FirstOrDefault(r => r.Id == approval.ReservationId);
@@ -112,12 +115,22 @@ public class ConfirmAllocationCommandHandler : IRequestHandler<ConfirmAllocation
                     break;
                 }
 
-                // Check overlap
+                // Check overlap against DB
                 bool isOccupied = existingReservations.Any(r => 
                     r.Lines.Any(l => l.RoomId == roomId) &&
                     r.CheckInDate < reservation.CheckOutDate && 
                     r.CheckOutDate > reservation.CheckInDate
                 );
+
+                // Check overlap against newly tracked lines in this batch
+                if (!isOccupied)
+                {
+                    isOccupied = newlyAddedLines.Any(l => 
+                        l.RoomId == roomId &&
+                        l.Reservation!.CheckInDate < reservation.CheckOutDate &&
+                        l.Reservation!.CheckOutDate > reservation.CheckInDate
+                    );
+                }
 
                 if (isOccupied)
                 {
@@ -146,15 +159,19 @@ public class ConfirmAllocationCommandHandler : IRequestHandler<ConfirmAllocation
                 var nights = (reservation.CheckOutDate - reservation.CheckInDate).Days;
                 if (nights < 1) nights = 1;
 
-                reservation.Lines.Add(new ReservationLine
+                var newLine = new ReservationLine
                 {
                     ReservationId = reservation.Id,
                     RoomId = roomId,
                     RoomTypeId = room.RoomTypeId,
                     Nights = nights,
                     LineTotal = lineAmount,
-                    RatePerNight = Math.Round(lineAmount / nights, 2)
-                });
+                    RatePerNight = Math.Round(lineAmount / nights, 2),
+                    Reservation = reservation // crucial for memory tracking
+                };
+                
+                reservation.Lines.Add(newLine);
+                newlyAddedLines.Add(newLine);
             }
 
             reservation.Confirm(_dateTimeProvider.GetHotelTimeNow());

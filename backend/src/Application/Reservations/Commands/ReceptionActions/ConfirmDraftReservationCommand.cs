@@ -115,12 +115,13 @@ public class ConfirmDraftReservationCommandHandler : IRequestHandler<ConfirmDraf
         {
             // Fallback: If absolutely no room info, allow confirm but forcing a default assignment?
             // Better: Try to find "Standard" room and assign it NOW to fix the data.
-            // 1. Find occupied room IDs for this period
+            // 1. Find occupied room IDs for this period using the official blocking statuses
             var occupiedRoomIds = await _context.ReservationLines
                 .Where(l => l.ReservationId != entity.Id && // exclude self
-                            l.Reservation!.Status != ReservationStatus.Cancelled &&
+                            CleanArchitecture.Application.Common.Policies.ReservationPolicy.BlockingStatuses.Contains(l.Reservation!.Status) &&
                             l.Reservation!.CheckInDate < entity.CheckOutDate && 
-                            l.Reservation!.CheckOutDate > entity.CheckInDate)
+                            l.Reservation!.CheckOutDate > entity.CheckInDate &&
+                            !l.Reservation!.IsDeleted)
                 .Select(l => l.RoomId)
                 .ToListAsync(cancellationToken);
 
@@ -146,7 +147,7 @@ public class ConfirmDraftReservationCommandHandler : IRequestHandler<ConfirmDraf
             }
             else 
             {
-                 validationFailures.Add(new FluentValidation.Results.ValidationFailure("Lines", "At least one room must be assigned or extracted from PDF."));
+                 validationFailures.Add(new FluentValidation.Results.ValidationFailure("Lines", "Overbooking / No Rooms Available for the requested dates."));
             }
         }
 

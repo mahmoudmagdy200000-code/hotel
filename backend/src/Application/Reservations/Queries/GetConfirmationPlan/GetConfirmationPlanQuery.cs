@@ -61,6 +61,9 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             .ToListAsync(cancellationToken);
 
         var plan = new ReservationAllocationPlanDto();
+        
+        // Track rooms we allocate during this loop so we don't assign the same room twice
+        var newlyAllocatedLines = new List<ReservationLine>();
 
         foreach (var draft in drafts)
         {
@@ -148,6 +151,14 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
                 .Select(l => l.RoomId)
                 .ToHashSet();
 
+            // Also exclude rooms we just tentatively allocated in this very batch
+            var newlyAllocatedRoomIds = newlyAllocatedLines
+                .Where(l => l.Reservation!.CheckInDate < draft.CheckOutDate &&
+                            l.Reservation!.CheckOutDate > draft.CheckInDate)
+                .Select(l => l.RoomId);
+            
+            occupiedRoomIds.UnionWith(newlyAllocatedRoomIds);
+
             var availableRooms = allRooms
                 .Where(r => !occupiedRoomIds.Contains(r.Id))
                 .Select(r => {
@@ -234,6 +245,20 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
                      pick.IsRecommended = true;
                      item.ProposedRooms.Add(pick);
                 }
+            }
+            
+            // Add all proposed rooms for this draft to the newly allocated tracking list
+            foreach (var proposedRoom in item.ProposedRooms)
+            {
+                newlyAllocatedLines.Add(new ReservationLine
+                {
+                    RoomId = proposedRoom.RoomId,
+                    Reservation = new Reservation 
+                    {
+                        CheckInDate = draft.CheckInDate,
+                        CheckOutDate = draft.CheckOutDate
+                    }
+                });
             }
             
             // Final Status Check
