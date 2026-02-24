@@ -12,7 +12,7 @@ import {
     CardHeader,
     CardTitle
 } from "@/components/ui/card";
-import { Hotel, Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { login as apiLogin, getMe } from '@/api/auth';
 import { toast } from 'sonner';
 
