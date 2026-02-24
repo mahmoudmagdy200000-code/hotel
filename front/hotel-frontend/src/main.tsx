@@ -4,6 +4,14 @@ import './index.css'
 import './i18n'
 import App from './app/App'
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch(err => {
+      console.log('SW registration failed: ', err);
+    });
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

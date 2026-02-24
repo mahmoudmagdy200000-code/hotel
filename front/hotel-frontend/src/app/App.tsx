@@ -5,6 +5,7 @@ import { BusinessDateProvider } from './providers/BusinessDateProvider';
 import router from '@/router';
 
 import { Toaster } from '@/components/ui/sonner';
+import { PwaPrompt } from '@/components/PwaPrompt';
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
                 <BusinessDateProvider>
                     <RouterProvider router={router} />
                     <Toaster />
+                    <PwaPrompt />
                 </BusinessDateProvider>
             </AuthProvider>
         </QueryProvider>
