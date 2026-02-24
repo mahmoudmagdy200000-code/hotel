@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { DateRange } from "react-day-picker";
 import { format, parseISO } from "date-fns";
@@ -46,14 +46,23 @@ const ReservationsList = () => {
     const [status, setStatus] = useState<ReservationStatus | 'all'>('all');
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const fromDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : '';
     const toDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : '';
+
+    // Debounce search term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const { data: reservations, isLoading, isError, error, refetch } = useReservationsList({
         status: status === 'all' ? undefined : status,
         from: fromDate || undefined,
         to: toDate || undefined,
-        searchTerm: searchTerm || undefined,
+        searchTerm: debouncedSearch || undefined,
         includeLines: true
     });
 

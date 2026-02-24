@@ -132,8 +132,8 @@ export const confirmReservation = async (id: number): Promise<ReservationStatusC
     return response.data;
 };
 
-export const searchReservations = async (params: { query: string, date?: string, limit?: number }): Promise<ReceptionSearchResultDto> => {
-    const response = await http.get<ReceptionSearchResultDto>('reception/reservations/search', { params });
+export const searchReservations = async (params: { query: string, date?: string, limit?: number }, signal?: AbortSignal): Promise<ReceptionSearchResultDto> => {
+    const response = await http.get<ReceptionSearchResultDto>('reception/reservations/search', { params, signal });
     return response.data;
 };
 

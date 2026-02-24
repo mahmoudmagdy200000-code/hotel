@@ -11,8 +11,8 @@ import type {
  * Following backend OpenAPI/Clean Architecture endpoints in Web/Endpoints/Reservations.cs
  */
 
-export const searchReservations = async (params: GetReservationsQuery): Promise<ReservationDto[]> => {
-    const response = await http.get<ReservationDto[]>('reservations', { params });
+export const searchReservations = async (params: GetReservationsQuery, signal?: AbortSignal): Promise<ReservationDto[]> => {
+    const response = await http.get<ReservationDto[]>('reservations', { params, signal });
     return response.data;
 };
 

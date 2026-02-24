@@ -34,7 +34,7 @@ const ReceptionSearch = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-        }, 300);
+        }, 500);
         return () => clearTimeout(timer);
     }, [searchTerm]);
 
@@ -70,9 +70,9 @@ const ReceptionSearch = () => {
                             />
                         </div>
                     </div>
-                    {searchTerm.length > 0 && searchTerm.length < 2 && (
+                    {searchTerm.length > 0 && searchTerm.length < 3 && (
                         <p className="mt-2 text-xs text-slate-400">
-                            {t('reception.search_hint', 'Type at least 2 characters to start searching...')}
+                            {t('reception.search_hint_3', 'Type at least 3 characters to start searching...')}
                         </p>
                     )}
                 </CardContent>
@@ -92,7 +92,7 @@ const ReceptionSearch = () => {
                             </TableBody>
                         </Table>
                     </Card>
-                ) : debouncedSearch.length >= 2 ? (
+                ) : debouncedSearch.length >= 3 ? (
                     data?.results.length === 0 ? (
                         <div className="py-20 text-center flex flex-col items-center justify-center space-y-4">
                             <div className="p-4 bg-slate-100 rounded-full">
