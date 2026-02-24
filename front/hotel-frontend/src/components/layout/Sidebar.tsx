@@ -127,8 +127,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     {/* Header */}
                     <div className="flex items-center justify-between h-20 px-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                <Hotel className="text-white w-5 h-5" />
+                            <div className="w-8 h-8 rounded-lg bg-white overflow-hidden flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <img src="/logo.png" alt="Nexa PMS Logo" className="w-full h-full object-cover" />
                             </div>
                             <div className="flex flex-col leading-none">
                                 <span className="text-sm font-black tracking-tighter text-white">NEXA</span>

@@ -83,8 +83,8 @@ const Login = () => {
             <Card className="w-full max-w-md border-none shadow-xl">
                 <CardHeader className="space-y-1 text-center">
                     <div className="flex justify-center mb-4">
-                        <div className="p-3 bg-slate-900 rounded-2xl">
-                            <Hotel className="w-8 h-8 text-white" />
+                        <div className="w-16 h-16 bg-white rounded-2xl overflow-hidden shadow-xl border border-slate-100 flex items-center justify-center p-0">
+                            <img src="/logo.png" alt="Nexa PMS Logo" className="w-full h-full object-cover" />
                         </div>
                     </div>
                     <CardTitle className="text-3xl font-bold tracking-tight">Nexa PMS</CardTitle>
