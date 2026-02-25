@@ -31,6 +31,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/dashboard';
 import { formatCurrency, cn } from '@/lib/utils';
 import { CurrencyCodeEnum, CurrencyCodeLabels } from '@/api/types/reservations';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import type { GetDashboardParams, DashboardSeriesPointDto } from '@/api/types/dashboard';
 
 const Dashboard = () => {
@@ -180,12 +187,12 @@ const Dashboard = () => {
     return (
         <div className="space-y-6 pb-24 sm:pb-8">
             {/* HIGH-IMPACT STICKY OPERATIONAL HEADER */}
-            <div className="sticky top-0 z-40 -mx-4 sm:mx-0 px-4 py-4 bg-slate-900 shadow-2xl sm:rounded-3xl sm:static sm:bg-slate-900 border-b border-white/5">
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-white/10 rounded-2xl border border-white/5 backdrop-blur-xl">
-                                <BarChart3 className="w-5 h-5 text-blue-400" />
+            <div className="sticky top-0 z-40 -mx-4 sm:mx-0 px-4 py-2 bg-slate-900 shadow-2xl sm:rounded-2xl sm:static sm:bg-slate-900 border-b border-white/5">
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-white/10 rounded-xl border border-white/5 backdrop-blur-xl">
+                                <BarChart3 className="w-4 h-4 text-blue-400" />
                             </div>
                             <div>
                                 <h1 className="text-sm font-black text-white uppercase tracking-tighter leading-none">
@@ -213,7 +220,7 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col xl:flex-row items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
+                    <div className="flex flex-col xl:flex-row items-center gap-2 bg-white/5 p-2 rounded-xl border border-white/5 backdrop-blur-sm">
                         {/* Data Mode Selector */}
                         <div className="flex items-center p-1 bg-white/10 rounded-xl h-10 w-full xl:w-auto">
                             <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="w-full">
@@ -239,40 +246,46 @@ const Dashboard = () => {
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={handleNextWeek}><ChevronRight className="w-3.5 h-3.5" /></Button>
                         </div>
 
-                        {/* Currency Matrix */}
-                        <div className="flex items-center p-1 bg-white/10 rounded-xl h-10 w-full xl:w-auto">
-                            {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
-                                <button
-                                    key={code}
-                                    className={`flex-1 xl:flex-none px-4 py-1.5 text-[10px] font-black rounded-lg transition-all ${selectedCurrency === parseInt(code, 10) ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                                    onClick={() => handleCurrencyChange(parseInt(code, 10))}
-                                >{label}</button>
-                            ))}
+                        {/* Currency Selector */}
+                        <div className="w-full xl:w-auto">
+                            <Select value={selectedCurrency.toString()} onValueChange={(val) => handleCurrencyChange(parseInt(val, 10))}>
+                                <SelectTrigger className="h-8 w-full xl:w-[80px] bg-white/10 border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-300 rounded-lg">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
+                                        <SelectItem key={code} value={code}>{label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* FINANCIAL KPI GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
                 {isLoading ? (
-                    Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-[32px] bg-slate-50" />)
+                    Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-2xl bg-slate-50" />)
                 ) : (
                     financialCards.map((card, index) => (
                         <Card key={index} className={cn(
-                            "border-none shadow-xl rounded-[32px] overflow-hidden transition-all active:scale-[0.98] relative group",
-                            index === 2 ? "bg-slate-900" : "bg-white border border-slate-100"
+                            "border-none shadow-sm rounded-2xl overflow-hidden transition-all active:scale-[0.98] relative group",
+                            index === 2 ? "bg-slate-900 col-span-2 xl:col-span-1" : "bg-white border border-slate-100"
                         )}>
-                            <CardContent className="p-6 flex flex-col gap-3 relative z-10">
+                            <CardContent className="p-3 flex flex-col gap-2 relative z-10">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className={cn(
                                         "text-[10px] font-black uppercase tracking-widest",
                                         index === 2 ? "text-slate-400" : "text-slate-400"
                                     )}>{card.title}</span>
-                                    <div className={cn("p-2 rounded-2xl shadow-sm transition-all", card.bg)}>{card.icon}</div>
+                                    <div className={cn("p-1.5 rounded-xl shadow-sm transition-all", card.bg)}>
+                                        {/* Reduced icon size by cloning and merging classes */}
+                                        <card.icon.type {...card.icon.props} className={cn(card.icon.props.className, "w-4 h-4")} />
+                                    </div>
                                 </div>
                                 <h3 className={cn(
-                                    "text-3xl font-black tracking-tighter leading-none",
+                                    "text-xl font-black tracking-tighter leading-none",
                                     index === 2 ? "text-white" : "text-slate-900"
                                 )}>{card.value}</h3>
                                 {card.trendValue !== 0 && (
@@ -280,8 +293,8 @@ const Dashboard = () => {
                                 )}
                             </CardContent>
                             {index === 2 && (
-                                <div className="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-                                    <Wallet className="w-24 h-24 text-white" />
+                                <div className="absolute right-0 top-0 p-3 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
+                                    <Wallet className="w-12 h-12 text-white" />
                                 </div>
                             )}
                         </Card>
@@ -290,18 +303,21 @@ const Dashboard = () => {
             </div>
 
             {/* OPERATIONAL KPI GRID */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                 {isLoading ? (
-                    Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-[32px] bg-slate-50" />)
+                    Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl bg-slate-50" />)
                 ) : (
                     operationalCards.map((card, index) => (
-                        <Card key={index} className="border border-slate-100 shadow-sm rounded-[32px] overflow-hidden bg-white group hover:border-blue-200 transition-all active:scale-[0.98]">
-                            <CardContent className="p-5 flex flex-col gap-3">
+                        <Card key={index} className={cn(
+                            "border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white group hover:border-blue-200 transition-all active:scale-[0.98]",
+                            index === 2 ? "col-span-2 lg:col-span-1" : ""
+                        )}>
+                            <CardContent className="p-3 flex flex-col gap-2">
                                 <div className="flex items-center justify-between">
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{card.title}</span>
                                     <div className={cn("p-1.5 rounded-xl shadow-sm transition-all", card.bg)}>{card.icon}</div>
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tighter leading-none">{card.value}</h3>
+                                <h3 className="text-lg font-black text-slate-900 tracking-tighter leading-none">{card.value}</h3>
                                 <TrendIndicator value={card.trendValue} />
                             </CardContent>
                         </Card>
@@ -310,8 +326,8 @@ const Dashboard = () => {
             </div>
 
             {/* ANALYTICAL BREAKDOWN: DAILY SERIES */}
-            <Card className="border border-slate-100 shadow-sm rounded-[32px] overflow-hidden bg-white">
-                <CardHeader className="p-6 pb-2 flex items-center gap-2 border-b border-slate-50">
+            <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                <CardHeader className="p-3 pb-2 flex items-center gap-2 border-b border-slate-50">
                     <div className="p-2 bg-slate-100 rounded-xl"><LayoutGrid className="w-4 h-4 text-slate-900" /></div>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.daily_breakdown')}</span>
                 </CardHeader>
@@ -366,8 +382,8 @@ const Dashboard = () => {
 
             {/* SEGMENT BREAKDOWN: ROOM TYPES */}
             {data?.byRoomType && data.byRoomType.length > 0 && (
-                <Card className="border border-slate-100 shadow-sm rounded-[32px] overflow-hidden bg-white">
-                    <CardHeader className="p-6 pb-2 flex items-center gap-2 border-b border-slate-50">
+                <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                    <CardHeader className="p-3 pb-2 flex items-center gap-2 border-b border-slate-50">
                         <div className="p-2 bg-blue-50 rounded-xl"><Building2 className="w-4 h-4 text-blue-600" /></div>
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.by_room_type')}</span>
                     </CardHeader>

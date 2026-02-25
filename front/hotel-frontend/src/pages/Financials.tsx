@@ -33,7 +33,6 @@ import {
 import { useRevenueSummary } from '@/hooks/dashboard';
 import { formatCurrency, cn, extractErrorMessage } from '@/lib/utils';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { CurrencyCodeEnum, CurrencyCodeLabels } from '@/api/types/reservations';
 import type { GetRevenueSummaryParams, RevenueSummaryItemDto } from '@/api/types/dashboard';
 
@@ -114,53 +113,53 @@ const Financials = () => {
     return (
         <div className="space-y-6 pb-24 sm:pb-8">
             {/* STICKY ACTION BAR */}
-            <div className="sticky top-0 z-40 -mx-4 sm:mx-0 px-4 py-4 bg-slate-900 shadow-2xl sm:rounded-3xl sm:static sm:bg-slate-900 border-b border-white/5">
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-white/10 rounded-2xl border border-white/5 backdrop-blur-xl">
-                                <DollarSign className="w-5 h-5 text-emerald-400" />
+            <div className="sticky top-0 z-40 -mx-4 sm:mx-0 px-4 py-2 bg-slate-900 shadow-md sm:rounded-2xl sm:static sm:bg-slate-900 border-b border-white/5">
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-white/10 rounded-xl border border-white/5 backdrop-blur-xl">
+                                <DollarSign className="w-4 h-4 text-emerald-400" />
                             </div>
                             <div>
-                                <h1 className="text-sm font-black text-white uppercase tracking-tighter leading-none">
+                                <h1 className="text-xs font-black text-white uppercase tracking-tight leading-none">
                                     {t('financials.title')}
                                 </h1>
-                                <div className="flex items-center gap-1.5 mt-1">
+                                <div className="flex items-center gap-1.5 mt-0.5">
                                     <span className={`w-1.5 h-1.5 rounded-full ${isFetching ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
                                         {format(currentDate, 'MMMM yyyy', { locale: dateLocale })}
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 active:scale-[0.98]"
+                                className="h-7 w-7 rounded-lg border border-white/10 bg-white/5 text-white hover:bg-white/10 active:scale-[0.98]"
                                 onClick={handleThisMonth}
                                 title="Current Month"
                             >
-                                <Zap className="h-3.5 w-3.5 text-amber-400" />
+                                <Zap className="h-3 w-3 text-amber-400" />
                             </Button>
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                className="h-7 w-7 rounded-lg border border-white/10 bg-white/5 text-white hover:bg-white/10"
                                 onClick={() => refetch()}
                                 disabled={isFetching}
                             >
-                                <RefreshCw className={cn("h-3.5 w-3.5 text-slate-400", isFetching && "animate-spin text-emerald-400")} />
+                                <RefreshCw className={cn("h-3 w-3 text-slate-400", isFetching && "animate-spin text-emerald-400")} />
                             </Button>
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-inner h-10">
-                            <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="h-8 w-8 rounded-lg hover:bg-slate-100"><ChevronLeft className="w-4 h-4" /></Button>
+                    <div className="flex flex-col sm:flex-row items-center gap-2 bg-white/5 p-2 rounded-xl border border-white/5 backdrop-blur-sm">
+                        <div className="flex items-center gap-1 bg-white rounded-lg p-0.5 shadow-inner h-8">
+                            <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="h-7 w-7 rounded-md hover:bg-slate-100"><ChevronLeft className="w-3.5 h-3.5" /></Button>
                             <Select value={currentDate.getMonth().toString()} onValueChange={handleMonthSelect}>
-                                <SelectTrigger className="h-8 border-none shadow-none font-black text-[10px] uppercase tracking-widest w-[110px] focus:ring-0">
+                                <SelectTrigger className="h-7 border-none shadow-none font-bold text-[9px] uppercase tracking-widest w-[90px] focus:ring-0">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -170,7 +169,7 @@ const Financials = () => {
                                 </SelectContent>
                             </Select>
                             <Select value={currentDate.getFullYear().toString()} onValueChange={handleYearSelect}>
-                                <SelectTrigger className="h-8 border-none shadow-none font-bold text-[10px] w-[70px] focus:ring-0">
+                                <SelectTrigger className="h-7 border-none shadow-none font-bold text-[10px] w-[60px] focus:ring-0">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -179,15 +178,15 @@ const Financials = () => {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Button variant="ghost" size="icon" onClick={handleNextMonth} className="h-8 w-8 rounded-lg hover:bg-slate-100"><ChevronRight className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={handleNextMonth} className="h-7 w-7 rounded-md hover:bg-slate-100"><ChevronRight className="w-3.5 h-3.5" /></Button>
                         </div>
 
                         <div className="flex items-center gap-2 w-full sm:w-auto">
-                            <div className="flex flex-1 sm:flex-none p-1 bg-white/10 rounded-xl border border-white/5">
+                            <div className="flex flex-1 sm:flex-none p-0.5 bg-white/10 rounded-lg border border-white/5 h-8">
                                 <button
                                     className={cn(
-                                        "flex-1 px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all",
-                                        mode === 'actual' ? "bg-white text-slate-900 shadow-lg" : "text-white/40 hover:text-white"
+                                        "flex-1 px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-md transition-all",
+                                        mode === 'actual' ? "bg-white text-slate-900 shadow-sm" : "text-white/40 hover:text-white"
                                     )}
                                     onClick={() => setMode('actual')}
                                 >
@@ -195,8 +194,8 @@ const Financials = () => {
                                 </button>
                                 <button
                                     className={cn(
-                                        "flex-1 px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all",
-                                        mode === 'forecast' ? "bg-white text-slate-900 shadow-lg" : "text-white/40 hover:text-white"
+                                        "flex-1 px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-md transition-all",
+                                        mode === 'forecast' ? "bg-white text-slate-900 shadow-sm" : "text-white/40 hover:text-white"
                                     )}
                                     onClick={() => setMode('forecast')}
                                 >
@@ -204,19 +203,17 @@ const Financials = () => {
                                 </button>
                             </div>
 
-                            <div className="flex p-1 bg-white rounded-xl shadow-inner h-10">
-                                {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
-                                    <button
-                                        key={code}
-                                        className={cn(
-                                            "px-4 py-1.5 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all",
-                                            selectedCurrency === parseInt(code, 10) ? "bg-slate-900 text-white shadow-xl" : "text-slate-400 hover:text-slate-600"
-                                        )}
-                                        onClick={() => handleCurrencyChange(parseInt(code, 10))}
-                                    >
-                                        {label}
-                                    </button>
-                                ))}
+                            <div className="flex w-[80px]">
+                                <Select value={selectedCurrency.toString()} onValueChange={(val) => handleCurrencyChange(parseInt(val, 10))}>
+                                    <SelectTrigger className="h-8 border-none bg-white font-black text-[10px] uppercase tracking-tighter text-slate-900 shadow-inner rounded-lg focus:ring-0">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
+                                            <SelectItem key={code} value={code}>{label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                     </div>
@@ -224,67 +221,72 @@ const Financials = () => {
             </div>
 
             {/* KPI GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <Card className="bg-emerald-600 border-none rounded-[32px] shadow-2xl overflow-hidden relative group">
-                    <div className="absolute right-0 top-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                        <TrendingUp className="w-24 h-24 text-white" />
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                <Card className="bg-emerald-600 border-none rounded-2xl shadow-sm overflow-hidden relative group">
+                    <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                        <TrendingUp className="w-12 h-12 text-white" />
                     </div>
-                    <CardContent className="p-6 relative">
-                        <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest block mb-1">
-                            {t('financials.total_revenue')}
-                        </span>
-                        {isLoading ? (
-                            <Skeleton className="h-10 w-32 bg-emerald-500" />
-                        ) : (
-                            <div className="flex items-baseline gap-2">
-                                <h2 className="text-3xl font-black text-white tracking-tighter leading-none">
-                                    {data ? formatCurrency(data.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]) : '—'}
-                                </h2>
-                                <span className="text-[10px] font-black text-emerald-200 uppercase tracking-widest bg-emerald-700/50 px-2 py-0.5 rounded-lg border border-white/10">
-                                    {mode}
-                                </span>
-                            </div>
-                        )}
-                        <p className="text-[10px] font-bold text-emerald-200/60 mt-4 uppercase tracking-tighter leading-tight">
-                            {mode === 'forecast' ? "Projected gross earnings based on active reservations." : "Realized income from checked-in/out stays."}
+                    <CardContent className="p-3 relative flex flex-col justify-between h-full">
+                        <div>
+                            <span className="text-[9px] font-black text-emerald-100 uppercase tracking-widest block mb-1">
+                                {t('financials.total_revenue')}
+                            </span>
+                            {isLoading ? (
+                                <Skeleton className="h-6 w-24 bg-emerald-500" />
+                            ) : (
+                                <div className="flex items-baseline gap-1.5 flex-wrap">
+                                    <h2 className="text-xl font-black text-white tracking-tight leading-none">
+                                        {data ? formatCurrency(data.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]) : '—'}
+                                    </h2>
+                                    <span className="text-[8px] font-black text-emerald-200 uppercase tracking-widest bg-emerald-700/50 px-1.5 py-0.5 rounded-md border border-white/10">
+                                        {mode}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-[8px] font-bold text-emerald-200/60 mt-2 uppercase tracking-tight leading-tight hidden sm:block">
+                            {mode === 'forecast' ? "Projected earnings." : "Realized income."}
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-none rounded-[32px] shadow-2xl overflow-hidden relative group">
-                    <CardContent className="p-6">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
-                            Best Performing Segment
-                        </span>
-                        {isLoading ? (
-                            <Skeleton className="h-10 w-32 bg-slate-800" />
-                        ) : bestItem ? (
-                            <div className="space-y-4">
+                <Card className="bg-slate-900 border-none rounded-2xl shadow-sm overflow-hidden relative group">
+                    <CardContent className="p-3 flex flex-col justify-between h-full">
+                        <div>
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                                Top Segment
+                            </span>
+                            {isLoading ? (
+                                <Skeleton className="h-6 w-24 bg-slate-800" />
+                            ) : bestItem ? (
                                 <div className="flex flex-col">
-                                    <h2 className="text-2xl font-black text-white tracking-tight leading-none uppercase truncate">
+                                    <h2 className="text-sm font-black text-white tracking-tight leading-none uppercase truncate">
                                         {formatLabel(bestItem.key)}
                                     </h2>
-                                    <span className="text-xs font-black text-emerald-400 mt-1 uppercase tracking-widest">
+                                    <span className="text-[10px] font-black text-emerald-400 mt-1 uppercase tracking-widest">
                                         {formatCurrency(bestItem.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
-                                    </div>
-                                    <span className="text-[10px] font-black text-slate-500 uppercase">PEAK</span>
+                            ) : <p className="text-slate-500 font-black text-[10px] uppercase">N/A</p>}
+                        </div>
+
+                        {bestItem && (
+                            <div className="flex items-center gap-2 mt-2">
+                                <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
                                 </div>
+                                <span className="text-[8px] font-black text-slate-500 uppercase">PEAK</span>
                             </div>
-                        ) : <p className="text-slate-500 font-black text-sm uppercase">N/A</p>}
+                        )}
                     </CardContent>
                 </Card>
 
-                <Card className="bg-white border-slate-100 rounded-[32px] shadow-sm overflow-hidden flex flex-col justify-center">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Analysis Mode</span>
-                            <div className="p-2 bg-blue-50 rounded-xl">
-                                <PieChart className="w-4 h-4 text-blue-500" />
+                <Card className="bg-white border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-center col-span-2 lg:col-span-1">
+                    <CardContent className="p-3">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Analysis View</span>
+                            <div className="p-1.5 bg-blue-50 rounded-lg">
+                                <PieChart className="w-3.5 h-3.5 text-blue-500" />
                             </div>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -292,8 +294,8 @@ const Financials = () => {
                                 <button
                                     key={g}
                                     className={cn(
-                                        "px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border rounded-lg transition-all",
-                                        groupBy === g ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-400 border-slate-100 hover:border-slate-300"
+                                        "px-2.5 py-1 text-[8px] font-black uppercase tracking-widest border rounded-md transition-all flex-1 min-w-[50px] text-center",
+                                        groupBy === g ? "bg-slate-900 text-white border-slate-900 shadow-sm" : "bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                                     )}
                                     onClick={() => setGroupBy(g as any)}
                                 >
@@ -335,51 +337,46 @@ const Financials = () => {
                     </Button>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                     {isLoading ? (
-                        [...Array(6)].map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)
+                        [...Array(6)].map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)
                     ) : data?.items && data.items.length > 0 ? (
                         data.items.map((item: RevenueSummaryItemDto) => {
                             const share = data.totalRevenue > 0 ? (item.revenue / data.totalRevenue) * 100 : 0;
                             return (
-                                <Card key={item.key} className="border-none shadow-sm rounded-2xl overflow-hidden bg-white active:scale-[0.99] transition-all group">
-                                    <CardContent className="p-4 sm:p-5">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 group-hover:bg-slate-900 group-hover:border-slate-900 transition-all">
-                                                    {groupBy === 'day' ? <CalendarDays className="w-4 h-4 text-slate-400 group-hover:text-white" /> :
-                                                        groupBy === 'room' ? <Bed className="w-4 h-4 text-slate-400 group-hover:text-white" /> :
-                                                            <Building2 className="w-4 h-4 text-slate-400 group-hover:text-white" />}
+                                <Card key={item.key} className="border-slate-100 border rounded-xl overflow-hidden bg-white active:scale-[0.99] transition-all group shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                                    <CardContent className="p-3">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-1.5 bg-slate-50 rounded-lg border border-slate-100 group-hover:bg-slate-900 group-hover:border-slate-900 transition-all">
+                                                    {groupBy === 'day' ? <CalendarDays className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" /> :
+                                                        groupBy === 'room' ? <Bed className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" /> :
+                                                            <Building2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-black text-slate-900 uppercase text-xs tracking-tight">{formatLabel(item.key)}</h3>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                        {share.toFixed(1)}% of period capture
+                                                    <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-tight">{formatLabel(item.key)}</h3>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+                                                        {share.toFixed(1)}% of capture
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-lg font-black text-slate-900 tracking-tighter">
+                                                <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">
                                                     {formatCurrency(item.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
                                                 </p>
-                                                <div className="flex items-center justify-end gap-1 text-[8px] font-black text-emerald-600 uppercase">
-                                                    <TrendingUp className="w-2.5 h-2.5" /> Stable
+                                                <div className="flex items-center justify-end gap-1 text-[8px] font-black text-emerald-600 uppercase mt-1">
+                                                    <TrendingUp className="w-2 h-2" /> Stable
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="relative pt-4">
-                                            <div className="h-2 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                                        <div className="relative pt-2">
+                                            <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
                                                 <div
                                                     className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-1000"
                                                     style={{ width: maxRevenue > 0 ? `${(item.revenue / maxRevenue) * 100}%` : '0%' }}
                                                 />
                                             </div>
-                                            {item.revenue === maxRevenue && (
-                                                <Badge className="absolute -top-1 right-0 bg-slate-900 text-white font-black text-[7px] uppercase tracking-widest px-2 py-0 border-none shadow-lg">
-                                                    Peak Output
-                                                </Badge>
-                                            )}
                                         </div>
                                     </CardContent>
                                 </Card>

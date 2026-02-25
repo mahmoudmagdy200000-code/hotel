@@ -33,8 +33,10 @@ export function formatCurrency(amount: number, currency: string = 'USD'): string
         safeCurrency = currencyMap[safeCurrency];
     }
 
-    // Guard: if still invalid or literal 'string'
-    if (safeCurrency === 'STRING' || safeCurrency === '') safeCurrency = 'USD';
+    // Guard against literal "OTHER" or similar invalid codes that throw RangeError
+    if (safeCurrency === 'OTHER') {
+        return `${amount.toLocaleString(i18n.language || 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
+    }
 
     try {
         return new Intl.NumberFormat(i18n.language || 'en-US', {

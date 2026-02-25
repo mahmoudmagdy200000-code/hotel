@@ -76,6 +76,15 @@ public class CheckOutReservationCommandHandler : IRequestHandler<CheckOutReserva
         }
 
         var oldStatus = entity.Status;
+
+        // Phase 8.8 — Fix overlapping dates on early check-out. 
+        // Truncate the CheckOutDate so the room becomes instantly bookable for the freed-up days.
+        var businessDateTime = request.BusinessDate.ToDateTime(TimeOnly.MinValue);
+        if (entity.CheckOutDate > businessDateTime)
+        {
+            entity.CheckOutDate = businessDateTime;
+        }
+
         entity.CheckOut(DateTime.UtcNow);
 
         await _context.SaveChangesAsync(cancellationToken);

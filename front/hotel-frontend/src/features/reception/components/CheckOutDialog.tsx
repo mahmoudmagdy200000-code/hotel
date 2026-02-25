@@ -15,6 +15,7 @@ import type { PaymentMethodValue } from '@/api/types/reservations';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
 import { Wallet, CreditCard, MoreHorizontal, Banknote, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface CheckOutDialogProps {
     isOpen: boolean;
@@ -72,6 +73,9 @@ const CheckOutDialog: React.FC<CheckOutDialogProps> = ({
             <DialogContent className="sm:max-w-[425px] rounded-2xl overflow-hidden border-none shadow-2xl p-0">
                 <div className={cn("p-6 text-white", hasBalance ? "bg-amber-600" : "bg-slate-900")}>
                     <DialogHeader>
+                        <VisuallyHidden>
+                            <DialogDescription>Check-in details</DialogDescription>
+                        </VisuallyHidden>
                         <DialogTitle className="text-xl font-bold flex items-center gap-2">
                             {hasBalance ? (
                                 <AlertTriangle className="h-5 w-5 text-amber-100" />

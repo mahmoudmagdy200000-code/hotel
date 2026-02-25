@@ -14,6 +14,7 @@ import type { ReservationDto, UpdateReservationCommand } from '@/api/types/reser
 import { PaymentMethodEnum, CurrencyCodeEnum } from '@/api/types/reservations';
 import type { CurrencyCodeValue } from '@/api/types/reservations';
 import type { DateRange } from 'react-day-picker';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface Props {
     isOpen: boolean;
@@ -112,7 +113,9 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{t('reservations.edit_reservation', 'Edit Reservation')}</DialogTitle>
-                    <DialogDescription className="sr-only">Edit reservation details and room assignments.</DialogDescription>
+                    <VisuallyHidden>
+                        <DialogDescription>Edit reservation details and room assignments.</DialogDescription>
+                    </VisuallyHidden>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(handleSave)} className="space-y-4">
