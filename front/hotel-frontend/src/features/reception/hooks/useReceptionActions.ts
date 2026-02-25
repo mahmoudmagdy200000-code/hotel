@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { isAxiosError } from 'axios';
 import {
     checkInReservation,
     checkOutReservation,
@@ -9,7 +11,6 @@ import {
 } from '@/api/reception';
 import { getReservationDetails, updateReservation } from '@/api/reservations';
 import type { PaymentMethodValue, CurrencyCodeValue } from '@/api/types/reservations';
-
 
 export const useReceptionActions = () => {
     const queryClient = useQueryClient();
@@ -91,7 +92,20 @@ export const useReceptionActions = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['reception'] });
             queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            toast.success('Successfully checked out. Final balance updated.');
         },
+        onError: (error) => {
+            if (isAxiosError(error) && error.response) {
+                const status = error.response.status;
+                if (status === 409 || status === 400) {
+                    toast.error(error.response.data?.detail || 'Could not checkout reservation due to a conflict or invalid state.');
+                } else {
+                    toast.error('An error occurred while checking out the reservation.');
+                }
+            } else {
+                toast.error('Failed to communicate with the server.');
+            }
+        }
     });
 
     const confirm = useMutation({
@@ -99,7 +113,22 @@ export const useReceptionActions = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['reception'] });
             queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            toast.success('Reservation confirmed successfully.');
         },
+        onError: (error) => {
+            if (isAxiosError(error) && error.response) {
+                const status = error.response.status;
+                if (status === 409) {
+                    toast.error('This chalet was just booked by another user. Please select another date.', { duration: 5000 });
+                } else if (status === 400) {
+                    toast.error(error.response.data?.detail || 'Bad request: Ensure all required fields are filled.');
+                } else {
+                    toast.error('An error occurred while confirming the reservation.');
+                }
+            } else {
+                toast.error('Failed to communicate with the server.');
+            }
+        }
     });
 
     const cancel = useMutation({
