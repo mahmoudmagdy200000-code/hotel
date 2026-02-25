@@ -68,8 +68,10 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         // 3.5 Get Expenses
         var fromDate = DateOnly.FromDateTime(from.Date);
         var toDate = DateOnly.FromDateTime(to.Date);
+        var currency = request.Currency ?? CurrencyCode.EGP;
+
         var expensesList = await _context.Expenses
-            .Where(e => e.BusinessDate >= fromDate && e.BusinessDate < toDate)
+            .Where(e => e.BusinessDate >= fromDate && e.BusinessDate < toDate && e.CurrencyCode == currency)
             .ToListAsync(cancellationToken);
             
         var expensesByDayDict = expensesList
