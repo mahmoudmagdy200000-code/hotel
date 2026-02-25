@@ -46,6 +46,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         builder.Entity<Expense>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
         builder.Entity<BranchListing>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
 
+        // Dashboard Memory Optimisations & Composite Indexes
+        builder.Entity<Reservation>()
+           .HasIndex(r => new { r.BranchId, r.Status, r.CheckInDate })
+           .HasDatabaseName("IX_Res_Branch_Status_Dates");
+
+        builder.Entity<ReservationLine>()
+           .HasIndex(r => r.RoomId)
+           .HasDatabaseName("IX_ResLines_Room");
+
         // Configure default string length for MySQL compatibility (only for keys/indexes)
         foreach (var entity in builder.Model.GetEntityTypes())
         {

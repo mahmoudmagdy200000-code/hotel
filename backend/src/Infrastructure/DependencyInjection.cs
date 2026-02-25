@@ -40,7 +40,7 @@ public static class DependencyInjection
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             options.UseMySql(
                 connectionString,
-                ServerVersion.AutoDetect(connectionString)
+                new MySqlServerVersion(new Version(8, 0, 31))
             );
             options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
