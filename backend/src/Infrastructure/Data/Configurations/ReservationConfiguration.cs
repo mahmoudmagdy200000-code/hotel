@@ -81,11 +81,13 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
 
         builder.Property(t => t.PaymentMethod)
             .HasConversion<int>()
-            .HasDefaultValue(PaymentMethod.Cash);
+            .HasDefaultValue(PaymentMethod.Cash)
+            .HasSentinel(0); // EF20601: sentinel value for enum
 
         builder.Property(t => t.CurrencyCode)
             .HasConversion<int>()
-            .HasDefaultValue(CurrencyCode.USD);
+            .HasDefaultValue(CurrencyCode.USD)
+            .HasSentinel(0); // EF20601: sentinel value for enum
 
         builder.Property(t => t.CurrencyOther)
             .HasMaxLength(12);

@@ -30,5 +30,9 @@ public class ReservationLineConfiguration : IEntityTypeConfiguration<Reservation
 
         builder.HasIndex(t => t.RoomId);
         builder.HasIndex(t => t.ReservationId);
+
+        // EF10622 Warning Fix: Match Room's global query filter
+        // This ensures ReservationLine is filtered out if its associated Room is inactive/filtered.
+        builder.HasQueryFilter(t => t.Room!.IsActive);
     }
 }
