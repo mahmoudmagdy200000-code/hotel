@@ -200,11 +200,22 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             // But Occupancy should catch all sold lines.
         }
 
+        // 7. Build Expense Category Breakdown
+        var byCategory = expensesList
+            .GroupBy(e => (int)e.Category)
+            .Select(g => new DashboardExpenseCategoryKpiDto
+            {
+                CategoryId = g.Key,
+                Amount = g.Sum(e => e.Amount)
+            })
+            .ToList();
+
         return new DashboardDto
         {
             Summary = summary,
             ByDay = byDaySeries,
-            ByRoomType = byRoomType
+            ByRoomType = byRoomType,
+            ByCategory = byCategory
         };
     }
     

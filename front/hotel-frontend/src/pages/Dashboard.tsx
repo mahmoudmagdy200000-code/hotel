@@ -25,7 +25,8 @@ import {
     LayoutGrid,
     Target,
     Receipt,
-    Wallet
+    Wallet,
+    PieChart
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/dashboard';
@@ -39,6 +40,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import type { GetDashboardParams, DashboardSeriesPointDto } from '@/api/types/dashboard';
+import {
+    getExpenseCategoryTranslationKey,
+    getExpenseCategoryStyle
+} from '@/api/types/expenses';
 
 const Dashboard = () => {
     const { t } = useTranslation();
@@ -413,6 +418,59 @@ const Dashboard = () => {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* FINANCIAL SEGMENTATION: EXPENSE DISTRIBUTION */}
+            {data?.byCategory && data.byCategory.length > 0 && (
+                <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                    <CardHeader className="p-3 pb-2 flex items-center gap-2 border-b border-slate-50">
+                        <div className="p-2 bg-rose-50 rounded-xl"><PieChart className="w-4 h-4 text-rose-600" /></div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Expense Distribution</span>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                        <div className="space-y-4">
+                            {data.byCategory
+                                .sort((a, b) => b.amount - a.amount)
+                                .map((item) => {
+                                    const style = getExpenseCategoryStyle(item.categoryId as any);
+                                    const percentage = (item.amount / data.summary.totalExpenses) * 100;
+                                    const Icon = style.icon;
+
+                                    return (
+                                        <div key={item.categoryId} className="space-y-2 group">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={cn("p-1.5 rounded-lg", style.bg, style.color)}>
+                                                        <Icon className="w-3 h-3" />
+                                                    </div>
+                                                    <span className="text-[10px] font-black text-slate-900 uppercase tracking-tighter">
+                                                        {t(getExpenseCategoryTranslationKey(item.categoryId as any))}
+                                                    </span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-[10px] font-black text-slate-900 tracking-tighter block">
+                                                        {formatCurrency(item.amount, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                                    </span>
+                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                                                        {percentage.toFixed(1)}% Share
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                <div
+                                                    className={cn("h-full transition-all duration-1000 ease-out", style.bg.replace('bg-', 'bg-opacity-100 bg-').split(' ')[0])}
+                                                    style={{
+                                                        width: `${percentage}%`,
+                                                        backgroundColor: 'currentColor' // Fallback to class color if possible
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                         </div>
                     </CardContent>
                 </Card>

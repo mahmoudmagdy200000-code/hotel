@@ -5,6 +5,13 @@ public record DashboardDto
     public DashboardKpiSummaryDto Summary { get; init; } = new();
     public List<DashboardSeriesPointDto> ByDay { get; init; } = new();
     public List<DashboardRoomTypeKpiDto>? ByRoomType { get; init; }
+    public List<DashboardExpenseCategoryKpiDto> ByCategory { get; init; } = new();
+}
+
+public record DashboardExpenseCategoryKpiDto
+{
+    public int CategoryId { get; init; }
+    public decimal Amount { get; init; }
 }
 
 public record DashboardKpiSummaryDto

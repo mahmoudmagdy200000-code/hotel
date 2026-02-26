@@ -19,6 +19,12 @@ export interface DashboardDto {
     summary: DashboardKpiSummaryDto;
     byDay: DashboardSeriesPointDto[];
     byRoomType?: DashboardRoomTypeKpiDto[] | null;
+    byCategory: DashboardExpenseCategoryKpiDto[];
+}
+
+export interface DashboardExpenseCategoryKpiDto {
+    categoryId: number;
+    amount: number;
 }
 
 export interface DashboardKpiSummaryDto {
@@ -115,6 +121,12 @@ export interface GetRevenueSummaryParams {
 export interface RevenueSummaryDto {
     totalRevenue: number;
     items: RevenueSummaryItemDto[];
+    byExpenseCategory: RevenueSummaryExpenseCategoryDto[];
+}
+
+export interface RevenueSummaryExpenseCategoryDto {
+    categoryId: number;
+    amount: number;
 }
 
 export interface RevenueSummaryItemDto {

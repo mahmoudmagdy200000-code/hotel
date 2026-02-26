@@ -4,6 +4,13 @@ public record RevenueSummaryDto
 {
     public decimal TotalRevenue { get; init; }
     public List<RevenueSummaryItemDto> Items { get; init; } = new();
+    public List<RevenueSummaryExpenseCategoryDto> ByExpenseCategory { get; init; } = new();
+}
+
+public record RevenueSummaryExpenseCategoryDto
+{
+    public int CategoryId { get; init; }
+    public decimal Amount { get; init; }
 }
 
 public record RevenueSummaryItemDto

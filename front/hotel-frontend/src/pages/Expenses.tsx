@@ -6,28 +6,19 @@ import {
     Plus,
     Filter,
     Calendar,
-    Wrench,
-    ShoppingCart,
-    Coffee,
-    HelpCircle,
     DollarSign,
     PieChart,
     Building2,
     RefreshCw,
     AlertCircle,
-    Briefcase,
-    Lightbulb,
-    Droplets,
-    Truck,
-    Percent,
-    Banknote,
-    Zap
+    Briefcase
 } from 'lucide-react';
 import { useExpenses, useCreateExpense } from '@/hooks/expenses/useExpenses';
 import {
     ExpenseCategoryEnum,
     getExpenseCategoryTranslationKey,
-    expenseCategoryValues
+    expenseCategoryValues,
+    getExpenseCategoryStyle
 } from '@/api/types/expenses';
 import type { GetExpensesParams, ExpenseCategoryValue } from '@/api/types/expenses';
 import { CurrencyCodeLabels, CurrencyCodeEnum, PaymentMethodEnum } from '@/api/types/reservations';
@@ -72,21 +63,6 @@ import { toast } from 'sonner';
  * Ras Sedr Rental - Operational Expenditure Ledger
  * High-density tracking for maintenance, logistics, and resource procurement.
  */
-
-const CATEGORY_STYLE: Record<number, { icon: any; color: string; bg: string }> = {
-    [ExpenseCategoryEnum.Maintenance]: { icon: Wrench, color: 'text-rose-600', bg: 'bg-rose-50' },
-    [ExpenseCategoryEnum.Purchases]: { icon: ShoppingCart, color: 'text-blue-600', bg: 'bg-blue-50' },
-    [ExpenseCategoryEnum.Breakfast]: { icon: Coffee, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    [ExpenseCategoryEnum.Other]: { icon: HelpCircle, color: 'text-slate-400', bg: 'bg-slate-50' },
-    [ExpenseCategoryEnum.Salaries]: { icon: Banknote, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    [ExpenseCategoryEnum.Utilities]: { icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
-    [ExpenseCategoryEnum.Delivery]: { icon: Truck, color: 'text-orange-600', bg: 'bg-orange-50' },
-    [ExpenseCategoryEnum.Commission]: { icon: Percent, color: 'text-purple-600', bg: 'bg-purple-50' },
-    [ExpenseCategoryEnum.ElectricityBill]: { icon: Lightbulb, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-    [ExpenseCategoryEnum.WaterBill]: { icon: Droplets, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-};
-
-const DEFAULT_CATEGORY = { icon: HelpCircle, color: 'text-slate-400', bg: 'bg-slate-50' };
 
 const Expenses = () => {
     const { t } = useTranslation();
@@ -396,7 +372,7 @@ const Expenses = () => {
                         {/* MOBILE: LEDGER CARDS */}
                         <div className="grid grid-cols-1 gap-4 sm:hidden">
                             {(expenses || []).map((expense) => {
-                                const style = CATEGORY_STYLE[expense.category] || DEFAULT_CATEGORY;
+                                const style = getExpenseCategoryStyle(expense.category);
                                 const Icon = style.icon;
                                 return (
                                     <div key={expense.id} className="bg-white border border-slate-100 rounded-[32px] overflow-hidden shadow-sm p-6 space-y-4 relative group">
@@ -447,7 +423,7 @@ const Expenses = () => {
                                 </TableHeader>
                                 <TableBody>
                                     {(expenses || []).map((expense) => {
-                                        const style = CATEGORY_STYLE[expense.category] || DEFAULT_CATEGORY;
+                                        const style = getExpenseCategoryStyle(expense.category);
                                         const Icon = style.icon;
                                         return (
                                             <TableRow key={expense.id} className="hover:bg-slate-50/50 transition-all group">

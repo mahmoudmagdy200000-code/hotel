@@ -130,10 +130,28 @@ public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQu
             .OrderBy(x => x.Key)
             .ToList();
 
+        // Fetch Expenses for the range
+        var fromDate = DateOnly.FromDateTime(from.Date);
+        var toDate = DateOnly.FromDateTime(to.Date);
+        
+        var expensesList = await _context.Expenses
+            .Where(e => e.BusinessDate >= fromDate && e.BusinessDate <= toDate && e.CurrencyCode == currency)
+            .ToListAsync(cancellationToken);
+
+        var byExpenseCategory = expensesList
+            .GroupBy(e => (int)e.Category)
+            .Select(g => new RevenueSummaryExpenseCategoryDto
+            {
+                CategoryId = g.Key,
+                Amount = g.Sum(e => e.Amount)
+            })
+            .ToList();
+
         return new RevenueSummaryDto
         {
             TotalRevenue = Math.Round(items.Sum(x => x.Revenue), 2),
-            Items = items
+            Items = items,
+            ByExpenseCategory = byExpenseCategory
         };
     }
 }

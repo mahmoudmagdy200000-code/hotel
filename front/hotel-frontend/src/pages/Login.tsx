@@ -47,11 +47,13 @@ const Login = () => {
 
             // Fetch real user details from backend using the new token
             let role = 'Owner'; // Default fallback
+            let branchId: string | null = null;
             try {
                 const meResponse = await getMe();
                 if (meResponse.data.roles && meResponse.data.roles.length > 0) {
                     role = meResponse.data.roles[0];
                 }
+                branchId = meResponse.data.branchId;
             } catch (err) {
                 console.error('Failed to fetch user details, falling back to default role', err);
             }
@@ -61,7 +63,8 @@ const Login = () => {
                 id: email,
                 email: email,
                 name: email.split('@')[0],
-                role: role
+                role: role,
+                branchId: branchId
             };
 
             login(token, user);

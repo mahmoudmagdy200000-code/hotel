@@ -28,13 +28,18 @@ import {
     Bed,
     TrendingUp,
     Zap,
-    PieChart
+    PieChart,
+    Receipt
 } from 'lucide-react';
 import { useRevenueSummary } from '@/hooks/dashboard';
 import { formatCurrency, cn, extractErrorMessage } from '@/lib/utils';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { CurrencyCodeEnum, CurrencyCodeLabels } from '@/api/types/reservations';
 import type { GetRevenueSummaryParams, RevenueSummaryItemDto } from '@/api/types/dashboard';
+import {
+    getExpenseCategoryTranslationKey,
+    getExpenseCategoryStyle
+} from '@/api/types/expenses';
 
 /**
  * Ras Sedr Rental - Financial Analysis
@@ -61,6 +66,8 @@ const Financials = () => {
         const saved = localStorage.getItem('pms.currency');
         return saved ? parseInt(saved, 10) : CurrencyCodeEnum.EGP;
     });
+
+    const [showExpenditure, setShowExpenditure] = useState(false);
 
     const handleCurrencyChange = (val: number) => {
         setSelectedCurrency(val);
@@ -328,10 +335,29 @@ const Financials = () => {
             {/* REVENUE BREAKDOWN */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between px-2">
-                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 text-slate-400" />
-                        {groupBy === 'day' ? t('financials.daily_revenue') : t(`financials.revenue_by_${groupBy}`)}
-                    </h2>
+                    <div className="flex items-center gap-4">
+                        <button
+                            className={cn(
+                                "text-xl font-black uppercase tracking-tighter flex items-center gap-2 transition-all",
+                                !showExpenditure ? "text-slate-900" : "text-slate-300 hover:text-slate-400"
+                            )}
+                            onClick={() => setShowExpenditure(false)}
+                        >
+                            <BarChart3 className="w-5 h-5" />
+                            {groupBy === 'day' ? t('financials.daily_revenue') : t(`financials.revenue_by_${groupBy}`)}
+                        </button>
+                        <div className="w-px h-6 bg-slate-200" />
+                        <button
+                            className={cn(
+                                "text-xl font-black uppercase tracking-tighter flex items-center gap-2 transition-all",
+                                showExpenditure ? "text-slate-900" : "text-slate-300 hover:text-slate-400"
+                            )}
+                            onClick={() => setShowExpenditure(true)}
+                        >
+                            <Receipt className="w-5 h-5" />
+                            Expenditure Breakdown
+                        </button>
+                    </div>
                     <Button variant="ghost" className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-50 rounded-xl px-4">
                         PDF Audit Report
                     </Button>
@@ -340,62 +366,131 @@ const Financials = () => {
                 <div className="space-y-2">
                     {isLoading ? (
                         [...Array(6)].map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)
-                    ) : data?.items && data.items.length > 0 ? (
-                        data.items.map((item: RevenueSummaryItemDto) => {
-                            const share = data.totalRevenue > 0 ? (item.revenue / data.totalRevenue) * 100 : 0;
-                            return (
-                                <Card key={item.key} className="border-slate-100 border rounded-xl overflow-hidden bg-white active:scale-[0.99] transition-all group shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-                                    <CardContent className="p-3">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-slate-50 rounded-lg border border-slate-100 group-hover:bg-slate-900 group-hover:border-slate-900 transition-all">
-                                                    {groupBy === 'day' ? <CalendarDays className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" /> :
-                                                        groupBy === 'room' ? <Bed className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" /> :
-                                                            <Building2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />}
+                    ) : !showExpenditure ? (
+                        data?.items && data.items.length > 0 ? (
+                            data.items.map((item: RevenueSummaryItemDto) => {
+                                const share = data.totalRevenue > 0 ? (item.revenue / data.totalRevenue) * 100 : 0;
+                                return (
+                                    <Card key={item.key} className="border-slate-100 border rounded-xl overflow-hidden bg-white active:scale-[0.99] transition-all group shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                                        <CardContent className="p-3">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-1.5 bg-slate-50 rounded-lg border border-slate-100 group-hover:bg-slate-900 group-hover:border-slate-900 transition-all">
+                                                        {groupBy === 'day' ? <CalendarDays className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" /> :
+                                                            groupBy === 'room' ? <Bed className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" /> :
+                                                                <Building2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-tight">{formatLabel(item.key)}</h3>
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+                                                            {share.toFixed(1)}% of capture
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-tight">{formatLabel(item.key)}</h3>
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
-                                                        {share.toFixed(1)}% of capture
+                                                <div className="text-right">
+                                                    <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">
+                                                        {formatCurrency(item.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
                                                     </p>
+                                                    <div className="flex items-center justify-end gap-1 text-[8px] font-black text-emerald-600 uppercase mt-1">
+                                                        <TrendingUp className="w-2 h-2" /> Stable
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">
-                                                    {formatCurrency(item.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
-                                                </p>
-                                                <div className="flex items-center justify-end gap-1 text-[8px] font-black text-emerald-600 uppercase mt-1">
-                                                    <TrendingUp className="w-2 h-2" /> Stable
-                                                </div>
-                                            </div>
-                                        </div>
 
-                                        <div className="relative pt-2">
-                                            <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-1000"
-                                                    style={{ width: maxRevenue > 0 ? `${(item.revenue / maxRevenue) * 100}%` : '0%' }}
-                                                />
+                                            <div className="relative pt-2">
+                                                <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                                                    <div
+                                                        className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-1000"
+                                                        style={{ width: maxRevenue > 0 ? `${(item.revenue / maxRevenue) * 100}%` : '0%' }}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })
+                        ) : (
+                            <div className="py-24 text-center flex flex-col items-center justify-center space-y-4 bg-slate-50/50 rounded-[40px] border border-dashed border-slate-200">
+                                <div className="p-8 bg-white rounded-full shadow-inner opacity-60">
+                                    <BarChart3 className="w-12 h-12 text-slate-200" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        {t('financials.no_data_for_range', 'No Revenue Capture')}
+                                    </h3>
+                                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter opacity-60">
+                                        Revenue records or forecasts are missing for this period.
+                                    </p>
+                                </div>
+                            </div>
+                        )
                     ) : (
-                        <div className="py-24 text-center flex flex-col items-center justify-center space-y-4 bg-slate-50/50 rounded-[40px] border border-dashed border-slate-200">
-                            <div className="p-8 bg-white rounded-full shadow-inner opacity-60">
-                                <BarChart3 className="w-12 h-12 text-slate-200" />
+                        data?.byExpenseCategory && data.byExpenseCategory.length > 0 ? (
+                            data.byExpenseCategory
+                                .sort((a, b) => b.amount - a.amount)
+                                .map((item) => {
+                                    const style = getExpenseCategoryStyle(item.categoryId);
+                                    const totalExpenses = data.byExpenseCategory.reduce((sum, i) => sum + i.amount, 0);
+                                    const expenseShare = totalExpenses > 0 ? (item.amount / totalExpenses) * 100 : 0;
+                                    const Icon = style.icon;
+
+                                    return (
+                                        <Card key={item.categoryId} className="border-slate-100 border rounded-xl overflow-hidden bg-white active:scale-[0.99] transition-all group shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                                            <CardContent className="p-3">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={cn("p-1.5 rounded-lg border shadow-sm transition-all", style.bg, style.color, "group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900")}>
+                                                            <Icon className="w-3.5 h-3.5" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-tight">
+                                                                {t(getExpenseCategoryTranslationKey(item.categoryId as any))}
+                                                            </h3>
+                                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+                                                                {expenseShare.toFixed(1)}% of OpEx
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-sm font-black text-rose-600 tracking-tighter leading-none">
+                                                            {formatCurrency(item.amount, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                                        </p>
+                                                        <div className="text-[8px] font-black text-slate-400 uppercase mt-1">
+                                                            Categorized Burn
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="relative pt-2">
+                                                    <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                                                        <div
+                                                            className={cn("h-full transition-all duration-1000", style.bg.replace('bg-', 'bg-opacity-100 bg-').split(' ')[0])}
+                                                            style={{
+                                                                width: `${expenseShare}%`,
+                                                                backgroundColor: 'currentColor'
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })
+                        ) : (
+                            <div className="py-24 text-center flex flex-col items-center justify-center space-y-4 bg-slate-50/50 rounded-[40px] border border-dashed border-slate-200">
+                                <div className="p-8 bg-white rounded-full shadow-inner opacity-60">
+                                    <Receipt className="w-12 h-12 text-slate-200" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        No Expenses Found
+                                    </h3>
+                                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter opacity-60">
+                                        No expenditures were recorded for this period.
+                                    </p>
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                    {t('financials.no_data_for_range', 'No Revenue Capture')}
-                                </h3>
-                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter opacity-60">
-                                    Revenue records or forecasts are missing for this period.
-                                </p>
-                            </div>
-                        </div>
+                        )
                     )}
                 </div>
             </div>

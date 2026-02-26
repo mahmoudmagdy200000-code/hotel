@@ -34,7 +34,8 @@ export const normalDashboard: DashboardDto = {
             adr: 100,
             revPar: 50
         }
-    ]
+    ],
+    byCategory: []
 };
 
 export const zeroDashboard: DashboardDto = {
@@ -65,7 +66,8 @@ export const zeroDashboard: DashboardDto = {
             adr: 0,
             revPar: 0
         }
-    ]
+    ],
+    byCategory: []
 };
 
 export const normalOccupancy: OccupancySummaryDto = {
@@ -95,7 +97,8 @@ export const normalFinancials: RevenueSummaryDto = {
     totalRevenue: 500,
     items: [
         { key: '2026-01-25', revenue: 500 }
-    ]
+    ],
+    byExpenseCategory: []
 };
 
 export const handlers = [
