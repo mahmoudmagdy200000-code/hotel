@@ -26,15 +26,23 @@ import {
     DialogContent,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Shield, Building2, Save, Loader2, Plus, Key, UserCheck, ShieldCheck, LayoutGrid, Building } from "lucide-react";
+import { Users, Shield, Building2, Save, Loader2, Plus, Key, UserCheck, ShieldCheck, Building } from "lucide-react";
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from 'react-router-dom';
 
 const UserManagement = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { data: users, isLoading: usersLoading } = useUsers();
     const { data: branches, isLoading: branchesLoading } = useBranches();
     const updateMutation = useUpdateUser();
@@ -66,10 +74,19 @@ const UserManagement = () => {
         const user = users?.find(u => u.id === userId);
         if (!user) return;
 
+        const currentBranchId = pendingChanges[userId]?.branchId === undefined ? user.branchId : pendingChanges[userId].branchId;
+
+        // Auto-clear Global Access if demoted to Receptionist
+        let validatedBranchId = currentBranchId;
+        if (role === 'Receptionist' && !currentBranchId) {
+            validatedBranchId = branches?.[0]?.id || null; // Force first branch if available, else null
+            toast.info(t('admin.receptionist_branch_required', 'Receptionist must be assigned to a branch. Auto-assigning default.'));
+        }
+
         setPendingChanges(prev => ({
             ...prev,
             [userId]: {
-                branchId: prev[userId]?.branchId === undefined ? user.branchId : prev[userId].branchId,
+                branchId: validatedBranchId,
                 roles: [role]
             }
         }));
@@ -78,6 +95,12 @@ const UserManagement = () => {
     const handleSave = async (userId: string) => {
         const changes = pendingChanges[userId];
         if (!changes) return;
+
+        const role = changes.roles[0];
+        if (role === 'Receptionist' && !changes.branchId) {
+            toast.error(t('admin.validation_error', 'A Receptionist cannot have Global Access. Please assign a specific branch.'));
+            return;
+        }
 
         try {
             await updateMutation.mutateAsync({
@@ -98,6 +121,12 @@ const UserManagement = () => {
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (newUser.role === 'Receptionist' && newUser.branchId === 'none') {
+            toast.error(t('admin.validation_error', 'A Receptionist cannot have Global Access. Please assign a specific branch.'));
+            return;
+        }
+
         try {
             await createMutation.mutateAsync({
                 email: newUser.email,
@@ -148,7 +177,7 @@ const UserManagement = () => {
         total: users?.length || 0,
         admins: users?.filter(u => u.roles.includes('Administrator') || u.roles.includes('Owner')).length || 0,
         receptionists: users?.filter(u => u.roles.includes('Receptionist')).length || 0,
-        unbound: users?.filter(u => !u.branchId).length || 0
+        unbound: branches?.length || 0
     };
 
     return (
@@ -232,13 +261,26 @@ const UserManagement = () => {
                                             <div className="space-y-1.5">
                                                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('admin.branch', 'Node Binding')}</Label>
                                                 <Select value={newUser.branchId} onValueChange={(val) => setNewUser(prev => ({ ...prev, branchId: val }))}>
-                                                    <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 uppercase text-[10px]">
+                                                    <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 uppercase text-[10px] [&>span]:truncate [&>span]:max-w-[120px]">
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="none">{t('no_branch', 'Universal Node')}</SelectItem>
+                                                        {newUser.role !== 'Receptionist' && (
+                                                            <SelectItem value="none">{t('global_access', 'Global Access')}</SelectItem>
+                                                        )}
                                                         {branches?.map((branch) => (
-                                                            <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                                                            <SelectItem key={branch.id} value={branch.id}>
+                                                                <TooltipProvider>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <span className="truncate max-w-[150px] inline-block align-bottom">{branch.name}</span>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <p>{branch.name}</p>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -285,9 +327,10 @@ const UserManagement = () => {
                 <MetricCard
                     title="Global Nodes"
                     value={stats.unbound}
-                    icon={<LayoutGrid className="w-4 h-4 text-slate-600" />}
+                    icon={<Building2 className="w-4 h-4 text-slate-600" />}
                     bg="bg-slate-100"
-                    trend="Branch Isolation Off"
+                    trend="Operating Branches"
+                    onClick={() => navigate('/admin/branches')}
                 />
             </div>
 
@@ -352,16 +395,29 @@ const UserManagement = () => {
                                     <div className="space-y-1.5">
                                         <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Branch Isolation</Label>
                                         <Select value={currentBranchId || 'none'} onValueChange={(val) => handleBranchChange(user.id, val)}>
-                                            <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 text-xs px-4">
+                                            <SelectTrigger className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 text-xs px-4 [&>span]:truncate [&>span]:max-w-[150px]">
                                                 <div className="flex items-center gap-2">
-                                                    <Building className="w-3.5 h-3.5 text-slate-400" />
+                                                    <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                                     <SelectValue />
                                                 </div>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="none">Universal Node</SelectItem>
+                                                {currentRole !== 'Receptionist' && (
+                                                    <SelectItem value="none">{t('global_access', 'Global Access')}</SelectItem>
+                                                )}
                                                 {branches?.map((branch) => (
-                                                    <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                                                    <SelectItem key={branch.id} value={branch.id}>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <span className="truncate max-w-[200px] inline-block align-bottom">{branch.name}</span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>{branch.name}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -413,16 +469,29 @@ const UserManagement = () => {
                                         </TableCell>
                                         <TableCell className="py-5">
                                             <Select value={currentBranchId || 'none'} onValueChange={(val) => handleBranchChange(user.id, val)}>
-                                                <SelectTrigger className="w-[200px] h-10 rounded-xl bg-slate-50 border-transparent font-black text-[10px] uppercase tracking-widest px-4 hover:border-slate-200 transition-all focus:ring-slate-900/5">
+                                                <SelectTrigger className="w-[200px] h-10 rounded-xl bg-slate-50 border-transparent font-black text-[10px] uppercase tracking-widest px-4 hover:border-slate-200 transition-all focus:ring-slate-900/5 [&>span]:truncate [&>span]:max-w-[130px]">
                                                     <div className="flex items-center gap-2">
-                                                        <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                                                        <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                                         <SelectValue />
                                                     </div>
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="none">Universal Access</SelectItem>
+                                                    {currentRole !== 'Receptionist' && (
+                                                        <SelectItem value="none">{t('global_access', 'Global Access')}</SelectItem>
+                                                    )}
                                                     {branches?.map((branch) => (
-                                                        <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                                                        <SelectItem key={branch.id} value={branch.id}>
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <span className="truncate max-w-[160px] inline-block align-bottom">{branch.name}</span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{branch.name}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -452,8 +521,14 @@ const UserManagement = () => {
     );
 };
 
-const MetricCard = ({ title, value, icon, bg, trend }: { title: string, value: string | number, icon: React.ReactNode, bg: string, trend: string }) => (
-    <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group rounded-[32px] overflow-hidden bg-white">
+const MetricCard = ({ title, value, icon, bg, trend, onClick }: { title: string, value: string | number, icon: React.ReactNode, bg: string, trend: string, onClick?: () => void }) => (
+    <Card
+        onClick={onClick}
+        className={cn(
+            "border border-slate-100 shadow-sm transition-all group rounded-[32px] overflow-hidden bg-white",
+            onClick && "cursor-pointer hover:border-blue-300 hover:shadow-md active:scale-[0.98]"
+        )}
+    >
         <CardContent className="p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between">
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{title}</span>
