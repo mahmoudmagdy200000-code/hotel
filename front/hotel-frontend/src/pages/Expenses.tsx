@@ -70,6 +70,7 @@ const Expenses = () => {
     const initialFilters: GetExpensesParams = {
         from: format(new Date(), 'yyyy-MM-01'),
         to: format(new Date(), 'yyyy-MM-dd'),
+        currency: CurrencyCodeEnum.EGP // Explicit default for summary clarity
     };
     const [filters, setFilters] = useState<GetExpensesParams>(initialFilters);
 
@@ -99,7 +100,7 @@ const Expenses = () => {
     });
 
     const stats = useMemo(() => {
-        if (!expenses) return { total: 0, count: 0, topCategory: '—' };
+        if (!expenses) return { total: 0, count: 0, topCategory: '—', currencyLabel: '' };
 
         const categories = expenses.reduce((acc: any, curr) => {
             acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
@@ -107,12 +108,15 @@ const Expenses = () => {
         }, {});
         const topCat = Object.entries(categories).sort((a: any, b: any) => b[1] - a[1])[0];
 
+        const selectedCurrencyLabel = filters.currency ? CurrencyCodeLabels[filters.currency] : CurrencyCodeLabels[CurrencyCodeEnum.EGP];
+
         return {
             total: totalAmount,
             count: expenses.length,
-            topCategory: topCat ? t(getExpenseCategoryTranslationKey(parseInt(topCat[0]) as ExpenseCategoryValue)) : '—'
+            topCategory: topCat ? t(getExpenseCategoryTranslationKey(parseInt(topCat[0]) as ExpenseCategoryValue)) : '—',
+            currencyLabel: selectedCurrencyLabel
         };
-    }, [expenses, totalAmount, t]);
+    }, [expenses, totalAmount, t, filters.currency]);
 
     const handleCreateExpense = async () => {
         try {
@@ -276,12 +280,12 @@ const Expenses = () => {
                             <input type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })} className="bg-transparent border-none text-[10px] font-black uppercase focus:ring-0 outline-none w-[110px]" />
                         </div>
 
-                        <div className="flex flex-1 items-center gap-2 w-full sm:w-auto">
+                        <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">
                             <Select
                                 value={filters.category?.toString() || 'all'}
                                 onValueChange={(v) => setFilters({ ...filters, category: v === 'all' ? undefined : parseInt(v) as ExpenseCategoryValue })}
                             >
-                                <SelectTrigger className="h-10 rounded-xl bg-white border-none shadow-inner text-xs font-black uppercase tracking-widest pl-4">
+                                <SelectTrigger className="h-10 flex-1 rounded-xl bg-white border-none shadow-inner text-xs font-black uppercase tracking-widest pl-4">
                                     <div className="flex items-center gap-2">
                                         <Filter className="w-3 h-3 text-slate-400" />
                                         <SelectValue placeholder={t('expenses.all_categories')} />
@@ -291,6 +295,24 @@ const Expenses = () => {
                                     <SelectItem value="all">{t('expenses.all_categories')}</SelectItem>
                                     {expenseCategoryValues.map((value) => (
                                         <SelectItem key={value} value={value.toString()}>{t(getExpenseCategoryTranslationKey(value))}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            <Select
+                                value={filters.currency?.toString() || 'all'}
+                                onValueChange={(v) => setFilters({ ...filters, currency: v === 'all' ? undefined : parseInt(v) as CurrencyCodeValue })}
+                            >
+                                <SelectTrigger className="h-10 flex-1 rounded-xl bg-white border-none shadow-inner text-xs font-black uppercase tracking-widest pl-4">
+                                    <div className="flex items-center gap-2">
+                                        <DollarSign className="w-3 h-3 text-slate-400" />
+                                        <SelectValue placeholder={t('expenses.all_currencies', 'All Currencies')} />
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">{t('expenses.all_currencies', 'All Currencies')}</SelectItem>
+                                    {Object.entries(CurrencyCodeLabels).map(([value, label]) => (
+                                        <SelectItem key={value} value={value}>{label}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -311,8 +333,8 @@ const Expenses = () => {
             {/* PULSE KPI GRID */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <MetricCard
-                    title={t('expenses.total_spent')}
-                    value={formatCurrency(totalAmount, 'EGP')}
+                    title={`${t('expenses.total_spent')} (${stats.currencyLabel})`}
+                    value={formatCurrency(stats.total, filters.currency ? CurrencyCodeLabels[filters.currency] : 'EGP')}
                     icon={<DollarSign className="w-4 h-4 text-rose-600" />}
                     bg="bg-rose-100"
                     trend="Operational Load"

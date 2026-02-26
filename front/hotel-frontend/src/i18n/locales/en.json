@@ -359,7 +359,9 @@
         "total_spent": "Total Expenses",
         "clear_filters": "Clear Filters",
         "filter_category": "Filter by Category",
+        "filter_currency": "Filter by Currency",
         "all_categories": "All Categories",
+        "all_currencies": "All Currencies",
         "categories": {
             "maintenance": "Maintenance",
             "purchases": "Purchases",

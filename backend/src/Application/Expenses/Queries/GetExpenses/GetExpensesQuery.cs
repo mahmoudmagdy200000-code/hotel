@@ -48,9 +48,18 @@ public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, Expense
             query = query.Where(x => x.CurrencyCode == request.Currency.Value);
         }
 
-        // Calculate total amount for ALL filtered results (Safe Summation)
-        // Using nullable cast pattern to avoid translation issues with DefaultIfEmpty
-        var totalAmount = await query
+        // Calculate total amount for the summary
+        // GUIDELINE: Total amount MUST reflect only the selected currency to avoid mixing (e.g. EGP + USD).
+        // If no currency is selected, we default the summary to EGP for baseline visibility.
+        var summaryCurrency = request.Currency ?? CurrencyCode.EGP;
+        var totalAmount = await _context.Expenses
+            .AsNoTracking()
+            .Where(x => x.CurrencyCode == summaryCurrency)
+            // Re-apply date and branch filters for the summary if needed
+            // But we can actually use the existing 'query' if we ensure we don't double filter if Currency was provided.
+            .Where(x => !request.From.HasValue || x.BusinessDate >= DateOnly.FromDateTime(request.From.Value))
+            .Where(x => !request.To.HasValue || x.BusinessDate <= DateOnly.FromDateTime(request.To.Value))
+            .Where(x => !request.Category.HasValue || x.Category == request.Category.Value)
             .SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 0m;
 
         var items = await query

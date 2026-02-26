@@ -359,7 +359,9 @@
         "total_spent": "إجمالي المصروفات",
         "clear_filters": "مسح الفلاتر",
         "filter_category": "تصفية حسب التصنيف",
+        "filter_currency": "تصفية حسب العملة",
         "all_categories": "جميع التصنيفات",
+        "all_currencies": "جميع العملات",
         "categories": {
             "maintenance": "صيانة",
             "purchases": "مشتريات",
