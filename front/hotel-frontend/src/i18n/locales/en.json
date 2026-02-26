@@ -356,6 +356,10 @@
         "description": "Description",
         "no_expenses": "No expenses recorded.",
         "delete_confirm": "Are you sure you want to delete this expense?",
+        "total_spent": "Total Expenses",
+        "clear_filters": "Clear Filters",
+        "filter_category": "Filter by Category",
+        "all_categories": "All Categories",
         "categories": {
             "maintenance": "Maintenance",
             "purchases": "Purchases",

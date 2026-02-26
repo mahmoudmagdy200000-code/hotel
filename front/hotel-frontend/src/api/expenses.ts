@@ -1,8 +1,8 @@
 import http from './http';
-import type { CreateExpenseCommand, ExpenseDto, GetExpensesParams } from './types/expenses';
+import type { CreateExpenseCommand, ExpenseDto, GetExpensesParams, ExpensesSummaryDto } from './types/expenses';
 
-export const getExpenses = async (params: GetExpensesParams): Promise<ExpenseDto[]> => {
-    const response = await http.get<ExpenseDto[]>('expenses', { params });
+export const getExpenses = async (params: GetExpensesParams): Promise<ExpensesSummaryDto> => {
+    const response = await http.get<ExpensesSummaryDto>('expenses', { params });
     return response.data;
 };
 

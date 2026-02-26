@@ -91,12 +91,15 @@ const DEFAULT_CATEGORY = { icon: HelpCircle, color: 'text-slate-400', bg: 'bg-sl
 const Expenses = () => {
     const { t } = useTranslation();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [filters, setFilters] = useState<GetExpensesParams>({
+    const initialFilters: GetExpensesParams = {
         from: format(new Date(), 'yyyy-MM-01'),
         to: format(new Date(), 'yyyy-MM-dd'),
-    });
+    };
+    const [filters, setFilters] = useState<GetExpensesParams>(initialFilters);
 
-    const { data: expenses, isLoading, isError, refetch, isFetching } = useExpenses(filters);
+    const { data: summary, isLoading, isError, refetch, isFetching } = useExpenses(filters);
+    const expenses = summary?.items || [];
+    const totalAmount = summary?.totalAmount || 0;
     const createExpenseMutation = useCreateExpense();
 
     const [newExpense, setNewExpense] = useState<{
@@ -121,7 +124,7 @@ const Expenses = () => {
 
     const stats = useMemo(() => {
         if (!expenses) return { total: 0, count: 0, topCategory: '—' };
-        const total = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+
         const categories = expenses.reduce((acc: any, curr) => {
             acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
             return acc;
@@ -129,11 +132,11 @@ const Expenses = () => {
         const topCat = Object.entries(categories).sort((a: any, b: any) => b[1] - a[1])[0];
 
         return {
-            total,
+            total: totalAmount,
             count: expenses.length,
             topCategory: topCat ? t(getExpenseCategoryTranslationKey(parseInt(topCat[0]) as ExpenseCategoryValue)) : '—'
         };
-    }, [expenses]);
+    }, [expenses, totalAmount, t]);
 
     const handleCreateExpense = async () => {
         try {
@@ -302,20 +305,29 @@ const Expenses = () => {
                                 value={filters.category?.toString() || 'all'}
                                 onValueChange={(v) => setFilters({ ...filters, category: v === 'all' ? undefined : parseInt(v) as ExpenseCategoryValue })}
                             >
-                                <SelectTrigger className="h-10 rounded-xl bg-white border-none shadow-inner text-[10px] font-black uppercase tracking-widest pl-4">
+                                <SelectTrigger className="h-10 rounded-xl bg-white border-none shadow-inner text-xs font-black uppercase tracking-widest pl-4">
                                     <div className="flex items-center gap-2">
                                         <Filter className="w-3 h-3 text-slate-400" />
-                                        <SelectValue placeholder="All Categories" />
+                                        <SelectValue placeholder={t('expenses.all_categories')} />
                                     </div>
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Categories</SelectItem>
+                                    <SelectItem value="all">{t('expenses.all_categories')}</SelectItem>
                                     {expenseCategoryValues.map((value) => (
                                         <SelectItem key={value} value={value.toString()}>{t(getExpenseCategoryTranslationKey(value))}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFilters(initialFilters)}
+                            className="h-10 rounded-xl px-4 text-white hover:bg-white/10 font-black text-[10px] uppercase tracking-widest border border-white/10"
+                        >
+                            {t('expenses.clear_filters')}
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -323,8 +335,8 @@ const Expenses = () => {
             {/* PULSE KPI GRID */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <MetricCard
-                    title="Gross Burn"
-                    value={formatCurrency(stats.total, 'EGP')}
+                    title={t('expenses.total_spent')}
+                    value={formatCurrency(totalAmount, 'EGP')}
                     icon={<DollarSign className="w-4 h-4 text-rose-600" />}
                     bg="bg-rose-100"
                     trend="Operational Load"

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Expenses.Queries.GetExpenses;
 
-public record GetExpensesQuery : IRequest<List<ExpenseDto>>
+public record GetExpensesQuery : IRequest<ExpensesSummaryDto>
 {
     public DateOnly? From { get; init; }
     public DateOnly? To { get; init; }
@@ -13,7 +13,7 @@ public record GetExpensesQuery : IRequest<List<ExpenseDto>>
     public CurrencyCode? Currency { get; init; }
 }
 
-public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, List<ExpenseDto>>
+public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, ExpensesSummaryDto>
 {
     private readonly IApplicationDbContext _context;
 
@@ -22,7 +22,7 @@ public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, List<Ex
         _context = context;
     }
 
-    public async Task<List<ExpenseDto>> Handle(GetExpensesQuery request, CancellationToken cancellationToken)
+    public async Task<ExpensesSummaryDto> Handle(GetExpensesQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Expenses.AsNoTracking();
 
@@ -46,7 +46,13 @@ public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, List<Ex
             query = query.Where(x => x.CurrencyCode == request.Currency.Value);
         }
 
-        return await query
+        // Calculate total amount for ALL filtered results (Safe Summation)
+        var totalAmount = await query
+            .Select(x => x.Amount)
+            .DefaultIfEmpty(0)
+            .SumAsync(cancellationToken);
+
+        var items = await query
             .OrderByDescending(x => x.BusinessDate)
             .ThenByDescending(x => x.Id)
             .Select(x => new ExpenseDto
@@ -63,5 +69,11 @@ public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, List<Ex
                 Created = x.Created.DateTime
             })
             .ToListAsync(cancellationToken);
+
+        return new ExpensesSummaryDto
+        {
+            Items = items,
+            TotalAmount = totalAmount
+        };
     }
 }

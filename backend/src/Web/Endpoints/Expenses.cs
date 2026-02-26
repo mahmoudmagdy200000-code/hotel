@@ -19,7 +19,7 @@ public class Expenses : EndpointGroupBase
         group.MapPost(CreateExpense);
     }
 
-    public async Task<Ok<List<ExpenseDto>>> GetExpenses(ISender sender, [AsParameters] GetExpensesQuery query)
+    public async Task<Ok<ExpensesSummaryDto>> GetExpenses(ISender sender, [AsParameters] GetExpensesQuery query)
     {
         return TypedResults.Ok(await sender.Send(query));
     }

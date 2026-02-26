@@ -71,3 +71,8 @@ export interface GetExpensesParams {
     category?: ExpenseCategoryValue;
     currency?: CurrencyCodeValue;
 }
+
+export interface ExpensesSummaryDto {
+    items: ExpenseDto[];
+    totalAmount: number;
+}

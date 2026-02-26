@@ -356,6 +356,10 @@
         "description": "الوصف",
         "no_expenses": "مفيش مصروفات مسجلة.",
         "delete_confirm": "هل أنت متأكد إنك عايز تحذف المصروف ده؟",
+        "total_spent": "إجمالي المصروفات",
+        "clear_filters": "مسح الفلاتر",
+        "filter_category": "تصفية حسب التصنيف",
+        "all_categories": "جميع التصنيفات",
         "categories": {
             "maintenance": "صيانة",
             "purchases": "مشتريات",
