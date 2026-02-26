@@ -32,13 +32,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/dashboard';
 import { formatCurrency, cn } from '@/lib/utils';
 import { CurrencyCodeEnum, CurrencyCodeLabels } from '@/api/types/reservations';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import type { GetDashboardParams, DashboardSeriesPointDto } from '@/api/types/dashboard';
 import {
     getExpenseCategoryTranslationKey,
@@ -252,17 +245,27 @@ const Dashboard = () => {
                         </div>
 
                         {/* Currency Selector */}
-                        <div className="w-full xl:w-auto">
-                            <Select value={selectedCurrency.toString()} onValueChange={(val) => handleCurrencyChange(parseInt(val, 10))}>
-                                <SelectTrigger className="h-8 w-full xl:w-[80px] bg-white/10 border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-300 rounded-lg">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.entries(CurrencyCodeLabels).map(([code, label]) => (
-                                        <SelectItem key={code} value={code}>{label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="flex items-center p-1 bg-white/10 rounded-xl h-10 w-full xl:w-auto overflow-x-auto no-scrollbar">
+                            <div className="flex items-center gap-1 w-full xl:w-auto min-w-max">
+                                {Object.entries(CurrencyCodeLabels).map(([code, label]) => {
+                                    const value = parseInt(code, 10);
+                                    const isActive = selectedCurrency === value;
+                                    return (
+                                        <button
+                                            key={code}
+                                            onClick={() => handleCurrencyChange(value)}
+                                            className={cn(
+                                                "h-8 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap min-w-[50px]",
+                                                isActive
+                                                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/20"
+                                                    : "text-slate-400 hover:text-slate-100 hover:bg-white/5"
+                                            )}
+                                        >
+                                            {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
