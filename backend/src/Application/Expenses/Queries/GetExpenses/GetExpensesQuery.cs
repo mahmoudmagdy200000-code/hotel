@@ -49,10 +49,9 @@ public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, Expense
         }
 
         // Calculate total amount for ALL filtered results (Safe Summation)
+        // Using nullable cast pattern to avoid translation issues with DefaultIfEmpty
         var totalAmount = await query
-            .Select(x => x.Amount)
-            .DefaultIfEmpty(0)
-            .SumAsync(cancellationToken);
+            .SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 0m;
 
         var items = await query
             .OrderByDescending(x => x.BusinessDate)
