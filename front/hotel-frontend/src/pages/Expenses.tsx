@@ -26,7 +26,8 @@ import {
 import { useExpenses, useCreateExpense } from '@/hooks/expenses/useExpenses';
 import {
     ExpenseCategoryEnum,
-    ExpenseCategoryLabels,
+    getExpenseCategoryTranslationKey,
+    expenseCategoryValues
 } from '@/api/types/expenses';
 import type { GetExpensesParams, ExpenseCategoryValue } from '@/api/types/expenses';
 import { CurrencyCodeLabels, CurrencyCodeEnum, PaymentMethodEnum } from '@/api/types/reservations';
@@ -130,7 +131,7 @@ const Expenses = () => {
         return {
             total,
             count: expenses.length,
-            topCategory: topCat ? t(ExpenseCategoryLabels[parseInt(topCat[0]) as ExpenseCategoryValue]) : '—'
+            topCategory: topCat ? t(getExpenseCategoryTranslationKey(parseInt(topCat[0]) as ExpenseCategoryValue)) : '—'
         };
     }, [expenses]);
 
@@ -216,8 +217,8 @@ const Expenses = () => {
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {Object.entries(ExpenseCategoryLabels).map(([value, label]) => (
-                                                            <SelectItem key={value} value={value}>{t(label)}</SelectItem>
+                                                        {expenseCategoryValues.map((value) => (
+                                                            <SelectItem key={value} value={value.toString()}>{t(getExpenseCategoryTranslationKey(value))}</SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -309,8 +310,8 @@ const Expenses = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Categories</SelectItem>
-                                    {Object.entries(ExpenseCategoryLabels).map(([value, label]) => (
-                                        <SelectItem key={value} value={value}>{t(label)}</SelectItem>
+                                    {expenseCategoryValues.map((value) => (
+                                        <SelectItem key={value} value={value.toString()}>{t(getExpenseCategoryTranslationKey(value))}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -393,7 +394,7 @@ const Expenses = () => {
                                                     <Icon className="w-4 h-4" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-black text-slate-900 text-sm uppercase tracking-tighter">{t(ExpenseCategoryLabels[expense.category])}</h3>
+                                                    <h3 className="font-black text-slate-900 text-sm uppercase tracking-tighter">{t(getExpenseCategoryTranslationKey(expense.category))}</h3>
                                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{format(new Date(expense.businessDate), 'MMM dd, yyyy')}</span>
                                                 </div>
                                             </div>
@@ -446,7 +447,7 @@ const Expenses = () => {
                                                 <TableCell className="py-5">
                                                     <div className="flex items-center gap-2">
                                                         <div className={cn("p-2 rounded-xl", style.bg, style.color)}><Icon className="w-3.5 h-3.5" /></div>
-                                                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{t(ExpenseCategoryLabels[expense.category])}</span>
+                                                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{t(getExpenseCategoryTranslationKey(expense.category))}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="py-5">

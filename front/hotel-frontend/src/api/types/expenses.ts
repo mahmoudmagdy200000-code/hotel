@@ -28,6 +28,19 @@ export const ExpenseCategoryLabels: Record<ExpenseCategoryValue, string> = {
     [ExpenseCategoryEnum.WaterBill]: 'expenses.categories.water_bill'
 };
 
+/**
+ * Returns the i18n translation key for a given expense category.
+ * Following DRY principle to avoid manual label mapping elsewhere.
+ */
+export const getExpenseCategoryTranslationKey = (value: ExpenseCategoryValue): string => {
+    return ExpenseCategoryLabels[value] || 'expenses.categories.other';
+};
+
+/**
+ * Array of all valid expense category IDs for UI iteration.
+ */
+export const expenseCategoryValues = Object.values(ExpenseCategoryEnum) as ExpenseCategoryValue[];
+
 export interface ExpenseDto {
     id: number;
     businessDate: string;
