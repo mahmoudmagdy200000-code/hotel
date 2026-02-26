@@ -246,7 +246,7 @@ const Dashboard = () => {
 
                         {/* Currency Selector */}
                         <div className="flex items-center p-1 bg-white/10 rounded-xl h-10 w-full xl:w-auto overflow-x-auto no-scrollbar">
-                            <div className="flex items-center gap-1 w-full xl:w-auto min-w-max">
+                            <div className="flex items-center justify-center gap-1 w-full xl:w-auto min-w-max">
                                 {Object.entries(CurrencyCodeLabels).map(([code, label]) => {
                                     const value = parseInt(code, 10);
                                     const isActive = selectedCurrency === value;

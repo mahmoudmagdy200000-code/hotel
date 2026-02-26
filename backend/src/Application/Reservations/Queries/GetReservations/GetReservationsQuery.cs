@@ -64,7 +64,7 @@ public class GetReservationsQueryHandler : IRequestHandler<GetReservationsQuery,
 
         return await query
             .ProjectTo<ReservationDto>(_mapper.ConfigurationProvider)
-            .OrderByDescending(x => x.CheckInDate)
+            .OrderBy(x => x.CheckInDate)
             .ToListAsync(cancellationToken);
     }
 }
