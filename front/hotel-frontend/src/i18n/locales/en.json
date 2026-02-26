@@ -355,6 +355,18 @@
         "date": "Date",
         "description": "Description",
         "no_expenses": "No expenses recorded.",
-        "delete_confirm": "Are you sure you want to delete this expense?"
+        "delete_confirm": "Are you sure you want to delete this expense?",
+        "categories": {
+            "maintenance": "Maintenance",
+            "purchases": "Purchases",
+            "breakfast": "Breakfast",
+            "other": "Other",
+            "salaries": "Salaries",
+            "utilities": "Utilities",
+            "delivery": "Delivery",
+            "commission": "Commission",
+            "electricity_bill": "Electricity Bill",
+            "water_bill": "Water Bill"
+        }
     }
 }

@@ -355,6 +355,18 @@
         "date": "التاريخ",
         "description": "الوصف",
         "no_expenses": "مفيش مصروفات مسجلة.",
-        "delete_confirm": "هل أنت متأكد إنك عايز تحذف المصروف ده؟"
+        "delete_confirm": "هل أنت متأكد إنك عايز تحذف المصروف ده؟",
+        "categories": {
+            "maintenance": "صيانة",
+            "purchases": "مشتريات",
+            "breakfast": "فطار",
+            "other": "أخرى",
+            "salaries": "مرتبات",
+            "utilities": "مرافق",
+            "delivery": "توصيل",
+            "commission": "عمولة",
+            "electricity_bill": "فاتورة كهرباء",
+            "water_bill": "فاتورة مياة"
+        }
     }
 }

@@ -2,6 +2,7 @@ import { Menu, Bell, CalendarDays, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import LanguageToggle from '@/components/layout/LanguageToggle';
+import BranchSelector from '@/components/layout/BranchSelector';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useBusinessDate } from '@/app/providers/BusinessDateProvider';
 import { parseISO, format } from 'date-fns';
@@ -35,6 +36,8 @@ const Header = ({ onMenuClick }: HeaderProps) => {
 
             {/* Right: User actions */}
             <div className="flex items-center gap-3 lg:gap-6">
+                <BranchSelector />
+
                 {/* Business Date Selector */}
                 <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-200/60 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                     <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600">

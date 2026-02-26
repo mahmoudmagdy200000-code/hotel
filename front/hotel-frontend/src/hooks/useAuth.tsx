@@ -5,12 +5,15 @@ interface User {
     email: string;
     name: string;
     role: string;
+    branchId: string | null;
 }
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
+    selectedBranchId: string | null;
+    setSelectedBranchId: (id: string | null) => void;
     login: (token: string, user: User) => void;
     logout: () => void;
 }
@@ -32,8 +35,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         return null;
     });
+
+    const [selectedBranchId, _setSelectedBranchId] = useState<string | null>(() => {
+        return localStorage.getItem('selectedBranchId');
+    });
+
     // isLoading is only needed for SSR hydration, can default to false with lazy init
     const [isLoading] = useState(false);
+
+    const setSelectedBranchId = (id: string | null) => {
+        if (id) {
+            localStorage.setItem('selectedBranchId', id);
+        } else {
+            localStorage.removeItem('selectedBranchId');
+        }
+        _setSelectedBranchId(id);
+    };
 
     const login = (token: string, userData: User) => {
         localStorage.setItem('token', token);
@@ -44,6 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('selectedBranchId');
         setUser(null);
         window.location.reload(); // Hard reset to clear all state including React Query
     };
@@ -52,6 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         isAuthenticated: !!user,
         isLoading,
+        selectedBranchId,
+        setSelectedBranchId,
         login,
         logout,
     };

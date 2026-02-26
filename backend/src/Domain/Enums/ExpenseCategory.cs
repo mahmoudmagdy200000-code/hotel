@@ -7,5 +7,9 @@ public enum ExpenseCategory
     Breakfast = 3,
     Other = 4,
     Salaries = 5,
-    Utilities = 6
+    Utilities = 6,
+    Delivery = 7,
+    Commission = 8,
+    ElectricityBill = 9,
+    WaterBill = 10
 }

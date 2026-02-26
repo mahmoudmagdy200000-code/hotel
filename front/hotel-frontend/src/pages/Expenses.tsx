@@ -15,7 +15,13 @@ import {
     Building2,
     RefreshCw,
     AlertCircle,
-    Briefcase
+    Briefcase,
+    Lightbulb,
+    Droplets,
+    Truck,
+    Percent,
+    Banknote,
+    Zap
 } from 'lucide-react';
 import { useExpenses, useCreateExpense } from '@/hooks/expenses/useExpenses';
 import {
@@ -70,6 +76,13 @@ const CATEGORY_STYLE: Record<number, { icon: any; color: string; bg: string }> =
     [ExpenseCategoryEnum.Maintenance]: { icon: Wrench, color: 'text-rose-600', bg: 'bg-rose-50' },
     [ExpenseCategoryEnum.Purchases]: { icon: ShoppingCart, color: 'text-blue-600', bg: 'bg-blue-50' },
     [ExpenseCategoryEnum.Breakfast]: { icon: Coffee, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    [ExpenseCategoryEnum.Other]: { icon: HelpCircle, color: 'text-slate-400', bg: 'bg-slate-50' },
+    [ExpenseCategoryEnum.Salaries]: { icon: Banknote, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    [ExpenseCategoryEnum.Utilities]: { icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
+    [ExpenseCategoryEnum.Delivery]: { icon: Truck, color: 'text-orange-600', bg: 'bg-orange-50' },
+    [ExpenseCategoryEnum.Commission]: { icon: Percent, color: 'text-purple-600', bg: 'bg-purple-50' },
+    [ExpenseCategoryEnum.ElectricityBill]: { icon: Lightbulb, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+    [ExpenseCategoryEnum.WaterBill]: { icon: Droplets, color: 'text-cyan-600', bg: 'bg-cyan-50' },
 };
 
 const DEFAULT_CATEGORY = { icon: HelpCircle, color: 'text-slate-400', bg: 'bg-slate-50' };
@@ -117,7 +130,7 @@ const Expenses = () => {
         return {
             total,
             count: expenses.length,
-            topCategory: topCat ? ExpenseCategoryLabels[parseInt(topCat[0]) as ExpenseCategoryValue] : '—'
+            topCategory: topCat ? t(ExpenseCategoryLabels[parseInt(topCat[0]) as ExpenseCategoryValue]) : '—'
         };
     }, [expenses]);
 
@@ -204,7 +217,7 @@ const Expenses = () => {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {Object.entries(ExpenseCategoryLabels).map(([value, label]) => (
-                                                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                                                            <SelectItem key={value} value={value}>{t(label)}</SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -297,7 +310,7 @@ const Expenses = () => {
                                 <SelectContent>
                                     <SelectItem value="all">All Categories</SelectItem>
                                     {Object.entries(ExpenseCategoryLabels).map(([value, label]) => (
-                                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                                        <SelectItem key={value} value={value}>{t(label)}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -380,7 +393,7 @@ const Expenses = () => {
                                                     <Icon className="w-4 h-4" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-black text-slate-900 text-sm uppercase tracking-tighter">{ExpenseCategoryLabels[expense.category]}</h3>
+                                                    <h3 className="font-black text-slate-900 text-sm uppercase tracking-tighter">{t(ExpenseCategoryLabels[expense.category])}</h3>
                                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{format(new Date(expense.businessDate), 'MMM dd, yyyy')}</span>
                                                 </div>
                                             </div>
@@ -433,7 +446,7 @@ const Expenses = () => {
                                                 <TableCell className="py-5">
                                                     <div className="flex items-center gap-2">
                                                         <div className={cn("p-2 rounded-xl", style.bg, style.color)}><Icon className="w-3.5 h-3.5" /></div>
-                                                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{ExpenseCategoryLabels[expense.category]}</span>
+                                                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{t(ExpenseCategoryLabels[expense.category])}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="py-5">

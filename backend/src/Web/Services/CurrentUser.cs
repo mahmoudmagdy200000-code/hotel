@@ -20,8 +20,21 @@ public class CurrentUser : IUser
     {
         get
         {
+            // 1. Check for fixed branch claim (e.g. Receptionist)
             var branchIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue("branch_id");
-            return Guid.TryParse(branchIdClaim, out var branchId) ? branchId : null;
+            if (!string.IsNullOrEmpty(branchIdClaim) && Guid.TryParse(branchIdClaim, out var fixedBranchId))
+            {
+                return fixedBranchId;
+            }
+
+            // 2. If no fixed branch (Owner role), check for X-Branch-Id header override
+            var branchIdHeader = _httpContextAccessor.HttpContext?.Request.Headers["X-Branch-Id"].ToString();
+            if (!string.IsNullOrEmpty(branchIdHeader) && Guid.TryParse(branchIdHeader, out var headerBranchId))
+            {
+                return headerBranchId;
+            }
+
+            return null;
         }
     }
 }

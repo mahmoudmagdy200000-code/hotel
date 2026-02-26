@@ -4,16 +4,28 @@ export const ExpenseCategoryEnum = {
     Maintenance: 1,
     Purchases: 2,
     Breakfast: 3,
-    Other: 4
+    Other: 4,
+    Salaries: 5,
+    Utilities: 6,
+    Delivery: 7,
+    Commission: 8,
+    ElectricityBill: 9,
+    WaterBill: 10
 } as const;
 
 export type ExpenseCategoryValue = typeof ExpenseCategoryEnum[keyof typeof ExpenseCategoryEnum];
 
 export const ExpenseCategoryLabels: Record<ExpenseCategoryValue, string> = {
-    [ExpenseCategoryEnum.Maintenance]: 'Maintenance',
-    [ExpenseCategoryEnum.Purchases]: 'Purchases',
-    [ExpenseCategoryEnum.Breakfast]: 'Breakfast',
-    [ExpenseCategoryEnum.Other]: 'Other'
+    [ExpenseCategoryEnum.Maintenance]: 'expenses.categories.maintenance',
+    [ExpenseCategoryEnum.Purchases]: 'expenses.categories.purchases',
+    [ExpenseCategoryEnum.Breakfast]: 'expenses.categories.breakfast',
+    [ExpenseCategoryEnum.Other]: 'expenses.categories.other',
+    [ExpenseCategoryEnum.Salaries]: 'expenses.categories.salaries',
+    [ExpenseCategoryEnum.Utilities]: 'expenses.categories.utilities',
+    [ExpenseCategoryEnum.Delivery]: 'expenses.categories.delivery',
+    [ExpenseCategoryEnum.Commission]: 'expenses.categories.commission',
+    [ExpenseCategoryEnum.ElectricityBill]: 'expenses.categories.electricity_bill',
+    [ExpenseCategoryEnum.WaterBill]: 'expenses.categories.water_bill'
 };
 
 export interface ExpenseDto {
