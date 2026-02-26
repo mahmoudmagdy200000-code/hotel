@@ -38,13 +38,19 @@ import { StatusBadge } from '@/components/reservation/StatusBadge';
 
 
 
+import { useBusinessDate } from '@/app/providers/BusinessDateProvider';
+
 const ReservationsList = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { businessDate } = useBusinessDate();
 
     // Filters
     const [status, setStatus] = useState<ReservationStatus | 'all'>('all');
-    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
+        from: new Date(businessDate),
+        to: undefined
+    }));
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const fromDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : '';

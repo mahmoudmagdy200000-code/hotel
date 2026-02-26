@@ -171,25 +171,14 @@ const PendingRequests = () => {
 
 
 
-    const handleConfirm = async (id: number, number: string) => {
-        setConfirmState({
-            isOpen: true,
-            title: t('reception.confirm_reservation_title', 'Confirm Reservation'),
-            description: `${t('reception.confirm_prompt', 'Are you sure you want to confirm reservation')} ${number}?`,
-            onConfirm: async () => {
-                closeConfirm();
-                try {
-                    await confirm.mutateAsync(id);
-                    toast.success(t('reception.confirm_success', 'Reservation confirmed successfully.'));
-                    refetch();
-                } catch (err: unknown) {
-                    const errorMessage = extractErrorMessage(err);
-                    if (errorMessage === 'Cannot create reservation with a past check-in date.') {
-                        toast.error(t('errors.past_date', 'الحجز لم يتم لأن تاريخ الوصول في الماضي'));
-                    } else {
-                        toast.error(errorMessage);
-                    }
-                }
+    const handleTriggerReview = (ids: number[]) => {
+        getPlan.mutate(ids, {
+            onSuccess: (plan) => {
+                setAllocationPlan(plan);
+                setIsReviewOpen(true);
+            },
+            onError: (err) => {
+                toast.error(extractErrorMessage(err));
             }
         });
     };
@@ -280,12 +269,7 @@ const PendingRequests = () => {
             return;
         }
 
-        getPlan.mutate(targetIds, {
-            onSuccess: (plan) => {
-                setAllocationPlan(plan);
-                setIsReviewOpen(true);
-            }
-        });
+        handleTriggerReview(targetIds);
     };
 
     const getHintBadge = (bucket?: string) => {
@@ -617,9 +601,14 @@ const PendingRequests = () => {
                                             <Button
                                                 size="icon"
                                                 className="h-10 w-10 bg-slate-900 text-white rounded-xl shadow-lg shadow-slate-100"
-                                                onClick={() => handleConfirm(item.reservationId, item.bookingNumber)}
+                                                onClick={() => handleTriggerReview([item.reservationId])}
+                                                disabled={getPlan.isPending && getPlan.variables?.includes(item.reservationId)}
                                             >
-                                                <CheckCheck className="w-5 h-5" />
+                                                {getPlan.isPending && getPlan.variables?.includes(item.reservationId) ? (
+                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                ) : (
+                                                    <CheckCheck className="w-5 h-5" />
+                                                )}
                                             </Button>
                                         ) : (
                                             <Button
@@ -722,7 +711,13 @@ const PendingRequests = () => {
                                         <TableCell className="px-6 text-right">
                                             <div className="flex justify-end gap-1.5">
                                                 {item.parsingStatus === 'Parsed' ? (
-                                                    <Button size="sm" className="h-8 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-4" onClick={() => handleConfirm(item.reservationId, item.bookingNumber)}>
+                                                    <Button
+                                                        size="sm"
+                                                        className="h-8 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-4"
+                                                        onClick={() => handleTriggerReview([item.reservationId])}
+                                                        disabled={getPlan.isPending && getPlan.variables?.includes(item.reservationId)}
+                                                    >
+                                                        {getPlan.isPending && getPlan.variables?.includes(item.reservationId) && <Loader2 className="w-3 h-3 me-2 animate-spin" />}
                                                         {t('reception.confirm')}
                                                     </Button>
                                                 ) : (
