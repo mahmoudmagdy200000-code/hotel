@@ -7,8 +7,8 @@ namespace CleanArchitecture.Application.Expenses.Queries.GetExpenses;
 
 public record GetExpensesQuery : IRequest<ExpensesSummaryDto>
 {
-    public DateOnly? From { get; init; }
-    public DateOnly? To { get; init; }
+    public DateTime? From { get; init; }
+    public DateTime? To { get; init; }
     public ExpenseCategory? Category { get; init; }
     public CurrencyCode? Currency { get; init; }
 }
@@ -28,12 +28,14 @@ public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, Expense
 
         if (request.From.HasValue)
         {
-            query = query.Where(x => x.BusinessDate >= request.From.Value);
+            var from = DateOnly.FromDateTime(request.From.Value);
+            query = query.Where(x => x.BusinessDate >= from);
         }
 
         if (request.To.HasValue)
         {
-            query = query.Where(x => x.BusinessDate <= request.To.Value);
+            var to = DateOnly.FromDateTime(request.To.Value);
+            query = query.Where(x => x.BusinessDate <= to);
         }
 
         if (request.Category.HasValue)
