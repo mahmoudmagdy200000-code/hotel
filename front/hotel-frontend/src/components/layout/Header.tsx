@@ -36,7 +36,9 @@ const Header = ({ onMenuClick }: HeaderProps) => {
 
             {/* Right: User actions */}
             <div className="flex items-center gap-3 lg:gap-6">
-                <BranchSelector />
+                <div className="hidden lg:block">
+                    <BranchSelector />
+                </div>
 
                 {/* Business Date Selector */}
                 <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-200/60 rounded-xl shadow-sm hover:shadow-md transition-shadow">

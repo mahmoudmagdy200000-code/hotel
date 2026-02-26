@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import BranchSelector from '@/components/layout/BranchSelector';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -142,6 +143,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                             ✕
                         </button>
                     </div>
+                    <BranchSelector variant="sidebar" />
 
                     {/* Navigation */}
                     <nav className="flex-1 overflow-y-auto pt-2 pb-6 custom-scrollbar">
@@ -174,7 +176,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                         </div>
                     </div>
                 </div>
-            </aside>
+            </aside >
         </>
     );
 };
