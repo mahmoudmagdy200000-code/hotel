@@ -71,6 +71,12 @@ export const ReservationCompactCard = ({ item, onAction }: ReservationCompactCar
                             <CalendarDays className="w-2.5 h-2.5 text-slate-300" />
                             <span>{formatShortDate(item.checkIn)} - {formatShortDate(item.checkOut)}</span>
                         </div>
+                        {item.balanceDue > 0 && (
+                            <div className="flex items-center gap-0.5 text-amber-600 font-black">
+                                <AlertCircle className="w-2.5 h-2.5" />
+                                <span>{item.balanceDue} {item.currency}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex-shrink-0">

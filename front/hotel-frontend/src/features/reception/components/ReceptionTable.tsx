@@ -105,8 +105,16 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                             <Bed className="w-3.5 h-3.5 text-blue-500" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-black text-slate-900 tracking-tighter">
-                                                {item.roomNumbers && item.roomNumbers.length > 0 ? item.roomNumbers.join(', ') : 'Unassigned'}
+                                            <div className="flex items-center gap-2">
+                                                <div className="text-xs font-black text-slate-900 tracking-tighter">
+                                                    {item.roomNumbers && item.roomNumbers.length > 0 ? item.roomNumbers.join(', ') : 'Unassigned'}
+                                                </div>
+                                                {item.balanceDue > 0 && (
+                                                    <span className="flex items-center gap-1 bg-amber-50 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded-md border border-amber-100 uppercase tracking-tighter">
+                                                        <AlertCircle className="w-2.5 h-2.5" />
+                                                        {t('reception.balance_due')}: {item.balanceDue} {item.currency}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="text-[9px] text-slate-400 font-bold uppercase truncate max-w-[140px] tracking-tighter">
                                                 {item.roomTypeNames?.join(', ') || 'Incomplete'}

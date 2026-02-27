@@ -391,9 +391,6 @@ const Financials = () => {
                                                     <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">
                                                         {formatCurrency(item.revenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
                                                     </p>
-                                                    <div className="flex items-center justify-end gap-1 text-[8px] font-black text-emerald-600 uppercase mt-1">
-                                                        <TrendingUp className="w-2 h-2" /> Stable
-                                                    </div>
                                                 </div>
                                             </div>
 

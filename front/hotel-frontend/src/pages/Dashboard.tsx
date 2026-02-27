@@ -19,8 +19,6 @@ import {
     BarChart3,
     Building2,
     RefreshCw,
-    ChevronLeft,
-    ChevronRight,
     Zap,
     LayoutGrid,
     Target,
@@ -37,18 +35,21 @@ import {
     getExpenseCategoryTranslationKey,
     getExpenseCategoryStyle
 } from '@/api/types/expenses';
+import { DatePickerWithRange } from '@/components/ui/date-range-picker';
+import type { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
 
 const Dashboard = () => {
     const { t } = useTranslation();
     const { businessDate } = useBusinessDate();
 
-    const [dateRange, setDateRange] = useState<{ from: string; to: string }>(() => {
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
         const start = new Date(businessDate);
         const end = new Date(start);
         end.setDate(end.getDate() + 7);
         return {
-            from: start.toISOString().split('T')[0],
-            to: end.toISOString().split('T')[0],
+            from: start,
+            to: end,
         };
     });
     const [mode, setMode] = useState<'Forecast' | 'Actual'>('Actual');
@@ -63,12 +64,12 @@ const Dashboard = () => {
     };
 
     const params: GetDashboardParams = useMemo(() => ({
-        from: dateRange.from,
-        to: dateRange.to,
+        from: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : businessDate,
+        to: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : businessDate,
         mode,
         includeRoomTypeBreakdown: true,
         currency: selectedCurrency,
-    }), [dateRange, mode, selectedCurrency]);
+    }), [dateRange, mode, selectedCurrency, businessDate]);
 
     const { data, isLoading, refetch, isFetching, dataUpdatedAt } = useDashboard(params);
 
@@ -77,60 +78,9 @@ const Dashboard = () => {
         return new Date(dataUpdatedAt).toLocaleTimeString();
     }, [dataUpdatedAt, t]);
 
-    const handlePrevWeek = () => {
-        const fromDate = new Date(dateRange.from);
-        const toDate = new Date(dateRange.to);
-        fromDate.setDate(fromDate.getDate() - 7);
-        toDate.setDate(toDate.getDate() - 7);
-        setDateRange({
-            from: fromDate.toISOString().split('T')[0],
-            to: toDate.toISOString().split('T')[0],
-        });
-    };
-
-    const handleNextWeek = () => {
-        const fromDate = new Date(dateRange.from);
-        const toDate = new Date(dateRange.to);
-        fromDate.setDate(fromDate.getDate() + 7);
-        toDate.setDate(toDate.getDate() + 7);
-        setDateRange({
-            from: fromDate.toISOString().split('T')[0],
-            to: toDate.toISOString().split('T')[0],
-        });
-    };
-
     const formatPercent = (value: number | null | undefined) => {
         if (value === null || value === undefined) return '—';
         return `${(value * 100).toFixed(1)}%`;
-    };
-
-    // Compute trend direction from daily series (first half vs second half)
-    const trends = useMemo(() => {
-        const days = data?.byDay;
-        if (!days || days.length < 2) return { occ: 0, rev: 0, adr: 0, revpar: 0 };
-        const mid = Math.floor(days.length / 2);
-        const firstHalf = days.slice(0, mid);
-        const secondHalf = days.slice(mid);
-        const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-        const pctChange = (first: number, second: number) => first === 0 ? 0 : ((second - first) / first) * 100;
-        return {
-            occ: pctChange(avg(firstHalf.map(d => d.occupancyRate)), avg(secondHalf.map(d => d.occupancyRate))),
-            rev: pctChange(avg(firstHalf.map(d => d.revenue)), avg(secondHalf.map(d => d.revenue))),
-            adr: pctChange(avg(firstHalf.map(d => d.adr)), avg(secondHalf.map(d => d.adr))),
-            revpar: pctChange(avg(firstHalf.map(d => d.revPar)), avg(secondHalf.map(d => d.revPar))),
-        };
-    }, [data?.byDay]);
-
-    const TrendIndicator = ({ value }: { value: number }) => {
-        if (Math.abs(value) < 0.5) return <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Stable</span>;
-        const isUp = value > 0;
-        return (
-            <span className={cn("inline-flex items-center gap-0.5 text-[9px] font-black tracking-tight", isUp ? "text-emerald-600" : "text-rose-500")}>
-                <span className={cn("inline-block transition-transform", isUp ? "rotate-0" : "rotate-180")}
-                    style={{ fontSize: '10px', lineHeight: 1 }}>▲</span>
-                {Math.abs(value).toFixed(1)}%
-            </span>
-        );
     };
 
     const financialCards = data?.summary ? [
@@ -139,22 +89,18 @@ const Dashboard = () => {
             value: formatCurrency(data.summary.totalRevenue, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
             icon: <DollarSign className="w-5 h-5 text-emerald-600" />,
             bg: 'bg-emerald-100',
-            trendValue: trends.rev,
         },
         {
             title: "Total Expenses",
             value: formatCurrency(data.summary.totalExpenses, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
             icon: <Receipt className="w-5 h-5 text-rose-600" />,
             bg: 'bg-rose-100',
-            // No trend computed for expenses currently, so passing 0
-            trendValue: 0,
         },
         {
             title: "Net Profit",
             value: formatCurrency(data.summary.netProfit, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
             icon: <Wallet className="w-5 h-5 text-blue-600" />,
             bg: 'bg-blue-100',
-            trendValue: trends.rev, // Net profit roughly follows revenue trend for now
         }
     ] : [];
 
@@ -164,21 +110,18 @@ const Dashboard = () => {
             value: formatPercent(data.summary.occupancyRateOverall),
             icon: <TrendingUp className="w-4 h-4 text-purple-600" />,
             bg: 'bg-purple-100',
-            trendValue: trends.occ,
         },
         {
             title: t('dashboard.adr'),
             value: formatCurrency(data.summary.adr, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
             icon: <Target className="w-4 h-4 text-indigo-600" />,
             bg: 'bg-indigo-100',
-            trendValue: trends.adr,
         },
         {
             title: t('dashboard.revpar'),
             value: formatCurrency(data.summary.revPar, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels]),
             icon: <Zap className="w-4 h-4 text-amber-600" />,
             bg: 'bg-amber-100',
-            trendValue: trends.revpar,
         },
     ] : [];
 
@@ -235,13 +178,11 @@ const Dashboard = () => {
 
                         {/* Temporal Control */}
                         <div className="flex items-center gap-1 bg-white rounded-xl p-1 shadow-inner h-10 w-full xl:w-auto">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={handlePrevWeek}><ChevronLeft className="w-3.5 h-3.5" /></Button>
-                            <div className="flex-1 text-center px-4 min-w-[120px]">
-                                <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">
-                                    {dateRange.from.substring(5)} → {dateRange.to.substring(5)}
-                                </span>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={handleNextWeek}><ChevronRight className="w-3.5 h-3.5" /></Button>
+                            <DatePickerWithRange
+                                date={dateRange}
+                                setDate={setDateRange}
+                                className="border-none shadow-none"
+                            />
                         </div>
 
                         {/* Currency Selector */}
@@ -288,7 +229,6 @@ const Dashboard = () => {
                                         index === 2 ? "text-slate-400" : "text-slate-400"
                                     )}>{card.title}</span>
                                     <div className={cn("p-1.5 rounded-xl shadow-sm transition-all", card.bg)}>
-                                        {/* Reduced icon size by cloning and merging classes */}
                                         <card.icon.type {...card.icon.props} className={cn(card.icon.props.className, "w-4 h-4")} />
                                     </div>
                                 </div>
@@ -296,9 +236,6 @@ const Dashboard = () => {
                                     "text-xl font-black tracking-tighter leading-none",
                                     index === 2 ? "text-white" : "text-slate-900"
                                 )}>{card.value}</h3>
-                                {card.trendValue !== 0 && (
-                                    <TrendIndicator value={card.trendValue} />
-                                )}
                             </CardContent>
                             {index === 2 && (
                                 <div className="absolute right-0 top-0 p-3 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
@@ -326,7 +263,6 @@ const Dashboard = () => {
                                     <div className={cn("p-1.5 rounded-xl shadow-sm transition-all", card.bg)}>{card.icon}</div>
                                 </div>
                                 <h3 className="text-lg font-black text-slate-900 tracking-tighter leading-none">{card.value}</h3>
-                                <TrendIndicator value={card.trendValue} />
                             </CardContent>
                         </Card>
                     ))

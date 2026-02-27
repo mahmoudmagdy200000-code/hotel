@@ -38,13 +38,7 @@ public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQu
         var from = request.From ?? today;
         var to = request.To ?? today;
         
-        var statusFilterComment = mode == "actual" 
-            ? "Actual includes CheckedOut only by accounting policy." 
-            : "Forecast includes Confirmed, CheckedIn, and CheckedOut.";
-            
-        var statuses = mode == "actual" 
-            ? new[] { ReservationStatus.CheckedOut } 
-            : new[] { ReservationStatus.Confirmed, ReservationStatus.CheckedIn, ReservationStatus.CheckedOut };
+        var statuses = new[] { ReservationStatus.Confirmed, ReservationStatus.CheckedIn, ReservationStatus.CheckedOut };
 
         var currency = request.Currency ?? CurrencyCode.EGP;
 
@@ -72,12 +66,19 @@ public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQu
             // Loop through each night of the reservation
             for (var d = checkin; d < checkout; d = d.AddDays(1))
             {
-                if (d >= from.Date && d <= to.Date)
+                // Core Policy: Determine if this night belongs to Actual or Forecast
+                // Actual: Night has passed (d < today) AND status is CheckedIn or CheckedOut
+                // Forecast: Night is today or future (d >= today) AND status is Confirmed or CheckedIn
+                
+                bool isActual = d < today.Date && (res.Status == ReservationStatus.CheckedIn || res.Status == ReservationStatus.CheckedOut);
+                bool isForecast = d >= today.Date && (res.Status == ReservationStatus.Confirmed || res.Status == ReservationStatus.CheckedIn);
+
+                bool shouldInclude = mode == "actual" ? isActual : isForecast;
+
+                if (shouldInclude && d >= from.Date && d <= to.Date)
                 {
                     string key = "";
                     decimal amount = 0;
-
-                    // Clean up groupBy key to ensure matching
                     var groupKey = requestedGroupBy?.Trim().ToLower() ?? "day";
 
                     switch (groupKey)
@@ -88,15 +89,12 @@ public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQu
                             break;
                             
                         case "roomtype":
-                            // RoomType requires iterating lines, handle separately or simplify
-                            // Current logic iterates lines for roomtype/room, so we must keep that structure
-                            // or refactor. Let's keep the inner loops for room/roomtype correctness.
                             foreach (var line in res.Lines)
                             {
                                 var subKey = line.RoomType?.Name ?? "Unknown Type";
                                 itemsMap[subKey] = Math.Round(itemsMap.GetValueOrDefault(subKey) + line.RatePerNight, 2);
                             }
-                            continue; // Skip the rest of the loop for this night
+                            continue; 
 
                         case "room":
                              foreach (var line in res.Lines)
@@ -118,7 +116,6 @@ public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQu
                             break;
                     }
 
-                    // Apply the amount for single-key cases (day, branch, hotel)
                     var currentVal = itemsMap.GetValueOrDefault(key) + amount;
                     itemsMap[key] = Math.Round(currentVal, 2);
                 }
