@@ -421,7 +421,17 @@ const ReservationDetails = () => {
                                             </div>
                                             <div className="text-[10px] font-bold text-slate-400 flex items-center gap-2 uppercase tracking-widest">
                                                 <span>{line.roomTypeName}</span>
-                                                {line.nights > 0 && <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md text-[8px] font-black">{line.nights} NTS</span>}
+                                                {line.nights > 0 && (
+                                                    <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md text-[8px] font-black">
+                                                        {line.nights} {line.nights === 1 ? 'NIGHT' : 'NIGHTS'}
+                                                    </span>
+                                                )}
+                                                {res.isEarlyCheckOut && (
+                                                    <span className="bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-md text-[8px] font-black flex items-center gap-1 shadow-sm">
+                                                        <LogOut className="w-2.5 h-2.5" />
+                                                        EARLY DEPARTURE
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

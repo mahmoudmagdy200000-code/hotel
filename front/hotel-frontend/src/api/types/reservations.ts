@@ -80,6 +80,7 @@ export interface ReservationDto {
     currencyCode: CurrencyCodeValue;
     currencyOther?: string | null;
     actualCheckOutDate?: string | null;
+    isEarlyCheckOut?: boolean;
 }
 
 export interface GetReservationsQuery {

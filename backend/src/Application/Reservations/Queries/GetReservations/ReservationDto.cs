@@ -20,6 +20,7 @@ public class ReservationDto
     public int CurrencyCode { get; init; }
     public string? CurrencyOther { get; init; }
     public DateOnly? ActualCheckOutDate { get; init; }
+    public bool IsEarlyCheckOut { get; init; }
     
     public List<ReservationLineDto> Lines { get; init; } = new();
 
@@ -33,7 +34,8 @@ public class ReservationDto
                 .ForMember(d => d.Source, opt => opt.MapFrom(s => (int)s.Source))
                 .ForMember(d => d.PaymentMethod, opt => opt.MapFrom(s => (int)s.PaymentMethod))
                 .ForMember(d => d.CurrencyCode, opt => opt.MapFrom(s => (int)s.CurrencyCode))
-                .ForMember(d => d.ActualCheckOutDate, opt => opt.MapFrom(s => s.ActualCheckOutDate.HasValue ? DateOnly.FromDateTime(s.ActualCheckOutDate.Value) : (DateOnly?)null));
+                .ForMember(d => d.ActualCheckOutDate, opt => opt.MapFrom(s => s.ActualCheckOutDate.HasValue ? DateOnly.FromDateTime(s.ActualCheckOutDate.Value) : (DateOnly?)null))
+                .ForMember(d => d.IsEarlyCheckOut, opt => opt.MapFrom(s => s.Status == ReservationStatus.CheckedOut && s.ActualCheckOutDate.HasValue && s.ActualCheckOutDate.Value.Date < s.CheckOutDate.Date));
         }
     }
 }
