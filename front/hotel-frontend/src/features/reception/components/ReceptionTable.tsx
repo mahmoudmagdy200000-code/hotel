@@ -64,7 +64,6 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                             <TableHead className="py-5 px-8">{t('reception.guest_name')}</TableHead>
                             <TableHead className="py-5 px-4">{t('reception.booking_number')}</TableHead>
                             <TableHead className="py-5 px-4">Temporal Range</TableHead>
-                            <TableHead className="py-5 px-4 text-center">{t('reception.room_types')}</TableHead>
                             <TableHead className="py-5 px-4">{t('reception.rooms')}</TableHead>
                             <TableHead className="py-5 px-8 text-right">{t('actions')}</TableHead>
                         </tr>
@@ -94,11 +93,6 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">to {item.checkOut}</span>
                                     </div>
                                 </TableCell>
-                                <TableCell className="py-5 px-4 text-center">
-                                    <div className="bg-slate-100 text-slate-600 font-black text-[10px] px-2 py-1 rounded-lg border border-slate-200 uppercase tracking-tighter inline-block">
-                                        {item.roomTypeNames?.join(', ') || 'Unassigned'}
-                                    </div>
-                                </TableCell>
                                 <TableCell className="py-5 px-4">
                                     <div className="flex items-center gap-2">
                                         <div className="p-1.5 bg-blue-50 rounded-lg">
@@ -106,8 +100,8 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <div className="text-xs font-black text-slate-900 tracking-tighter">
-                                                    {item.roomNumbers && item.roomNumbers.length > 0 ? item.roomNumbers.join(', ') : 'Unassigned'}
+                                                <div className="text-xs font-black text-slate-900 tracking-tighter uppercase">
+                                                    {item.roomTypeNames?.join(', ') || 'Unassigned Type'}
                                                 </div>
                                                 {item.balanceDue > 0 && (
                                                     <span className="flex items-center gap-1 bg-amber-50 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded-md border border-amber-100 uppercase tracking-tighter">
@@ -117,7 +111,7 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                                 )}
                                             </div>
                                             <div className="text-[9px] text-slate-400 font-bold uppercase truncate max-w-[140px] tracking-tighter">
-                                                {item.roomTypeNames?.join(', ') || 'Incomplete'}
+                                                {item.roomNumbers && item.roomNumbers.length > 0 ? `${t('reception.room')} ${item.roomNumbers.join(', ')}` : 'No Room Assigned'}
                                             </div>
                                         </div>
                                     </div>

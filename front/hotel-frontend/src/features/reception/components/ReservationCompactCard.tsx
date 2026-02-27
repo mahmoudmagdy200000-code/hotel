@@ -56,7 +56,7 @@ export const ReservationCompactCard = ({ item, onAction }: ReservationCompactCar
 
                     <div className="flex items-center gap-1 text-[11px] font-black text-slate-700 flex-shrink-0">
                         <Bed className="w-3 h-3 text-blue-500" />
-                        <span>{item.roomNumbers?.join(', ') || '—'}</span>
+                        <span className="uppercase">{item.roomTypeNames?.join(', ') || t('unassigned')}</span>
                     </div>
                 </div>
 

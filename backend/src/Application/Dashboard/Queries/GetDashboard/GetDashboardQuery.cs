@@ -14,8 +14,8 @@ public record GetDashboardQuery : IRequest<DashboardDto>
     public bool? IncludeRoomTypeBreakdown { get; init; } = true;
     public CurrencyCode? Currency { get; init; }
 
-    // POLICY: "Actual" metrics reflect ACCOUNTING / REALIZED status (CheckedOut only).
-    // POLICY: "Forecast" metrics reflect OPERATIONAL status (Confirmed + CheckedIn + CheckedOut).
+    // POLICY: "Actual" includes CheckedOut (all nights) and CheckedIn (past nights).
+    // POLICY: "Forecast" includes Confirmed (all nights) and CheckedIn (future nights).
 }
 
 public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, DashboardDto>

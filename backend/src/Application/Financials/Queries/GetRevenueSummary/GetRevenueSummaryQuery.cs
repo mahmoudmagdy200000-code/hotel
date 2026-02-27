@@ -13,8 +13,8 @@ public record GetRevenueSummaryQuery : IRequest<RevenueSummaryDto>
     public string? groupBy { get; init; } = "day"; // day | roomType | room
     public CurrencyCode? Currency { get; init; }
 
-    // POLICY: "Actual" includes CheckedOut only by accounting policy (Realized).
-    // POLICY: "Forecast" includes Confirmed, CheckedIn, and CheckedOut (Operational).
+    // POLICY: "Actuals" include CheckedOut (all nights) and CheckedIn (past nights).
+    // POLICY: "Forecast" includes Confirmed (all nights) and CheckedIn (future nights).
 }
 
 public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQuery, RevenueSummaryDto>
@@ -70,8 +70,11 @@ public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQu
                 // Actual: Night has passed (d < today) AND status is CheckedIn or CheckedOut
                 // Forecast: Night is today or future (d >= today) AND status is Confirmed or CheckedIn
                 
-                bool isActual = d < today.Date && (res.Status == ReservationStatus.CheckedIn || res.Status == ReservationStatus.CheckedOut);
-                bool isForecast = d >= today.Date && (res.Status == ReservationStatus.Confirmed || res.Status == ReservationStatus.CheckedIn);
+                bool isActual = (res.Status == ReservationStatus.CheckedOut) || 
+                                (d < today.Date && res.Status == ReservationStatus.CheckedIn);
+                                
+                bool isForecast = (res.Status == ReservationStatus.Confirmed) || 
+                                  (d >= today.Date && res.Status == ReservationStatus.CheckedIn);
 
                 bool shouldInclude = mode == "actual" ? isActual : isForecast;
 
