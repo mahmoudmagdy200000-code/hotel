@@ -61,4 +61,19 @@ public class ReservationTests
         // Act & Assert
         Should.Throw<InvalidOperationException>(() => reservation.CheckOut(now));
     }
+
+    [Test]
+    public void MarkAsDeleted_ShouldSucceed_WhenStatusIsCheckedOut()
+    {
+        // Arrange
+        var reservation = new Reservation { Status = ReservationStatus.CheckedOut };
+        var now = DateTime.UtcNow;
+
+        // Act
+        reservation.MarkAsDeleted(now, "user1", "test@test.com", "Correction");
+
+        // Assert
+        reservation.IsDeleted.ShouldBeTrue();
+        reservation.DeletedAtUtc.ShouldBe(now);
+    }
 }

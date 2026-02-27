@@ -120,13 +120,9 @@ public class Reservation : BaseAuditableEntity
             throw new InvalidOperationException("Reservation is already deleted.");
         }
 
-        // Only CheckedOut reservations are fully protected from deletion.
-        // Admin can delete Draft, Confirmed, CheckedIn, Cancelled, NoShow for data corrections.
-        if (Status == ReservationStatus.CheckedOut)
-        {
-            throw new InvalidOperationException($"Cannot delete a checked-out reservation. These represent completed stays and must be preserved.");
-        }
-
+        // Update: Admin can now delete CheckedOut reservations for data correction/cleanup.
+        // The frontend and command layers already enforce Admin-only access for deletion.
+        
         IsDeleted = true;
         DeletedAtUtc = deletedAtUtc;
         DeletedByUserId = userId;

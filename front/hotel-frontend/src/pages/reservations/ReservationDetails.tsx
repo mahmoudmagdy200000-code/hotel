@@ -263,7 +263,7 @@ const ReservationDetails = () => {
                     </div>
                 </div>
 
-                {isAdmin && res.status !== ReservationStatus.CheckedOut && (
+                {isAdmin && (
                     <Button
                         variant="ghost"
                         size="icon"
