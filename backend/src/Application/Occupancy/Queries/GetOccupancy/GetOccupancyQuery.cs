@@ -76,10 +76,15 @@ public class GetOccupancyQueryHandler : IRequestHandler<GetOccupancyQuery, Occup
             // and the real Egypt local time is past 10:00 AM, they consume this night's inventory as well.
             var activeRes = reservations
                 .Where(r => 
-                    (r.CheckInDate <= currentDate && r.CheckOutDate >= nextDate) ||
-                    (r.Status == ReservationStatus.CheckedIn && r.CheckOutDate.Date == currentDate.Date && 
-                     currentDate.Date == today && _dateTimeProvider.IsLateCheckOut(r.CheckOutDate))
-                 )
+                {
+                    var effectiveCheckOut = (r.Status == ReservationStatus.CheckedOut && r.ActualCheckOutDate.HasValue) 
+                        ? r.ActualCheckOutDate.Value 
+                        : r.CheckOutDate;
+
+                    return (r.CheckInDate <= currentDate && effectiveCheckOut >= nextDate) ||
+                           (r.Status == ReservationStatus.CheckedIn && r.CheckOutDate.Date == currentDate.Date && 
+                            currentDate.Date == today && _dateTimeProvider.IsLateCheckOut(r.CheckOutDate));
+                })
                 .ToList();
 
             // Distinct rooms occupied

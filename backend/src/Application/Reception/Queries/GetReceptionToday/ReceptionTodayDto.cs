@@ -25,6 +25,8 @@ public record ReceptionReservationItemDto
     public string CheckIn { get; init; } = string.Empty; // yyyy-MM-dd
     public string CheckOut { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
+    public string? ActualCheckOut { get; init; } // yyyy-MM-dd
+    public bool IsEarlyCheckOut { get; init; }
     public List<string> RoomNumbers { get; init; } = new();
     public List<string> RoomTypeNames { get; init; } = new();
     public decimal TotalAmount { get; init; }

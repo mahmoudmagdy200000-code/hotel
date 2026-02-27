@@ -77,39 +77,8 @@ public class CheckOutReservationCommandHandler : IRequestHandler<CheckOutReserva
 
         var oldStatus = entity.Status;
 
-        // Phase 8.8 — Fix overlapping dates on early check-out. 
-        // Truncate the CheckOutDate so the room becomes instantly bookable for the freed-up days.
         var businessDateTime = request.BusinessDate.ToDateTime(TimeOnly.MinValue);
-        if (entity.CheckOutDate > businessDateTime)
-        {
-            var nightsStayed = (businessDateTime - entity.CheckInDate).Days;
-            if (nightsStayed < 0) nightsStayed = 0;
-
-            // ExecuteUpdateAsync to prune unstayed nights natively without loading them into memory
-            await _context.ReservationLines
-                .Where(l => l.ReservationId == entity.Id)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(l => l.Nights, nightsStayed)
-                    .SetProperty(l => l.LineTotal, l => l.RatePerNight * nightsStayed), 
-                    cancellationToken);
-
-            // Recalculate remaining total amount
-            var remainingTotal = await _context.ReservationLines
-                .Where(l => l.ReservationId == entity.Id)
-                .SumAsync(l => l.LineTotal, cancellationToken);
-                
-            var priceDifference = entity.TotalAmount - remainingTotal;
-
-            entity.TotalAmount = remainingTotal;
-            if (!request.BalanceDue.HasValue) 
-            {
-                entity.BalanceDue = Math.Max(0, entity.BalanceDue - priceDifference);
-            }
-
-            entity.CheckOutDate = businessDateTime;
-        }
-
-        entity.CheckOut(DateTime.UtcNow);
+        entity.CheckOut(DateTime.UtcNow, businessDateTime);
 
         await _context.SaveChangesAsync(cancellationToken);
 

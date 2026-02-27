@@ -100,6 +100,10 @@ const ReservationDetails = () => {
         currency: reservationData.currency,
         currencyCode: reservationData.currencyCode,
         paymentMethod: reservationData.paymentMethod === 1 ? 'Cash' : reservationData.paymentMethod === 2 ? 'Card' : 'Other',
+        actualCheckOut: reservationData.actualCheckOutDate,
+        isEarlyCheckOut: reservationData.status === ReservationStatus.CheckedOut &&
+            reservationData.actualCheckOutDate &&
+            new Date(reservationData.actualCheckOutDate) < new Date(reservationData.checkOutDate),
         lines: reservationData.lines.map((l: any) => ({
             id: l.id,
             roomId: l.roomId,
@@ -240,6 +244,11 @@ const ReservationDetails = () => {
                                 {res.guestName}
                             </h1>
                             <StatusBadge status={res.status} />
+                            {res.actualCheckOutDate && res.actualCheckOutDate < res.checkOutDate && (
+                                <Badge className="bg-orange-500 text-white border-none px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                    {t('reservations.left_early', 'Left Early')}
+                                </Badge>
+                            )}
                         </div>
                         <div className="flex items-center gap-2 mt-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
                             <Hash className="w-3 h-3 text-slate-300" />
@@ -365,12 +374,19 @@ const ReservationDetails = () => {
                                 </div>
                                 <div className="flex-1 text-center group">
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('reservations.check_out')}</span>
-                                    <div className="text-xl font-black text-slate-900 tracking-tighter">
-                                        {formatHotelTime(res.checkOutDate, 'MMM d, yyyy')}
+                                    <div className={cn(
+                                        "text-xl font-black tracking-tighter",
+                                        res.actualCheckOutDate && res.actualCheckOutDate < res.checkOutDate ? "text-orange-500" : "text-slate-900"
+                                    )}>
+                                        {formatHotelTime(res.actualCheckOutDate && res.actualCheckOutDate < res.checkOutDate ? res.actualCheckOutDate : res.checkOutDate, 'MMM d, yyyy')}
                                     </div>
                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-1">
-                                        {formatHotelTime(res.checkOutDate, 'EEEE')}
-                                        <span className="ml-2 text-[9px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-md font-black">{'<'} 10:00 EGY</span>
+                                        {formatHotelTime(res.actualCheckOutDate && res.actualCheckOutDate < res.checkOutDate ? res.actualCheckOutDate : res.checkOutDate, 'EEEE')}
+                                        {res.actualCheckOutDate && res.actualCheckOutDate < res.checkOutDate ? (
+                                            <span className="ml-2 text-[9px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-md font-black">EARLY DEPARTURE</span>
+                                        ) : (
+                                            <span className="ml-2 text-[9px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-md font-black">{'<'} 10:00 EGY</span>
+                                        )}
                                     </span>
                                 </div>
                             </div>

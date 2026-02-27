@@ -79,6 +79,7 @@ export interface ReservationDto {
     paymentMethod: PaymentMethodValue;
     currencyCode: CurrencyCodeValue;
     currencyOther?: string | null;
+    actualCheckOutDate?: string | null;
 }
 
 export interface GetReservationsQuery {

@@ -6,6 +6,8 @@ export interface ReceptionReservationItemDto {
     checkIn: string; // yyyy-MM-dd
     checkOut: string; // yyyy-MM-dd
     status: string;
+    actualCheckOut?: string | null;
+    isEarlyCheckOut: boolean;
     roomNumbers: string[];
     roomTypeNames: string[];
     totalAmount: number;

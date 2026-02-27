@@ -26,7 +26,8 @@ public class CheckOutReservationCommandHandler : IRequestHandler<CheckOutReserva
             throw new NotFoundException(nameof(Reservation), request.Id);
         }
 
-        entity.CheckOut(DateTime.UtcNow);
+        var now = DateTime.UtcNow;
+        entity.CheckOut(now, now);
 
         await _context.SaveChangesAsync(cancellationToken);
     }

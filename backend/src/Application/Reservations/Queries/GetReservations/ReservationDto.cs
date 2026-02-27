@@ -19,6 +19,7 @@ public class ReservationDto
     public int PaymentMethod { get; init; }
     public int CurrencyCode { get; init; }
     public string? CurrencyOther { get; init; }
+    public DateOnly? ActualCheckOutDate { get; init; }
     
     public List<ReservationLineDto> Lines { get; init; } = new();
 
@@ -31,7 +32,8 @@ public class ReservationDto
                 .ForMember(d => d.CheckOutDate, opt => opt.MapFrom(s => DateOnly.FromDateTime(s.CheckOutDate)))
                 .ForMember(d => d.Source, opt => opt.MapFrom(s => (int)s.Source))
                 .ForMember(d => d.PaymentMethod, opt => opt.MapFrom(s => (int)s.PaymentMethod))
-                .ForMember(d => d.CurrencyCode, opt => opt.MapFrom(s => (int)s.CurrencyCode));
+                .ForMember(d => d.CurrencyCode, opt => opt.MapFrom(s => (int)s.CurrencyCode))
+                .ForMember(d => d.ActualCheckOutDate, opt => opt.MapFrom(s => s.ActualCheckOutDate.HasValue ? DateOnly.FromDateTime(s.ActualCheckOutDate.Value) : (DateOnly?)null));
         }
     }
 }

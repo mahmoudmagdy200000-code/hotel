@@ -32,6 +32,7 @@ public class Reservation : BaseAuditableEntity
     public DateTime? CheckedOutAt { get; set; }
     public DateTime? CancelledAt { get; set; }
     public DateTime? NoShowAt { get; set; }
+    public DateTime? ActualCheckOutDate { get; set; }
 
     // Soft Delete Fields
     public bool IsDeleted { get; set; } = false;
@@ -72,12 +73,13 @@ public class Reservation : BaseAuditableEntity
         }
     }
 
-    public void CheckOut(DateTime checkedOutAt)
+    public void CheckOut(DateTime checkedOutAt, DateTime? actualCheckOutDate = null)
     {
         if (Status == ReservationStatus.CheckedIn)
         {
             Status = ReservationStatus.CheckedOut;
             CheckedOutAt = checkedOutAt;
+            ActualCheckOutDate = actualCheckOutDate ?? checkedOutAt.Date;
         }
         else
         {

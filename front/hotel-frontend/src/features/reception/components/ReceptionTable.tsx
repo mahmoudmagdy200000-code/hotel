@@ -88,9 +88,19 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                     </span>
                                 </TableCell>
                                 <TableCell className="py-5 px-4">
-                                    <div className="flex flex-col gap-0.5">
+                                    <div className="flex flex-col gap-0.5 relative group/dates">
                                         <span className="text-[10px] font-black text-slate-900 tracking-tighter">{item.checkIn}</span>
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">to {item.checkOut}</span>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">to {item.checkOut}</span>
+                                            {item.isEarlyCheckOut && (
+                                                <span className="px-1 py-0.5 bg-amber-50 text-amber-600 text-[8px] font-black rounded border border-amber-100 uppercase tracking-tighter shadow-sm">
+                                                    {t('reception.left_early', 'Left Early')}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {item.isEarlyCheckOut && (
+                                            <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-amber-200/50 rounded-full" />
+                                        )}
                                     </div>
                                 </TableCell>
                                 <TableCell className="py-5 px-4">

@@ -54,9 +54,16 @@ export const ReservationCompactCard = ({ item, onAction }: ReservationCompactCar
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1 text-[11px] font-black text-slate-700 flex-shrink-0">
-                        <Bed className="w-3 h-3 text-blue-500" />
-                        <span className="uppercase">{item.roomTypeNames?.join(', ') || t('unassigned')}</span>
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        <div className="flex items-center gap-1 text-[11px] font-black text-slate-700">
+                            <Bed className="w-3 h-3 text-blue-500" />
+                            <span className="uppercase">{item.roomTypeNames?.join(', ') || t('unassigned')}</span>
+                        </div>
+                        {item.isEarlyCheckOut && (
+                            <div className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[8px] font-black rounded border border-amber-100 uppercase tracking-tighter">
+                                {t('reception.left_early', 'Left Early')}
+                            </div>
+                        )}
                     </div>
                 </div>
 
