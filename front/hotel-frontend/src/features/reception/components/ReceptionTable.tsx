@@ -9,9 +9,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye, CalendarDays, Hash, LogIn, LogOut, User, Bed, AlertCircle } from 'lucide-react';
+import { Eye, Bed, AlertCircle } from 'lucide-react';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
-import { StatusBadge } from '@/components/reservation/StatusBadge';
+
+import { ReservationCompactCard } from './ReservationCompactCard';
 
 /**
  * Ras Sedr Rental - Reception Operation Table
@@ -44,98 +45,14 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
 
     return (
         <div className="space-y-4">
-            {/* MOBILE: HIGH-DENSITY LIST CARDS */}
-            <div className="grid grid-cols-1 gap-4 sm:hidden pb-4">
+            {/* MOBILE: HIGH-DENSITY COMPACT LIST */}
+            <div className="grid grid-cols-1 md:hidden pb-4 divide-y divide-slate-100 bg-white rounded-[24px] border border-slate-100 overflow-hidden shadow-sm">
                 {data.map((item) => (
-                    <div
+                    <ReservationCompactCard
                         key={item.reservationId}
-                        className="bg-white border border-slate-100 rounded-[24px] overflow-hidden shadow-sm active:scale-[0.99] transition-all group"
-                        onClick={() => navigate(`/reception/reservations/${item.reservationId}`)}
-                    >
-                        <div className="p-5">
-                            <div className="flex items-start justify-between gap-4 mb-4">
-                                <div className="space-y-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tighter">
-                                            {item.guestName}
-                                        </h3>
-                                        <StatusBadge status={item.status} />
-                                    </div>
-                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                        <Hash className="w-3 h-3 text-slate-300" />
-                                        <span>{item.bookingNumber}</span>
-                                    </div>
-                                </div>
-                                <div className="p-2.5 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all">
-                                    <User className="w-4 h-4 text-slate-400 group-hover:text-white" />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3 mb-5">
-                                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Stay Period</span>
-                                    <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-700">
-                                        <CalendarDays className="w-3 h-3 text-blue-500" />
-                                        <span>{item.checkIn} → {item.checkOut}</span>
-                                    </div>
-                                </div>
-                                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Accommodation</span>
-                                    <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-700">
-                                        <Bed className="w-3 h-3 text-emerald-500" />
-                                        <span>{item.roomNumbers?.join(', ') || 'Unassigned'}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                {item.status === 'Confirmed' || item.status === 'Draft' ? (
-                                    <>
-                                        <Button
-                                            className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-900/10 active:scale-95 transition-all"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onAction('check-in', item);
-                                            }}
-                                        >
-                                            <LogIn className="w-4 h-4 mr-2" />
-                                            Check In
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            className="h-12 w-12 rounded-2xl text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onAction('no-show', item);
-                                            }}
-                                        >
-                                            <AlertCircle className="w-5 h-5" />
-                                        </Button>
-                                    </>
-                                ) : item.status === 'CheckedIn' ? (
-                                    <Button
-                                        className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-900/10 active:scale-95 transition-all"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onAction('check-out', item);
-                                        }}
-                                    >
-                                        <LogOut className="w-4 h-4 mr-2" />
-                                        Check Out
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        variant="outline"
-                                        className="w-full h-12 rounded-2xl border-slate-200 font-black text-[10px] uppercase tracking-widest text-slate-400"
-                                        onClick={() => navigate(`/reception/reservations/${item.reservationId}`)}
-                                    >
-                                        <Eye className="w-4 h-4 mr-2" />
-                                        View Details
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                        item={item}
+                        onAction={onAction}
+                    />
                 ))}
             </div>
 
@@ -147,7 +64,7 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                             <TableHead className="py-5 px-8">{t('reception.guest_name')}</TableHead>
                             <TableHead className="py-5 px-4">{t('reception.booking_number')}</TableHead>
                             <TableHead className="py-5 px-4">Temporal Range</TableHead>
-                            <TableHead className="py-5 px-4 text-center">{t('reception.status')}</TableHead>
+                            <TableHead className="py-5 px-4 text-center">{t('reception.room_types')}</TableHead>
                             <TableHead className="py-5 px-4">{t('reception.rooms')}</TableHead>
                             <TableHead className="py-5 px-8 text-right">{t('actions')}</TableHead>
                         </tr>
@@ -178,7 +95,9 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                     </div>
                                 </TableCell>
                                 <TableCell className="py-5 px-4 text-center">
-                                    <StatusBadge status={item.status} />
+                                    <div className="bg-slate-100 text-slate-600 font-black text-[10px] px-2 py-1 rounded-lg border border-slate-200 uppercase tracking-tighter inline-block">
+                                        {item.roomTypeNames?.join(', ') || 'Unassigned'}
+                                    </div>
                                 </TableCell>
                                 <TableCell className="py-5 px-4">
                                     <div className="flex items-center gap-2">
