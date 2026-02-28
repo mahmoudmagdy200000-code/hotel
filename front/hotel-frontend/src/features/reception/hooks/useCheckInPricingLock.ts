@@ -1,12 +1,5 @@
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
 
-/**
- * Reservation source constants — mirrors the backend ReservationSource enum.
- * Manual=1: Walk-in, price is negotiable at check-in.
- * All other sources (PDF=2, WhatsApp=3, Booking=4): Contract price is fixed.
- */
-const MANUAL_SOURCE = 1;
-
 export interface CheckInPricingLockResult {
     /** True when the pricing fields must be disabled (non-Manual sources). */
     isPricingLocked: boolean;
@@ -15,12 +8,9 @@ export interface CheckInPricingLockResult {
 }
 
 /**
- * Derives whether the pricing inputs should be locked during Check-In,
- * based solely on the booking source.
- *
- * Rule:
- *   - Manual (walk-in) → editable: receptionist may negotiate the price.
- *   - PDF / WhatsApp / Booking → read-only: contract price cannot be altered.
+ * Derives whether the pricing inputs should be locked during Check-In.
+ * The absolute truth comes from the backend's `isPriceLocked` property,
+ * fully encapsulating the Domain logic.
  *
  * @param reservation The current reservation from the Reception list.
  */
@@ -31,11 +21,11 @@ export function useCheckInPricingLock(
         return { isPricingLocked: false, lockReason: null };
     }
 
-    const isPricingLocked = reservation.source !== MANUAL_SOURCE;
+    const { isPriceLocked } = reservation;
 
-    const lockReason = isPricingLocked
+    const lockReason = isPriceLocked
         ? 'Contract price — imported from booking source. Cannot be altered at check-in.'
         : null;
 
-    return { isPricingLocked, lockReason };
+    return { isPricingLocked: isPriceLocked, lockReason };
 }

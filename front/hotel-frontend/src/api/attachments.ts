@@ -22,6 +22,13 @@ export const getAttachmentMetadata = async (id: number | string): Promise<Attach
             }
         }
 
+        // Mobile Browser Safeguard: explicitly enforce .pdf extension
+        // OS variants (like iOS/Android) fail to recognize the PDF MIME type 
+        // if the file string lacks a recognized extension.
+        if (!fileName.toLowerCase().endsWith('.pdf')) {
+            fileName += '.pdf';
+        }
+
         return {
             id: id.toString(),
             fileName: fileName,

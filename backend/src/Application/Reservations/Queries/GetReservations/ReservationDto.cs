@@ -12,6 +12,7 @@ public class ReservationDto
     public string Currency { get; init; } = string.Empty;
     public bool PaidAtArrival { get; init; }
     public int Source { get; init; }
+    public bool IsPriceLocked { get; init; }
 
     // Phase 7.1 — Financial & Hotel fields
     public string? HotelName { get; init; }
@@ -44,6 +45,7 @@ public class ReservationDto
                 .ForMember(d => d.CurrencyCode, opt => opt.MapFrom(s => (int)s.CurrencyCode))
                 .ForMember(d => d.ActualCheckOutDate, opt => opt.MapFrom(s => s.ActualCheckOutDate.HasValue ? DateOnly.FromDateTime(s.ActualCheckOutDate.Value) : (DateOnly?)null))
                 .ForMember(d => d.IsEarlyCheckOut, opt => opt.MapFrom(s => s.Status == ReservationStatus.CheckedOut && s.ActualCheckOutDate.HasValue && s.ActualCheckOutDate.Value.Date < s.CheckOutDate.Date))
+                .ForMember(d => d.IsPriceLocked, opt => opt.MapFrom(s => s.Source != Domain.Enums.ReservationSource.Manual))
                 .ForMember(d => d.MealPlan, opt => opt.MapFrom(s => ParseNoteTag(s.Notes, "MealPlan")));
         }
     }

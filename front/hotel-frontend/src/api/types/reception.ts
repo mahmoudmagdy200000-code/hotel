@@ -17,6 +17,7 @@ export interface ReceptionReservationItemDto {
     paymentMethod: string;
     /** ReservationSource enum: Manual=1, PDF=2, WhatsApp=3, Booking=4 */
     source: number;
+    isPriceLocked: boolean;
     mealPlan?: string | null;
     lines: ReceptionReservationLineDto[];
 }
