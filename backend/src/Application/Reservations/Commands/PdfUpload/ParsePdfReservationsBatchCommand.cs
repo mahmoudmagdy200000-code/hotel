@@ -208,6 +208,10 @@ public class ParsePdfReservationsBatchCommandHandler
                 {
                     extractedParts.Add($"RoomTypeHint={data.RoomTypeHint}");
                 }
+                if (!string.IsNullOrWhiteSpace(data.MealPlan))
+                {
+                    extractedParts.Add($"MealPlan={data.MealPlan}");
+                }
                 var extractedMarker = extractedParts.Any() 
                     ? $"[EXTRACTED_V2] {string.Join(" | ", extractedParts)}" 
                     : "";
@@ -237,6 +241,7 @@ public class ParsePdfReservationsBatchCommandHandler
                         CheckOut = data.CheckOut?.ToString("yyyy-MM-dd"),
                         RoomsCount = data.RoomsCount,
                         RoomTypeHint = data.RoomTypeHint,
+                        MealPlan = data.MealPlan,
                         TotalPrice = data.TotalPrice,
                         Currency = reservation.Currency,
                         BookingNumber = data.BookingNumber ?? reservation.BookingNumber

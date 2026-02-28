@@ -81,6 +81,7 @@ export interface ReservationDto {
     currencyOther?: string | null;
     actualCheckOutDate?: string | null;
     isEarlyCheckOut?: boolean;
+    mealPlan?: string | null;
 }
 
 export interface GetReservationsQuery {

@@ -27,4 +27,6 @@ public class ExtractedPdfData
     public string? Currency { get; set; }
     public CleanArchitecture.Domain.Enums.CurrencyCode? CurrencyCode { get; set; }
     public string? BookingNumber { get; set; }
+    /// <summary>Normalized meal plan / board type (e.g. "Full Board", "All Inclusive").</summary>
+    public string? MealPlan { get; set; }
 }

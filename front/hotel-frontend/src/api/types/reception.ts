@@ -17,6 +17,7 @@ export interface ReceptionReservationItemDto {
     paymentMethod: string;
     /** ReservationSource enum: Manual=1, PDF=2, WhatsApp=3, Booking=4 */
     source: number;
+    mealPlan?: string | null;
     lines: ReceptionReservationLineDto[];
 }
 
@@ -123,6 +124,7 @@ export interface ExtractedPdfDataDto {
     totalPrice?: number | null;
     currency?: string | null;
     bookingNumber?: string | null;
+    mealPlan?: string | null;
 }
 
 export interface PdfParsingResultDto {

@@ -132,7 +132,8 @@ public class StructuredPdfReservationParser : IPdfReservationParser
             BookingNumber = PdfExtractionRules.ExtractBookingNumber(text),
             TotalPrice = totalPrice,
             Currency = currency,
-            CurrencyCode = PdfExtractionRules.DetectCurrencyCode(text, currency, totalPrice)
+            CurrencyCode = PdfExtractionRules.DetectCurrencyCode(text, currency, totalPrice),
+            MealPlan = PdfExtractionRules.ExtractMealPlan(text)
         };
     }
 

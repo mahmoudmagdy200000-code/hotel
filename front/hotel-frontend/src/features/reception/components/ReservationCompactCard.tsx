@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
-import { Hash, CalendarDays, Bed, LogIn, LogOut, Eye, AlertCircle } from 'lucide-react';
+import { Hash, CalendarDays, Bed, LogIn, LogOut, Eye, AlertCircle, Utensils } from 'lucide-react';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
 import { cn } from '@/lib/utils';
 
@@ -59,6 +59,12 @@ export const ReservationCompactCard = ({ item, onAction }: ReservationCompactCar
                             <Bed className="w-3 h-3 text-blue-500" />
                             <span className="uppercase">{item.roomTypeNames?.join(', ') || t('unassigned')}</span>
                         </div>
+                        {item.mealPlan && (
+                            <div className="flex items-center gap-1 text-[10px] font-black text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded shadow-sm border border-sky-100">
+                                <Utensils className="w-2.5 h-2.5" />
+                                <span className="uppercase">{item.mealPlan}</span>
+                            </div>
+                        )}
                         {item.isEarlyCheckOut && (
                             <div className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[8px] font-black rounded border border-amber-100 uppercase tracking-tighter">
                                 {t('reception.left_early', 'Left Early')}

@@ -9,7 +9,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye, Bed, AlertCircle } from 'lucide-react';
+import { Eye, Bed, AlertCircle, Utensils } from 'lucide-react';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
 
 import { ReservationCompactCard } from './ReservationCompactCard';
@@ -113,8 +113,14 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                                 <div className="text-xs font-black text-slate-900 tracking-tighter uppercase">
                                                     {item.roomTypeNames?.join(', ') || 'Unassigned Type'}
                                                 </div>
+                                                {item.mealPlan && (
+                                                    <span className="flex items-center gap-1 bg-sky-50 text-sky-700 text-[9px] font-black px-1.5 py-0.5 rounded-md border border-sky-100 uppercase tracking-tighter shadow-sm w-auto">
+                                                        <Utensils className="w-2.5 h-2.5" />
+                                                        {item.mealPlan}
+                                                    </span>
+                                                )}
                                                 {item.balanceDue > 0 && (
-                                                    <span className="flex items-center gap-1 bg-amber-50 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded-md border border-amber-100 uppercase tracking-tighter">
+                                                    <span className="flex items-center gap-1 bg-amber-50 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded-md border border-amber-100 uppercase tracking-tighter shadow-sm w-auto">
                                                         <AlertCircle className="w-2.5 h-2.5" />
                                                         {t('reception.balance_due')}: {item.balanceDue} {item.currency}
                                                     </span>

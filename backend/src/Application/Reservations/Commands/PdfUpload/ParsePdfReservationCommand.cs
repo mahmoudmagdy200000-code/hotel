@@ -36,6 +36,7 @@ public class ExtractedPdfDataDto
     public decimal? TotalPrice { get; set; }
     public string? Currency { get; set; }
     public string? BookingNumber { get; set; }
+    public string? MealPlan { get; set; }
 }
 
 public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReservationCommand, PdfParsingResultDto>
@@ -143,6 +144,10 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
                 if (!string.IsNullOrWhiteSpace(data.RoomTypeHint))
                 {
                     extractedParts.Add($"RoomTypeHint={data.RoomTypeHint}");
+                }
+                if (!string.IsNullOrWhiteSpace(data.MealPlan))
+                {
+                    extractedParts.Add($"MealPlan={data.MealPlan}");
                 }
                 var extractedMarker = extractedParts.Any() 
                     ? $"[EXTRACTED_V2] {string.Join(" | ", extractedParts)}" 
@@ -307,6 +312,7 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
                         CheckOut = data.CheckOut?.ToString("yyyy-MM-dd"),
                         RoomsCount = data.RoomsCount,
                         RoomTypeHint = data.RoomTypeHint,
+                        MealPlan = data.MealPlan,
                         TotalPrice = data.TotalPrice,
                         Currency = reservation.Currency,
                         BookingNumber = data.BookingNumber ?? reservation.BookingNumber

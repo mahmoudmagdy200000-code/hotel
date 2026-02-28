@@ -134,6 +134,16 @@ public static class PdfExtractionRules
         { "ج.م", "EGP" },
     };
 
+    // Meal Plan / Board Type mappings
+    private static readonly Dictionary<string, string> MealPlanMappings = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { @"All\s*inclusive|All\s*In\b", "All Inclusive" },
+        { @"Full\s*board|\bFB\b", "Full Board" },
+        { @"Half\s*board|\bHB\b", "Half Board" },
+        { @"Bed\s*(?:&|and)\s*breakfast|\bB&B\b|\bBB\b", "Bed & Breakfast" },
+        { @"Room\s*only|\bRO\b", "Room Only" }
+    };
+
     #endregion
 
     #region Extraction Methods
@@ -497,6 +507,23 @@ public static class PdfExtractionRules
             }
         }
 
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts meal plan / board type using regex matching against known patterns.
+    /// </summary>
+    public static string? ExtractMealPlan(string text)
+    {
+        // Search through the text for any of the meal plan patterns
+        foreach (var mapping in MealPlanMappings)
+        {
+            if (Regex.IsMatch(text, mapping.Key, RegexOptions.IgnoreCase))
+            {
+                return mapping.Value;
+            }
+        }
+        
         return null;
     }
 

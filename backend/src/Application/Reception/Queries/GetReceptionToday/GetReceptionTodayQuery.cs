@@ -1,6 +1,7 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace CleanArchitecture.Application.Reception.Queries.GetReceptionToday;
 
@@ -96,6 +97,13 @@ public class GetReceptionTodayQueryHandler : IRequestHandler<GetReceptionTodayQu
             .ToList();
     }
 
+    private string? ParseNoteTag(string? notes, string key)
+    {
+        if (string.IsNullOrWhiteSpace(notes)) return null;
+        var match = Regex.Match(notes, $@"{key}=([^\|\[\n]+)");
+        return match.Success ? match.Groups[1].Value.Trim() : null;
+    }
+
     private ReceptionReservationItemDto MapToItemDto(Domain.Entities.Reservation r)
     {
         var roomNumbers = r.Lines
@@ -135,6 +143,7 @@ public class GetReceptionTodayQueryHandler : IRequestHandler<GetReceptionTodayQu
             CurrencyCode = (int)r.CurrencyCode,
             PaymentMethod = r.PaymentMethod.ToString(),
             Source = (int)r.Source,
+            MealPlan = ParseNoteTag(r.Notes, "MealPlan"),
             ActualCheckOut = r.ActualCheckOutDate?.ToString("yyyy-MM-dd"),
             IsEarlyCheckOut = r.Status == ReservationStatus.CheckedOut && 
                               r.ActualCheckOutDate.HasValue && 

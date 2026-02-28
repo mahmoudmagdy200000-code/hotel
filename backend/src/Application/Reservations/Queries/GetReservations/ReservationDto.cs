@@ -21,11 +21,19 @@ public class ReservationDto
     public string? CurrencyOther { get; init; }
     public DateOnly? ActualCheckOutDate { get; init; }
     public bool IsEarlyCheckOut { get; init; }
+    public string? MealPlan { get; init; }
     
     public List<ReservationLineDto> Lines { get; init; } = new();
 
     private class Mapping : Profile
     {
+        private static string? ParseNoteTag(string? notes, string key)
+        {
+            if (string.IsNullOrWhiteSpace(notes)) return null;
+            var match = System.Text.RegularExpressions.Regex.Match(notes, $@"{key}=([^\|\[\n]+)");
+            return match.Success ? match.Groups[1].Value.Trim() : null;
+        }
+
         public Mapping()
         {
             CreateMap<Reservation, ReservationDto>()
@@ -35,7 +43,8 @@ public class ReservationDto
                 .ForMember(d => d.PaymentMethod, opt => opt.MapFrom(s => (int)s.PaymentMethod))
                 .ForMember(d => d.CurrencyCode, opt => opt.MapFrom(s => (int)s.CurrencyCode))
                 .ForMember(d => d.ActualCheckOutDate, opt => opt.MapFrom(s => s.ActualCheckOutDate.HasValue ? DateOnly.FromDateTime(s.ActualCheckOutDate.Value) : (DateOnly?)null))
-                .ForMember(d => d.IsEarlyCheckOut, opt => opt.MapFrom(s => s.Status == ReservationStatus.CheckedOut && s.ActualCheckOutDate.HasValue && s.ActualCheckOutDate.Value.Date < s.CheckOutDate.Date));
+                .ForMember(d => d.IsEarlyCheckOut, opt => opt.MapFrom(s => s.Status == ReservationStatus.CheckedOut && s.ActualCheckOutDate.HasValue && s.ActualCheckOutDate.Value.Date < s.CheckOutDate.Date))
+                .ForMember(d => d.MealPlan, opt => opt.MapFrom(s => ParseNoteTag(s.Notes, "MealPlan")));
         }
     }
 }

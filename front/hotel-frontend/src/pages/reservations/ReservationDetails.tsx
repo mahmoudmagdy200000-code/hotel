@@ -28,7 +28,8 @@ import {
     Building2,
     Zap,
     Briefcase,
-    AlertCircle
+    AlertCircle,
+    Utensils
 } from 'lucide-react';
 import { getAttachmentMetadata } from '@/api/attachments';
 import { AttachmentList } from '@/components/attachments/AttachmentList';
@@ -354,8 +355,16 @@ const ReservationDetails = () => {
                                 <div className="p-2 bg-blue-50 rounded-xl"><CalendarDays className="w-4 h-4 text-blue-600" /></div>
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('reservations.stay_info')}</span>
                             </div>
-                            <div className="text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg uppercase tracking-tighter">
-                                {res.lines[0]?.nights || 0} Night Duration
+                            <div className="flex items-center gap-2">
+                                {res.mealPlan && (
+                                    <div className="text-[10px] font-black text-sky-600 bg-sky-50 px-2.5 py-1 rounded-lg uppercase tracking-tighter flex items-center gap-1.5 border border-sky-100 shadow-sm">
+                                        <Utensils className="w-3 h-3" />
+                                        {res.mealPlan}
+                                    </div>
+                                )}
+                                <div className="text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg uppercase tracking-tighter shadow-sm">
+                                    {res.lines[0]?.nights || 0} Night Duration
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent className="p-8">
