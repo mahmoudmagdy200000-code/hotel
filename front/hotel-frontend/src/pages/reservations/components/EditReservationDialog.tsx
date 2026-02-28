@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { Loader2, Info } from 'lucide-react';
+import { Loader2, Info, Lock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import type { ReservationDto, UpdateReservationCommand } from '@/api/types/reser
 import { PaymentMethodEnum, CurrencyCodeEnum } from '@/api/types/reservations';
 import type { CurrencyCodeValue } from '@/api/types/reservations';
 import type { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface Props {
@@ -22,9 +23,10 @@ interface Props {
     reservation: ReservationDto;
     onSubmit: (id: number, command: UpdateReservationCommand) => Promise<unknown>;
     isSubmitting: boolean;
+    isPriceLocked?: boolean;
 }
 
-export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, isSubmitting }: Props) {
+export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, isSubmitting, isPriceLocked }: Props) {
     const { t } = useTranslation();
 
     const { register, control, handleSubmit, watch, setValue, reset } = useForm<UpdateReservationCommand>({
@@ -205,6 +207,16 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
                             </div>
                         )}
 
+                        {isPriceLocked && (
+                            <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                                <Lock className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                                <div className="text-xs text-amber-800">
+                                    <span className="font-bold">Price locked: </span>
+                                    This reservation was imported/parsed from a document. Manual price adjustments are disabled.
+                                </div>
+                            </div>
+                        )}
+
                         <div className="space-y-2">
                             <Label>{t('reservations.balance_due', 'Balance Due')}</Label>
                             <Input
@@ -213,6 +225,8 @@ export function EditReservationDialog({ isOpen, onClose, reservation, onSubmit, 
                                 step="0.01"
                                 {...register('balanceDue', { valueAsNumber: true })}
                                 placeholder="0.00"
+                                disabled={isPriceLocked}
+                                className={cn(isPriceLocked && "bg-slate-50 text-slate-500 cursor-not-allowed")}
                             />
                             <p className="text-xs text-slate-400 flex items-start gap-1">
                                 <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />

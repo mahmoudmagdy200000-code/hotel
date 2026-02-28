@@ -667,6 +667,7 @@ const ReservationDetails = () => {
                         }
                     }}
                     isSubmitting={actions.update.isPending}
+                    isPriceLocked={res.isPriceLocked ?? (res.source !== ReservationSource.Manual)}
                 />
             )}
 
