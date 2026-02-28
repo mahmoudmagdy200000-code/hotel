@@ -64,6 +64,16 @@ export interface DashboardRoomTypeKpiDto {
     occupancyRate?: number | null;
 }
 
+export interface GetDailyCashFlowParams {
+    businessDate?: string; // ISO date string
+    currency?: number;
+}
+
+export interface DailyCashFlowDto {
+    netCashInDrawer: number;
+    currency: number;
+}
+
 // ============================================================================
 // Occupancy Endpoint Types (GET /api/occupancy)
 // ============================================================================

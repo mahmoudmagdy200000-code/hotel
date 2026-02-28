@@ -38,6 +38,7 @@ import {
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import type { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
+import { DailyCashFlowCard } from '@/components/dashboard/DailyCashFlowCard';
 
 const Dashboard = () => {
     const { t } = useTranslation();
@@ -245,6 +246,16 @@ const Dashboard = () => {
                         </Card>
                     ))
                 )}
+            </div>
+
+            {/* CASHIER MODE DRAWER */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
+                <div className="xl:col-start-3">
+                    <DailyCashFlowCard
+                        businessDate={businessDate}
+                        currency={selectedCurrency}
+                    />
+                </div>
             </div>
 
             {/* OPERATIONAL KPI GRID */}

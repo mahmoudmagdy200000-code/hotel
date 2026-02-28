@@ -28,6 +28,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
     public DbSet<ReservationAuditEvent> ReservationAuditEvents => Set<ReservationAuditEvent>();
 
+    public DbSet<Payment> Payments => Set<Payment>();
+
     public DbSet<Expense> Expenses => Set<Expense>();
 
     public DbSet<Branch> Branches => Set<Branch>();
@@ -43,6 +45,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         builder.Entity<Reservation>().HasQueryFilter(r => (!r.IsDeleted) && (!_user.BranchId.HasValue || r.BranchId == _user.BranchId));
         builder.Entity<Room>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
         builder.Entity<RoomType>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
+        builder.Entity<Payment>().HasQueryFilter(p => !_user.BranchId.HasValue || p.BranchId == _user.BranchId);
         builder.Entity<Expense>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
         builder.Entity<BranchListing>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
 

@@ -89,6 +89,7 @@ public static class DependencyInjection
         builder.Services.AddTransient<IFileStorage, CleanArchitecture.Infrastructure.Files.LocalFileStorage>();
         builder.Services.AddTransient<IPdfReservationParser, CleanArchitecture.Infrastructure.Files.StructuredPdfReservationParser>();
         builder.Services.AddTransient<IBranchResolver, CleanArchitecture.Infrastructure.Services.BranchResolver>();
+        builder.Services.AddScoped<ICashFlowService, CleanArchitecture.Infrastructure.Services.CashFlowService>();
 
         builder.Services.AddAuthorization(options =>
             options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));

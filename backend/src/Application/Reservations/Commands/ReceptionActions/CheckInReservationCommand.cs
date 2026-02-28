@@ -262,6 +262,21 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         var oldStatus = entity.Status;
         entity.CheckIn(DateTime.UtcNow);
 
+        // Record payment if any was collected during Check-In
+        var paymentAmount = entity.TotalAmount - entity.BalanceDue;
+        if (paymentAmount > 0)
+        {
+            _context.Payments.Add(new Domain.Entities.Payment
+            {
+                ReservationId = entity.Id,
+                Amount = paymentAmount,
+                CurrencyCode = entity.CurrencyCode,
+                PaymentMethod = entity.PaymentMethod,
+                BranchId = entity.BranchId,
+                Notes = $"Check-in payment for reservation {entity.Id}"
+            });
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return MapToDto(entity, request.BusinessDate, oldStatus);

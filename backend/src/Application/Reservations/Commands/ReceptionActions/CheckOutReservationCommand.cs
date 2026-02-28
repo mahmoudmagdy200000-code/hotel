@@ -65,6 +65,7 @@ public class CheckOutReservationCommandHandler : IRequestHandler<CheckOutReserva
         }
 
         // Apply edits (e.g. clear balance) before changing status
+        var oldBalance = entity.BalanceDue;
         if (request.BalanceDue.HasValue)
         {
             entity.BalanceDue = request.BalanceDue.Value;
@@ -78,6 +79,22 @@ public class CheckOutReservationCommandHandler : IRequestHandler<CheckOutReserva
         var oldStatus = entity.Status;
 
         var businessDateTime = request.BusinessDate.ToDateTime(TimeOnly.MinValue);
+        
+        // Record payment if balance was reduced during Check-Out
+        var balanceDelta = oldBalance - entity.BalanceDue;
+        if (balanceDelta > 0)
+        {
+            _context.Payments.Add(new Domain.Entities.Payment
+            {
+                ReservationId = entity.Id,
+                Amount = balanceDelta,
+                CurrencyCode = entity.CurrencyCode,
+                PaymentMethod = entity.PaymentMethod,
+                BranchId = entity.BranchId,
+                Notes = $"Check-out payment for reservation {entity.Id}"
+            });
+        }
+
         entity.CheckOut(DateTime.UtcNow, businessDateTime);
 
         await _context.SaveChangesAsync(cancellationToken);

@@ -14,6 +14,8 @@ public interface IApplicationDbContext
 
     DbSet<ReservationAuditEvent> ReservationAuditEvents { get; }
     
+    DbSet<Payment> Payments { get; }
+    
     DbSet<Expense> Expenses { get; }
 
     DbSet<Branch> Branches { get; }
