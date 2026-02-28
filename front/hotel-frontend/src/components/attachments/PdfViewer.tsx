@@ -23,8 +23,10 @@ export const PdfViewer = ({ attachmentId, fileName, onClose }: PdfViewerProps) =
             try {
                 setIsLoading(true);
                 setError(null);
-                const blob = await downloadAttachment(attachmentId);
-                url = URL.createObjectURL(blob);
+                const rawBlob = await downloadAttachment(attachmentId);
+                // Safari Mobile Iframes crash with raw GUID links — explicitly enforce MIME structure
+                const typedBlob = new Blob([rawBlob], { type: 'application/pdf' });
+                url = URL.createObjectURL(typedBlob);
                 setPdfUrl(url);
             } catch (err) {
                 console.error('Failed to load PDF:', err);
@@ -47,7 +49,8 @@ export const PdfViewer = ({ attachmentId, fileName, onClose }: PdfViewerProps) =
         if (!pdfUrl) return;
         const link = document.createElement('a');
         link.href = pdfUrl;
-        link.download = fileName;
+        const safeFileName = fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+        link.setAttribute('download', safeFileName);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

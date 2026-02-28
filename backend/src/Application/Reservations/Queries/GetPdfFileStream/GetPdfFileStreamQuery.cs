@@ -79,7 +79,7 @@ public class GetPdfFileStreamQueryHandler : IRequestHandler<GetPdfFileStreamQuer
         return new PdfFileStreamDto
         {
             Stream = stream,
-            FileName = fileName,
+            FileName = fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? fileName : $"{fileName}.pdf",
             ContentType = "application/pdf"
         };
     }
