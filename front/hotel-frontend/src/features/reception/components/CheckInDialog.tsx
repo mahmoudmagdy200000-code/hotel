@@ -12,9 +12,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
-import { Wallet, CreditCard, MoreHorizontal, Banknote, AlertTriangle, Home, Circle } from 'lucide-react';
+import { Wallet, CreditCard, MoreHorizontal, Banknote, AlertTriangle, Home, Circle, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useReceptionRoomsStatus } from '@/features/reception/hooks/useReceptionRoomsStatus';
+import { useCheckInPricingLock } from '@/features/reception/hooks/useCheckInPricingLock';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format, parseISO } from 'date-fns';
 import { PaymentMethodEnum, CurrencyCodeEnum, type PaymentMethodValue, type CurrencyCodeValue } from '@/api/types/reservations';
@@ -74,6 +75,9 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
 
     const { data: statusData } = useReceptionRoomsStatus(businessDate);
     const rooms = statusData?.items || [];
+
+    // Pricing lock — derived from booking source (PDF/Booking/WhatsApp → locked; Manual → editable)
+    const { isPricingLocked, lockReason } = useCheckInPricingLock(reservation);
 
     // State initialization effect
     useEffect(() => {
@@ -415,6 +419,17 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                         </div>
                     </div>
 
+                    {/* Pricing Lock Banner — shown only for non-Manual bookings */}
+                    {isPricingLocked && lockReason && (
+                        <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                            <Lock className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-xs text-amber-800">
+                                <span className="font-bold">Price locked: </span>
+                                {lockReason}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="totalAmount" className="text-sm font-semibold text-slate-700">
@@ -432,9 +447,11 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                     type="number"
                                     min="0"
                                     step="0.01"
+                                    disabled={isPricingLocked}
                                     className={cn(
                                         "h-11 border-slate-200 focus:ring-2 focus:ring-slate-900/5 rounded-xl transition-all",
-                                        currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7"
+                                        currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7",
+                                        isPricingLocked && "bg-slate-50 text-slate-500 cursor-not-allowed"
                                     )}
                                     value={totalAmount}
                                     onChange={(e) => setTotalAmount(parseFloat(e.target.value) || 0)}
@@ -458,9 +475,11 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                     type="number"
                                     min="0"
                                     step="0.01"
+                                    disabled={isPricingLocked}
                                     className={cn(
                                         "h-11 border-slate-200 focus:ring-2 focus:ring-slate-900/5 rounded-xl transition-all",
-                                        currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7"
+                                        currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7",
+                                        isPricingLocked && "bg-slate-50 text-slate-500 cursor-not-allowed"
                                     )}
                                     value={balanceDue}
                                     onChange={(e) => setBalanceDue(parseFloat(e.target.value) || 0)}

@@ -62,65 +62,90 @@ public class GetRevenueSummaryQueryHandler : IRequestHandler<GetRevenueSummaryQu
         {
             var checkout = res.CheckOutDate.Date;
             var checkin = res.CheckInDate.Date;
-            
+
+            // --- PRORATION: Distribute TotalAmount evenly across all nights ---
+            // This ensures Rev Yield always sums to the exact contract/override price,
+            // regardless of what RatePerNight was stored on the ReservationLines.
+            var totalNights = Math.Max(1, (int)(checkout - checkin).TotalDays);
+            decimal baseNightly = Math.Floor(res.TotalAmount / totalNights * 100m) / 100m;
+            decimal remainder = Math.Round(res.TotalAmount - baseNightly * totalNights, 2);
+
+            // Total line rate used as weights for per-line groupings (roomType / room)
+            decimal totalLineRate = res.Lines.Sum(l => l.RatePerNight);
+
             // Loop through each night of the reservation
             for (var d = checkin; d < checkout; d = d.AddDays(1))
             {
                 // Core Policy: Determine if this night belongs to Actual or Forecast
                 // Actual: Night has passed (d < today) AND status is CheckedIn or CheckedOut
                 // Forecast: Night is today or future (d >= today) AND status is Confirmed or CheckedIn
-                
-                bool isActual = (res.Status == ReservationStatus.CheckedOut) || 
+
+                bool isActual = (res.Status == ReservationStatus.CheckedOut) ||
                                 (d < today.Date && res.Status == ReservationStatus.CheckedIn);
-                                
-                bool isForecast = (res.Status == ReservationStatus.Confirmed) || 
+
+                bool isForecast = (res.Status == ReservationStatus.Confirmed) ||
                                   (d >= today.Date && res.Status == ReservationStatus.CheckedIn);
 
                 bool shouldInclude = mode == "actual" ? isActual : isForecast;
 
                 if (shouldInclude && d >= from.Date && d <= to.Date)
                 {
-                    string key = "";
-                    decimal amount = 0;
+                    // Night index (0-based). The final night absorbs the decimal remainder
+                    // so that sum across all nights == TotalAmount exactly.
+                    int nightIndex = (int)(d - checkin).TotalDays;
+                    bool isLastNight = nightIndex == totalNights - 1;
+                    decimal proratedNightly = baseNightly + (isLastNight ? remainder : 0m);
+
                     var groupKey = requestedGroupBy?.Trim().ToLower() ?? "day";
 
                     switch (groupKey)
                     {
                         case "branch":
-                            key = res.Branch?.Name ?? "Unknown Branch";
-                            amount = res.Lines.Sum(l => l.RatePerNight);
+                        {
+                            var key = res.Branch?.Name ?? "Unknown Branch";
+                            itemsMap[key] = Math.Round(itemsMap.GetValueOrDefault(key) + proratedNightly, 2);
                             break;
-                            
+                        }
+
                         case "roomtype":
+                            // Distribute prorated nightly yield by each line's proportional rate
                             foreach (var line in res.Lines)
                             {
                                 var subKey = line.RoomType?.Name ?? "Unknown Type";
-                                itemsMap[subKey] = Math.Round(itemsMap.GetValueOrDefault(subKey) + line.RatePerNight, 2);
+                                decimal lineShare = totalLineRate > 0
+                                    ? Math.Round(proratedNightly * (line.RatePerNight / totalLineRate), 2)
+                                    : Math.Round(proratedNightly / Math.Max(1, res.Lines.Count), 2);
+                                itemsMap[subKey] = Math.Round(itemsMap.GetValueOrDefault(subKey) + lineShare, 2);
                             }
-                            continue; 
+                            continue;
 
                         case "room":
-                             foreach (var line in res.Lines)
+                            // Distribute prorated nightly yield by each line's proportional rate
+                            foreach (var line in res.Lines)
                             {
                                 var subKey = line.Room?.RoomNumber ?? "Unassigned";
-                                itemsMap[subKey] = Math.Round(itemsMap.GetValueOrDefault(subKey) + line.RatePerNight, 2);
+                                decimal lineShare = totalLineRate > 0
+                                    ? Math.Round(proratedNightly * (line.RatePerNight / totalLineRate), 2)
+                                    : Math.Round(proratedNightly / Math.Max(1, res.Lines.Count), 2);
+                                itemsMap[subKey] = Math.Round(itemsMap.GetValueOrDefault(subKey) + lineShare, 2);
                             }
                             continue;
 
                         case "hotel":
-                            key = !string.IsNullOrWhiteSpace(res.HotelName) ? res.HotelName : "Unknown Hotel";
-                            amount = res.Lines.Sum(l => l.RatePerNight);
+                        {
+                            var key = !string.IsNullOrWhiteSpace(res.HotelName) ? res.HotelName : "Unknown Hotel";
+                            itemsMap[key] = Math.Round(itemsMap.GetValueOrDefault(key) + proratedNightly, 2);
                             break;
+                        }
 
                         case "day":
                         default:
-                            key = d.ToString("yyyy-MM-dd");
-                            amount = res.Lines.Sum(l => l.RatePerNight);
+                        {
+                            var key = d.ToString("yyyy-MM-dd");
+                            itemsMap[key] = Math.Round(itemsMap.GetValueOrDefault(key) + proratedNightly, 2);
                             break;
+                        }
                     }
-
-                    var currentVal = itemsMap.GetValueOrDefault(key) + amount;
-                    itemsMap[key] = Math.Round(currentVal, 2);
                 }
             }
         }

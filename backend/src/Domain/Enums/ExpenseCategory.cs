@@ -11,5 +11,6 @@ public enum ExpenseCategory
     Delivery = 7,
     Commission = 8,
     ElectricityBill = 9,
-    WaterBill = 10
+    WaterBill = 10,
+    Refund = 11
 }

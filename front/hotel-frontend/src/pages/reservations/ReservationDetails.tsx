@@ -100,6 +100,7 @@ const ReservationDetails = () => {
         currency: reservationData.currency,
         currencyCode: reservationData.currencyCode,
         paymentMethod: reservationData.paymentMethod === 1 ? 'Cash' : reservationData.paymentMethod === 2 ? 'Card' : 'Other',
+        source: reservationData.source ?? 1, // ReservationSource enum int; default to Manual(1) if missing
         actualCheckOut: reservationData.actualCheckOutDate,
         isEarlyCheckOut: reservationData.status === ReservationStatus.CheckedOut &&
             reservationData.actualCheckOutDate &&

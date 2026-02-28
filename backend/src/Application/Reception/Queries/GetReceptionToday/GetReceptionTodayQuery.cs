@@ -134,6 +134,7 @@ public class GetReceptionTodayQueryHandler : IRequestHandler<GetReceptionTodayQu
             Currency = r.Currency,
             CurrencyCode = (int)r.CurrencyCode,
             PaymentMethod = r.PaymentMethod.ToString(),
+            Source = (int)r.Source,
             ActualCheckOut = r.ActualCheckOutDate?.ToString("yyyy-MM-dd"),
             IsEarlyCheckOut = r.Status == ReservationStatus.CheckedOut && 
                               r.ActualCheckOutDate.HasValue && 

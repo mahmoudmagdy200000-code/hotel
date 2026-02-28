@@ -1,6 +1,6 @@
 import {
     Wrench, ShoppingCart, Coffee, HelpCircle,
-    Banknote, Zap, Truck, Percent, Lightbulb, Droplets
+    Banknote, Zap, Truck, Percent, Lightbulb, Droplets, Undo2
 } from 'lucide-react';
 import type { CurrencyCodeValue, PaymentMethodValue } from './reservations';
 
@@ -14,7 +14,8 @@ export const ExpenseCategoryEnum = {
     Delivery: 7,
     Commission: 8,
     ElectricityBill: 9,
-    WaterBill: 10
+    WaterBill: 10,
+    Refund: 11
 } as const;
 
 export type ExpenseCategoryValue = typeof ExpenseCategoryEnum[keyof typeof ExpenseCategoryEnum];
@@ -29,7 +30,8 @@ export const ExpenseCategoryLabels: Record<ExpenseCategoryValue, string> = {
     [ExpenseCategoryEnum.Delivery]: 'expenses.categories.delivery',
     [ExpenseCategoryEnum.Commission]: 'expenses.categories.commission',
     [ExpenseCategoryEnum.ElectricityBill]: 'expenses.categories.electricity_bill',
-    [ExpenseCategoryEnum.WaterBill]: 'expenses.categories.water_bill'
+    [ExpenseCategoryEnum.WaterBill]: 'expenses.categories.water_bill',
+    [ExpenseCategoryEnum.Refund]: 'expenses.categories.refund'
 };
 
 /**
@@ -55,6 +57,7 @@ export const CATEGORY_STYLE: Record<number, { icon: any; color: string; bg: stri
     [ExpenseCategoryEnum.Commission]: { icon: Percent, color: 'text-purple-600', bg: 'bg-purple-50' },
     [ExpenseCategoryEnum.ElectricityBill]: { icon: Lightbulb, color: 'text-yellow-600', bg: 'bg-yellow-50' },
     [ExpenseCategoryEnum.WaterBill]: { icon: Droplets, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+    [ExpenseCategoryEnum.Refund]: { icon: Undo2, color: 'text-pink-600', bg: 'bg-pink-50' },
 };
 
 export const DEFAULT_CATEGORY_STYLE = { icon: HelpCircle, color: 'text-slate-400', bg: 'bg-slate-50' };

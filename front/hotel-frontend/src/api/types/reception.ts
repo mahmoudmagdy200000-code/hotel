@@ -15,6 +15,8 @@ export interface ReceptionReservationItemDto {
     currency: string;
     currencyCode: number;
     paymentMethod: string;
+    /** ReservationSource enum: Manual=1, PDF=2, WhatsApp=3, Booking=4 */
+    source: number;
     lines: ReceptionReservationLineDto[];
 }
 

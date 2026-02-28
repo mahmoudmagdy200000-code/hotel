@@ -34,6 +34,7 @@ public record ReceptionReservationItemDto
     public string Currency { get; init; } = string.Empty;
     public int CurrencyCode { get; init; }
     public string PaymentMethod { get; init; } = string.Empty;
+    public int Source { get; init; } // ReservationSource enum value: Manual=1, PDF=2, WhatsApp=3, Booking=4
     public List<ReceptionReservationLineDto> Lines { get; init; } = new();
 }
 
