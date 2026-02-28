@@ -64,6 +64,21 @@ public class DeleteReservationCommandHandler : IRequestHandler<DeleteReservation
             throw new ConflictException(ex.Message);
         }
 
+        // --- INTEGRITY FIX ---
+        // Reservation uses soft-delete, so the database-level ON DELETE CASCADE on Payments
+        // is never triggered. We must hard-delete the associated Payment records explicitly
+        // so they do not become orphaned ghost values in the Net Cash in Drawer calculation.
+        // This entire operation (soft-delete + payment removal + audit) is atomic because
+        // EF Core wraps a single SaveChangesAsync call in one database transaction.
+        var payments = await _context.Payments
+            .Where(p => p.ReservationId == request.Id)
+            .ToListAsync(cancellationToken);
+
+        if (payments.Count > 0)
+        {
+            _context.Payments.RemoveRange(payments);
+        }
+
         // Create audit event
         var auditEvent = new ReservationAuditEvent
         {
@@ -71,7 +86,7 @@ public class DeleteReservationCommandHandler : IRequestHandler<DeleteReservation
             EventType = "Deleted",
             ActorUserId = _user.Id ?? "Unknown",
             ActorEmail = _user.Email ?? "Unknown",
-            ActorRole = null, // Roles could be extracted if needed, but email is required by user
+            ActorRole = null,
             Reason = request.Reason,
             OccurredAtUtc = now,
             SnapshotJson = JsonSerializer.Serialize(snapshot)

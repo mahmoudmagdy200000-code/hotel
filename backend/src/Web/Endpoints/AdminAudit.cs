@@ -1,3 +1,4 @@
+using CleanArchitecture.Application.Admin.Commands.WipeOrphanedPayments;
 using CleanArchitecture.Application.Admin.Queries;
 using CleanArchitecture.Application.Admin.Queries.GetReservationAuditDetails;
 using CleanArchitecture.Application.Admin.Queries.GetReservationDeletes;
@@ -16,6 +17,7 @@ public class AdminAudit : EndpointGroupBase
 
         group.MapGet("reservations/deletes", GetReservationDeletes);
         group.MapGet("reservations/{id}", GetReservationAuditDetails);
+        group.MapPost("payments/wipe-orphaned", WipeOrphanedPayments);
     }
 
     public async Task<Ok<List<ReservationDeleteAuditListItemDto>>> GetReservationDeletes(ISender sender, [AsParameters] GetReservationDeletesQuery query)
@@ -27,6 +29,12 @@ public class AdminAudit : EndpointGroupBase
     public async Task<Ok<List<ReservationDeleteAuditListItemDto>>> GetReservationAuditDetails(ISender sender, int id)
     {
         var result = await sender.Send(new GetReservationAuditDetailsQuery(id));
+        return TypedResults.Ok(result);
+    }
+
+    public async Task<Ok<WipeOrphanedPaymentsResult>> WipeOrphanedPayments(ISender sender)
+    {
+        var result = await sender.Send(new WipeOrphanedPaymentsCommand());
         return TypedResults.Ok(result);
     }
 }
