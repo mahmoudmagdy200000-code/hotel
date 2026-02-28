@@ -140,7 +140,7 @@ public static class PdfExtractionRules
         { @"All\s*inclusive|All\s*In\b", "All Inclusive" },
         { @"Full\s*board|\bFB\b", "Full Board" },
         { @"Half\s*board|\bHB\b", "Half Board" },
-        { @"Bed\s*(?:&|and)\s*breakfast|\bB&B\b|\bBB\b", "Bed & Breakfast" },
+        { @"Bed\s*(?:&|and)\s*breakfast|\bB&B\b|\bBB\b|Breakfast\s*included", "Bed & Breakfast" },
         { @"Room\s*only|\bRO\b", "Room Only" }
     };
 
@@ -264,7 +264,7 @@ public static class PdfExtractionRules
     /// <summary>
     /// Extracts total price amount and currency.
     /// </summary>
-    public static (decimal? Amount, string? Currency) ExtractTotalPrice(string text)
+    public static (decimal? Amount, string? Currency) ExtractTotalPrice(string text, string? bookingNumber = null)
     {
         try {
             File.AppendAllText(@"c:\Users\Workstation\hotel\debug_log.txt", $"[DEBUG] Extracting Total Price. Text Length: {text.Length}\n");
@@ -278,21 +278,17 @@ public static class PdfExtractionRules
             // Primary Strategy: Structured Regex
             foreach (var label in TotalPriceLabels)
             {
-                // Debug: Print if label is found
-                if (Regex.IsMatch(text, Regex.Escape(label), RegexOptions.IgnoreCase))
-                {
-                   Console.WriteLine($"[DEBUG] Found label: {label}");
-                }
-
                 // Pattern: Label, optional colon, optional currency code/symbol, then number
-                // We use [\s\r\n]* explicitly to ensure we match across lines reliably
-                // We use ([\d\., ]+) for amount to be permissive (OCRs are messy, formats vary), relying on NormalizeAmount to clean it up.
                 // UPDATED REGEX: Now supports symbols ($ € £) or codes (USD EUR) both BEFORE and AFTER the amount.
                 var pattern = $@"{label}[\s\r\n]*[:：]?[\s\r\n]*(?:([A-Z€£$]{{1,3}})[\s\r\n]*)?([\d\., ]+)(?:[\s\r\n]*([A-Z€£$]{{1,3}}|[A-Z]{{2,3}}))?";
-                var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                if (match.Success)
+                var matches = Regex.Matches(text, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                
+                if (matches.Count > 0)
                 {
-                    Console.WriteLine($"[DEBUG] Strict Match Success! Groups: '{match.Groups[1].Value}', '{match.Groups[2].Value}', '{match.Groups[3].Value}'");
+                    // Grab the FINAL match for this label (e.g. the final summary "Total price" at the bottom of the PDF)
+                    var match = matches[matches.Count - 1];
+                    
+                    Console.WriteLine($"[DEBUG] Final Strict Match Success for '{label}'! Groups: '{match.Groups[1].Value}', '{match.Groups[2].Value}', '{match.Groups[3].Value}'");
                     
                     // Currency might be before or after the amount
                     var currencyBefore = match.Groups[1].Value.Trim();
@@ -300,7 +296,6 @@ public static class PdfExtractionRules
                     var currencyAfter = match.Groups[3].Value.Trim();
 
                     // Double-check we didn't match a "subtotal" if we have other options
-                    // Though \bTotal\b should already prevent this.
                     int checkStart = Math.Max(0, match.Index - 10);
                     int checkLength = Math.Min(match.Length + 20, text.Length - checkStart);
                     
@@ -312,14 +307,16 @@ public static class PdfExtractionRules
 
                     // Normalize amount (handle different decimal separators)
                     var normalizedAmount = NormalizeAmount(amountStr);
-                    Console.WriteLine($"[DEBUG] Normalized Amount: {normalizedAmount}");
                     
                     if (normalizedAmount.HasValue)
                     {
                         var currency = NormalizeCurrency(!string.IsNullOrEmpty(currencyBefore) ? currencyBefore : currencyAfter);
                         
-                        // Debug: What did we find?
-                        Console.WriteLine($"[DEBUG] Found currency: {currency}");
+                        // Debug for specific bookings
+                        if (bookingNumber == "6693946220" || bookingNumber == "5739645868" || bookingNumber == "6715814614")
+                        {
+                            Console.WriteLine($"[DEBUG] Total Price matched for {bookingNumber}: {normalizedAmount} {currency}. Source Label: {label}");
+                        }
 
                         return (normalizedAmount, currency);
                     }
@@ -511,17 +508,50 @@ public static class PdfExtractionRules
     }
 
     /// <summary>
-    /// Extracts meal plan / board type using regex matching against known patterns.
+    /// Extracts meal plan / board type using contextual regex matching to prioritize pricing table info.
     /// </summary>
-    public static string? ExtractMealPlan(string text)
+    public static string? ExtractMealPlan(string text, string? bookingNumber = null)
     {
-        // Search through the text for any of the meal plan patterns
-        foreach (var mapping in MealPlanMappings)
+        var allKeys = string.Join("|", MealPlanMappings.Keys);
+        var matches = new List<(string matchedString, string normalizedValue, int index, bool inPricingContext)>();
+
+        var mc = Regex.Matches(text, allKeys, RegexOptions.IgnoreCase);
+        foreach (Match m in mc)
         {
-            if (Regex.IsMatch(text, mapping.Key, RegexOptions.IgnoreCase))
+            string? normalized = null;
+            foreach (var kvp in MealPlanMappings)
             {
-                return mapping.Value;
+                if (Regex.IsMatch(m.Value, "^(?:" + kvp.Key + ")$", RegexOptions.IgnoreCase))
+                {
+                    normalized = kvp.Value;
+                    break;
+                }
             }
+            if (normalized == null) continue;
+
+            // Check context of this match (e.g. look at 30 chars before and after for pricing table keywords)
+            int start = Math.Max(0, m.Index - 40);
+            int len = Math.Min(text.Length - start, m.Length + 80);
+            string context = text.Substring(start, len);
+
+            bool inPricingContext = Regex.IsMatch(context, @"\b(?:Deal|Price|Total|Amount|€|\$|£|EGP|Taxes)\b", RegexOptions.IgnoreCase);
+            matches.Add((m.Value, normalized, m.Index, inPricingContext));
+        }
+
+        if (matches.Any())
+        {
+            // Requirement 1: Prioritize the pricing table text for the MealPlan field.
+            var pricingMatch = matches.FirstOrDefault(m => m.inPricingContext);
+            var selected = pricingMatch != default ? pricingMatch : matches.OrderBy(m => m.index).First();
+
+            var result = selected.normalizedValue;
+
+            if (bookingNumber == "6693946220" || bookingNumber == "5739645868" || bookingNumber == "6715814614")
+            {
+                Console.WriteLine($"[DEBUG] Meal Plan matched for {bookingNumber}: {result}. Context: {(pricingMatch != default ? "Pricing Table" : "First Occurrence (e.g., Room 1)")}");
+            }
+
+            return result;
         }
         
         return null;

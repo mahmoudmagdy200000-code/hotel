@@ -120,7 +120,8 @@ public class StructuredPdfReservationParser : IPdfReservationParser
     /// </summary>
     private ExtractedPdfData ExtractAllFields(string text)
     {
-        var (totalPrice, currency) = PdfExtractionRules.ExtractTotalPrice(text);
+        var bookingNumber = PdfExtractionRules.ExtractBookingNumber(text);
+        var (totalPrice, currency) = PdfExtractionRules.ExtractTotalPrice(text, bookingNumber);
 
         return new ExtractedPdfData
         {
@@ -129,11 +130,11 @@ public class StructuredPdfReservationParser : IPdfReservationParser
             CheckIn = PdfExtractionRules.ExtractCheckIn(text),
             CheckOut = PdfExtractionRules.ExtractCheckOut(text),
             RoomsCount = PdfExtractionRules.ExtractRoomsCount(text),
-            BookingNumber = PdfExtractionRules.ExtractBookingNumber(text),
+            BookingNumber = bookingNumber,
             TotalPrice = totalPrice,
             Currency = currency,
             CurrencyCode = PdfExtractionRules.DetectCurrencyCode(text, currency, totalPrice),
-            MealPlan = PdfExtractionRules.ExtractMealPlan(text)
+            MealPlan = PdfExtractionRules.ExtractMealPlan(text, bookingNumber)
         };
     }
 
