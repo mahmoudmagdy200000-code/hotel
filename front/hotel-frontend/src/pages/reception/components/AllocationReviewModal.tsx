@@ -141,27 +141,29 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                     </div>
                                                 </div>
 
-                                                {/* PDF Metadata Enrichment */}
-                                                {(item.requestedRoomHint || item.requestedRoomTypeName || item.guestCount || item.otaPrice) && (
-                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 border-t border-slate-50 pt-2">
+                                                {/* Extracted PDF Metadata Row (Defensive Layout) */}
+                                                {(item.requestedRoomHint || item.requestedRoomTypeName || (item.guestCount ?? 0) > 0 || (item.otaPrice ?? 0) > 0) && (
+                                                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs font-medium text-slate-600 bg-slate-50 p-2 rounded border border-slate-100 overflow-hidden">
                                                         {(item.requestedRoomTypeName || item.requestedRoomHint) && (
-                                                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500">
-                                                                <Bed className="w-3.5 h-3.5 text-slate-400" />
-                                                                <span className="truncate max-w-[150px] sm:max-w-none">
+                                                            <div className="flex items-center gap-1 text-blue-700 min-w-0">
+                                                                <Bed size={14} className="shrink-0" />
+                                                                <span className="truncate max-w-[180px]" title={item.requestedRoomTypeName || item.requestedRoomHint || ''}>
                                                                     {item.requestedRoomTypeName || item.requestedRoomHint}
                                                                 </span>
                                                             </div>
                                                         )}
-                                                        {item.guestCount && (
-                                                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500">
-                                                                <Users className="w-3.5 h-3.5 text-slate-400" />
+
+                                                        {(item.guestCount ?? 0) > 0 && (
+                                                            <div className="flex items-center gap-1 text-slate-700 shrink-0">
+                                                                <Users size={14} />
                                                                 <span>{item.guestCount} {item.guestCount === 1 ? 'Guest' : 'Guests'}</span>
                                                             </div>
                                                         )}
-                                                        {item.otaPrice && (
-                                                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-emerald-600">
-                                                                <Tag className="w-3.5 h-3.5 text-emerald-400" />
-                                                                <span>OTA: {formatCurrency(item.otaPrice)}</span>
+
+                                                        {(item.otaPrice ?? 0) > 0 && (
+                                                            <div className="flex items-center gap-1 text-emerald-600 shrink-0">
+                                                                <Tag size={14} />
+                                                                <span>OTA: {formatCurrency(item.otaPrice!)}</span>
                                                             </div>
                                                         )}
                                                     </div>

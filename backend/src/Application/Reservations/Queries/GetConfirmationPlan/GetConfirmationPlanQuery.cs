@@ -108,16 +108,21 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
 
             item.RequestedRoomCount = requestedCount;
 
-            // 1.5 Parse EXTRACTED_V2 metadata for UX enrichment
-            if (draft.Source == ReservationSource.PDF && !string.IsNullOrEmpty(draft.Notes))
+            // 1.5 Parse metadata from Notes field safely
+            if (draft.Source == ReservationSource.PDF && !string.IsNullOrEmpty(draft.Notes) && draft.Notes.Contains("[EXTRACTED_V2]"))
             {
-                // Parse RoomTypeHint
-                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint\s*=\s*([^|\n]+)", RegexOptions.IgnoreCase);
-                if (hintMatch.Success) item.RequestedRoomHint = hintMatch.Groups[1].Value.Trim();
-
-                // Parse Guests
-                var guestMatch = Regex.Match(draft.Notes, @"Guests\s*=\s*(\d+)", RegexOptions.IgnoreCase);
-                if (guestMatch.Success && int.TryParse(guestMatch.Groups[1].Value, out int guests)) item.GuestCount = guests;
+                // Fix: Use [^\r\n]+ to capture strictly until the end of the line
+                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint=([^\r\n]+)", RegexOptions.IgnoreCase);
+                if (hintMatch.Success) 
+                {
+                    item.RequestedRoomHint = hintMatch.Groups[1].Value.Trim();
+                }
+                
+                var guestsMatch = Regex.Match(draft.Notes, @"Guests=([^\r\n]+)", RegexOptions.IgnoreCase);
+                if (guestsMatch.Success && int.TryParse(guestsMatch.Groups[1].Value.Trim(), out int g)) 
+                {
+                    item.GuestCount = g;
+                }
 
                 // OtaPrice is simply the TotalAmount we extracted during parsing
                 item.OtaPrice = draft.TotalAmount;
