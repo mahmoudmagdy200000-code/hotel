@@ -564,86 +564,69 @@ public static class PdfExtractionRules
     /// </summary>
     public static string? ExtractRoomTypeHint(string text)
     {
-        var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+        if (string.IsNullOrWhiteSpace(text)) return null;
+
+        // 1. Split text into clean, non-empty lines
+        var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                         .Select(l => l.Trim())
-                        .Where(l => !string.IsNullOrWhiteSpace(l))
+                        .Where(l => l.Length > 0)
                         .ToList();
 
-        // 1. Label-anchored patterns (Highest precision)
-        var labelPatterns = new[]
-        {
-            @"(?:Room\s*type|Accommodation\s*type|Unit\s*type|Property\s*type|Type\s*of\s*room)\s*[:：]\s*([^\r\n\|]{3,60})",
-            @"(?:You\s*(?:have\s*)?booked|Reserved\s*room(?:\s*type)?)\s*[:：]?\s*([^\r\n\|]{3,60})",
-        };
+        string? foundHint = null;
 
-        foreach (var pattern in labelPatterns)
-        {
-            var m = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
-            if (m.Success)
-            {
-                var hint = CleanRoomTypeHint(m.Groups[1].Value);
-                if (!string.IsNullOrWhiteSpace(hint)) return hint;
-            }
-        }
-
-        // 2. Structural Fallback (Booking.com specific layout)
-        // Look for Meal Plan matches or Date Range patterns and capture the line above.
-        var dateRangePattern = @"\d{2}\s*-\s*\d{2}\s*[A-Za-z]{3}\s*\d{4}";
-        var mealPlanKeywords = new[] { "included", "inclusive", "board", "Room only" };
+        // 2. Structural Match: Find the Booking.com Dates line (e.g., "01 - 04 Mar 2026")
+        var dateRegex = new System.Text.RegularExpressions.Regex(@"\d{2}\s*(?:-[^-]+)?\s*[A-Za-z]{3}\s*\d{4}");
 
         for (int i = 0; i < lines.Count; i++)
         {
-            var currentLine = lines[i];
-            bool isAnchor = Regex.IsMatch(currentLine, dateRangePattern) || 
-                           mealPlanKeywords.Any(k => currentLine.Contains(k, StringComparison.OrdinalIgnoreCase));
-
-            if (isAnchor && i > 0)
+            if (dateRegex.IsMatch(lines[i]))
             {
-                // Inspect 1 and 2 lines above
-                for (int offset = 1; offset <= 2; offset++)
+                // The room name is usually 1 or 2 lines ABOVE the dates
+                if (i >= 1)
                 {
-                    int targetIdx = i - offset;
-                    if (targetIdx < 0) break;
-
-                    var candidate = lines[targetIdx];
+                    string lineAbove = lines[i - 1];
                     
-                    // Filter out noise
-                    if (candidate.Contains("Total price", StringComparison.OrdinalIgnoreCase) ||
-                        candidate.Contains("Booking number", StringComparison.OrdinalIgnoreCase) ||
-                        candidate.Length < 3 || candidate.Length > 80)
+                    // If the line above is a Meal Plan or Cancellation note, skip it and go 1 more line up
+                    if (lineAbove.Contains("Breakfast", StringComparison.OrdinalIgnoreCase) ||
+                        lineAbove.Contains("Meal", StringComparison.OrdinalIgnoreCase) ||
+                        lineAbove.Contains("Canceled", StringComparison.OrdinalIgnoreCase))
                     {
-                        continue;
+                        if (i >= 2)
+                        {
+                            foundHint = lines[i - 2];
+                        }
                     }
-
-                    // If it's a valid candidate, return it
-                    var hint = CleanRoomTypeHint(candidate);
-                    if (!string.IsNullOrWhiteSpace(hint)) return hint;
+                    else
+                    {
+                        foundHint = lineAbove;
+                    }
                 }
+                break; // Stop after first date match
             }
         }
 
-        // 3. Keyword scan (Fallback)
-        var roomKeywords = new[]
+        // 3. Fallback (Basic keyword scan if structural fails)
+        if (string.IsNullOrEmpty(foundHint))
         {
-            "Deluxe", "Standard", "Superior", "Suite", "Executive",
-            "Family", "Double", "Twin", "Triple", "Single", "Quadruple",
-            "Junior Suite", "Penthouse", "Bungalow", "Villa", "Studio",
-            "Economy", "Classic", "Premium", "Comfort", "Business"
-        };
+            var keywords = new[] { "Room", "Suite", "Chalet", "Villa", "Apartment", "Studio", "Tent" };
+            foundHint = lines.FirstOrDefault(l => keywords.Any(k => l.Contains(k, StringComparison.OrdinalIgnoreCase)) 
+                                             && !l.Contains("Total", StringComparison.OrdinalIgnoreCase));
+        }
 
-        foreach (var line in lines)
+        // 4. CRITICAL DB SAFEGUARD: Truncate and clean to prevent MySql Truncation Exception
+        if (!string.IsNullOrEmpty(foundHint))
         {
-            // Skip lines that look like dates, amounts, or pure digits
-            if (Regex.IsMatch(line, @"^\d+[/\-]\d+|^\$|^€|^£|^\d+\.\d+")) continue;
+            // Reject invalid lines that accidentally got caught
+            if (foundHint.Contains("Total price", StringComparison.OrdinalIgnoreCase) || 
+                foundHint.StartsWith("US$")) return null;
 
-            foreach (var keyword in roomKeywords)
+            // Truncate to maximum 65 characters
+            if (foundHint.Length > 65)
             {
-                if (line.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-                {
-                    var hint = CleanRoomTypeHint(line);
-                    if (!string.IsNullOrWhiteSpace(hint)) return hint;
-                }
+                foundHint = foundHint.Substring(0, 65);
             }
+            
+            return foundHint.Trim();
         }
 
         return null;
