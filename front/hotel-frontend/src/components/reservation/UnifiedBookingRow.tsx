@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Bed, AlertCircle, Utensils, ChevronRight, Lock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import type { BookingDisplayData } from '@/api/adapters/bookingAdapter';
+import { StatusBadge } from '@/components/reservation/StatusBadge';
 
 interface UnifiedBookingRowProps {
     booking: BookingDisplayData;
@@ -41,6 +42,7 @@ export const UnifiedBookingRow = ({
                     <div>
                         <div className="font-black text-slate-900 uppercase tracking-tight text-sm flex items-center gap-2">
                             {booking.guestName}
+                            <StatusBadge status={booking.status} className="scale-75 origin-left" />
                             {booking.isPriceLocked && <Lock className="w-3 h-3 text-amber-500" />}
                         </div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">

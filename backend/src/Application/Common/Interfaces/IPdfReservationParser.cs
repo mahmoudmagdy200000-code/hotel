@@ -29,4 +29,8 @@ public class ExtractedPdfData
     public string? BookingNumber { get; set; }
     /// <summary>Normalized meal plan / board type (e.g. "Full Board", "All Inclusive").</summary>
     public string? MealPlan { get; set; }
+    /// <summary>Number of guests/persons extracted from the PDF (e.g. "2 adults").</summary>
+    public int? NumberOfPersons { get; set; }
+    /// <summary>Hotel/property name extracted from PDF header or booking summary.</summary>
+    public string? HotelName { get; set; }
 }

@@ -135,24 +135,25 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
                     data.RoomsCount = 1;
                 }
 
-                // Build extracted marker with RoomsCount and RoomTypeHint
+                // Build extracted marker — include all metadata in EXTRACTED_V2 tag
                 var extractedParts = new List<string>();
                 if (data.RoomsCount.HasValue && data.RoomsCount.Value > 0)
-                {
                     extractedParts.Add($"RoomsCount={data.RoomsCount.Value}");
-                }
                 if (!string.IsNullOrWhiteSpace(data.RoomTypeHint))
-                {
                     extractedParts.Add($"RoomTypeHint={data.RoomTypeHint}");
-                }
                 if (!string.IsNullOrWhiteSpace(data.MealPlan))
-                {
                     extractedParts.Add($"MealPlan={data.MealPlan}");
-                }
-                var extractedMarker = extractedParts.Any() 
-                    ? $"[EXTRACTED_V2] {string.Join(" | ", extractedParts)}" 
+                if (data.NumberOfPersons.HasValue)
+                    extractedParts.Add($"Guests={data.NumberOfPersons.Value}");
+                if (!string.IsNullOrWhiteSpace(data.HotelName))
+                    extractedParts.Add($"Hotel={data.HotelName}");
+                if (!string.IsNullOrWhiteSpace(data.Phone))
+                    extractedParts.Add($"Phone={data.Phone}");
+
+                var extractedMarker = extractedParts.Any()
+                    ? $"[EXTRACTED_V2] {string.Join(" | ", extractedParts)}"
                     : "";
-                
+
                 reservation.Notes = $"{cleanNotes}\n{logEntry}\n{extractedMarker}\n[PARSING_STATUS] Parsed".Trim();
 
                 // Update BookingNumber if extracted and different from auto-generated
@@ -162,19 +163,19 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
                 }
 
                 // ---------------------------------------------------------
-                // AUTO-ASSIGN LOGIC (Best Practice for Automated Ingestion)
+                // AUTO-ASSIGN LOGIC — TEXT/KEYWORD BASED ONLY (Bug 1 Fix)
                 // ---------------------------------------------------------
-                // To ensure the reservation appears in 'Occupancy' and 'Financials', 
-                // we must assign it to a physical Room (ReservationLine).
-                
-                // 1. Determine Date Range
+                // Room matching is performed ONLY via text matching of RoomTypeHint.
+                // Price-based fallback has been removed: OTA prices (with Genius discounts,
+                // seasonal rates, etc.) must NEVER drive room type selection.
+                // Safe Fallback: if no text match → leave reservation unassigned.
+                // The receptionist will manually pick the correct room before Check-in.
+
                 var checkIn = reservation.CheckInDate;
                 var checkOut = reservation.CheckOutDate;
 
-                // 2. Identify Unavailable Rooms (Confirmed/CheckedIn/CheckedOut overlap)
-                // We exclude Cancelled and Draft from blocking (though we are creating a Draft, we assume we want a free spot)
+                // Identify occupied rooms (overlapping confirmed/checked-in bookings only)
                 var blockingStatuses = new[] { ReservationStatus.Confirmed, ReservationStatus.CheckedIn, ReservationStatus.CheckedOut };
-                
                 var occupiedRoomIds = await _context.ReservationLines
                     .Where(l => blockingStatuses.Contains(l.Reservation!.Status) &&
                                 l.Reservation.CheckInDate < checkOut &&
@@ -183,115 +184,119 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
                     .Distinct()
                     .ToListAsync(cancellationToken);
 
-                // 3. Try to match Room Type
+                // Resolve target RoomType ID via keyword/text match only
                 int? targetRoomTypeId = null;
                 if (!string.IsNullOrWhiteSpace(data.RoomTypeHint))
                 {
-                    // Fuzzy match: if PDF says "Family", match type "Family Suite"
-                    var matchedType = await _context.RoomTypes
+                    var activeRoomTypes = await _context.RoomTypes
                         .Where(rt => rt.IsActive)
-                        .ToListAsync(cancellationToken); 
-                        
-                    // Perform client-side fuzzy match string check
-                    var bestMatch = matchedType.FirstOrDefault(rt => 
-                        rt.Name.Contains(data.RoomTypeHint, StringComparison.OrdinalIgnoreCase) || 
-                        data.RoomTypeHint.Contains(rt.Name, StringComparison.OrdinalIgnoreCase));
-                    
-                    if (bestMatch != null) targetRoomTypeId = bestMatch.Id;
+                        .ToListAsync(cancellationToken);
+
+                    // Score each room type: higher score = better match
+                    // Strategy: split the hint into keywords and count how many appear in the type name (and vice-versa)
+                    var hint = data.RoomTypeHint.ToUpperInvariant();
+                    var hintKeywords = Regex.Split(hint, @"\W+").Where(w => w.Length >= 3).ToArray();
+
+                    int bestScore = 0;
+                    Domain.Entities.RoomType? bestType = null;
+
+                    foreach (var rt in activeRoomTypes)
+                    {
+                        var rtName = rt.Name.ToUpperInvariant();
+                        var rtKeywords = Regex.Split(rtName, @"\W+").Where(w => w.Length >= 3).ToArray();
+
+                        int score = 0;
+                        // Keyword overlap: hint keywords found in room type name
+                        score += hintKeywords.Count(k => rtName.Contains(k));
+                        // Keyword overlap: room type name keywords found in hint
+                        score += rtKeywords.Count(k => hint.Contains(k));
+                        // Bonus: exact substring match in either direction
+                        if (rtName.Contains(hint) || hint.Contains(rtName)) score += 5;
+
+                        if (score > bestScore)
+                        {
+                            bestScore = score;
+                            bestType = rt;
+                        }
+                    }
+
+                    // Only use the match if confidence is sufficient (score >= 2 means at least one keyword matched bidirectionally)
+                    if (bestScore >= 2 && bestType != null)
+                    {
+                        targetRoomTypeId = bestType.Id;
+                        Console.WriteLine($"[AUTO-ASSIGN] RoomType matched: '{bestType.Name}' (score={bestScore}) for hint '{data.RoomTypeHint}'");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[AUTO-ASSIGN] No confident RoomType match for hint '{data.RoomTypeHint}'. Leaving unassigned.");
+                    }
                 }
 
-                // 4. Find and assign rooms (supports multiple rooms from PDF)
-                var totalAmount = reservation.TotalAmount;
-                var nights = (checkOut - checkIn).Days;
-                if (nights < 1) nights = 1;
-                var roomsNeeded = data.RoomsCount ?? 1;
-                
-                // Calculate per-room amount
-                var perRoomTotal = Math.Round(totalAmount / roomsNeeded, 2);
-                var perRoomRatePerNight = Math.Round(perRoomTotal / nights, 2);
-
-                // Clean previous lines (re-parse scenario)
+                // Remove previous lines (re-parse scenario)
                 var existingLines = await _context.ReservationLines
                     .Where(l => l.ReservationId == reservation.Id)
                     .ToListAsync(cancellationToken);
                 _context.ReservationLines.RemoveRange(existingLines);
 
-                // Track rooms we've already assigned in this parse
+                var roomsNeeded = data.RoomsCount ?? 1;
+                var nights = (checkOut - checkIn).Days;
+                if (nights < 1) nights = 1;
+                var totalAmount = reservation.TotalAmount;
+                var perRoomTotal = Math.Round(totalAmount / roomsNeeded, 2);
+
                 var assignedRoomIds = new List<int>();
                 var assignedNotes = new List<string>();
                 var assignedCount = 0;
 
-                for (int roomIdx = 0; roomIdx < roomsNeeded; roomIdx++)
+                if (targetRoomTypeId.HasValue)
                 {
-                    // Combine occupied + already-assigned to avoid double-booking
-                    var excludedIds = occupiedRoomIds.Concat(assignedRoomIds).Distinct().ToList();
-
-                    Room? availableRoom = null;
-
-                    if (targetRoomTypeId.HasValue)
+                    for (int roomIdx = 0; roomIdx < roomsNeeded; roomIdx++)
                     {
-                        availableRoom = await _context.Rooms
+                        var excludedIds = occupiedRoomIds.Concat(assignedRoomIds).Distinct().ToList();
+
+                        var availableRoom = await _context.Rooms
                             .Include(r => r.RoomType)
                             .Where(r => r.IsActive && r.RoomTypeId == targetRoomTypeId.Value && !excludedIds.Contains(r.Id))
                             .FirstOrDefaultAsync(cancellationToken);
-                    }
 
-                    // Fallback: closest base rate to expected per-room rate
-                    if (availableRoom == null && perRoomRatePerNight > 0)
-                    {
-                        var availableRoomsWithTypes = await _context.Rooms
-                            .Include(r => r.RoomType)
-                            .Where(r => r.IsActive && !excludedIds.Contains(r.Id))
-                            .ToListAsync(cancellationToken);
-
-                        availableRoom = availableRoomsWithTypes
-                            .OrderBy(r => Math.Abs(r.RoomType!.DefaultRate - perRoomRatePerNight))
-                            .FirstOrDefault();
-                    }
-
-                    // Final fallback: any available room
-                    if (availableRoom == null)
-                    {
-                        availableRoom = await _context.Rooms
-                            .Include(r => r.RoomType)
-                            .Where(r => r.IsActive && !excludedIds.Contains(r.Id))
-                            .FirstOrDefaultAsync(cancellationToken);
-                    }
-
-                    if (availableRoom != null)
-                    {
-                        // For the last room, assign the remainder to avoid rounding loss
-                        var lineTotal = (roomIdx == roomsNeeded - 1)
-                            ? totalAmount - (perRoomTotal * (roomsNeeded - 1))
-                            : perRoomTotal;
-
-                        var line = new ReservationLine
+                        if (availableRoom != null)
                         {
-                            ReservationId = reservation.Id,
-                            RoomId = availableRoom.Id,
-                            RoomTypeId = availableRoom.RoomTypeId,
-                            Nights = nights,
-                            LineTotal = lineTotal,
-                            RatePerNight = Math.Round(lineTotal / nights, 2)
-                        };
+                            var lineTotal = (roomIdx == roomsNeeded - 1)
+                                ? totalAmount - (perRoomTotal * (roomsNeeded - 1))
+                                : perRoomTotal;
 
-                        _context.ReservationLines.Add(line);
-                        assignedRoomIds.Add(availableRoom.Id);
-                        assignedNotes.Add($"Room {availableRoom.RoomNumber} ({availableRoom.RoomType?.Name})");
-                        assignedCount++;
+                            var line = new ReservationLine
+                            {
+                                ReservationId = reservation.Id,
+                                RoomId = availableRoom.Id,
+                                RoomTypeId = availableRoom.RoomTypeId,
+                                Nights = nights,
+                                LineTotal = lineTotal,
+                                RatePerNight = Math.Round(lineTotal / nights, 2)
+                            };
+
+                            _context.ReservationLines.Add(line);
+                            assignedRoomIds.Add(availableRoom.Id);
+                            assignedNotes.Add($"Room {availableRoom.RoomNumber} ({availableRoom.RoomType?.Name})");
+                            assignedCount++;
+                        }
                     }
                 }
 
-                // Update notes
+                // Update notes with assignment result
                 if (assignedCount > 0)
                 {
-                    var autoNote = $"\n[AUTO-ASSIGN] Assigned {assignedCount}/{roomsNeeded} room(s): {string.Join(", ", assignedNotes)}";
-                    if (!reservation.Notes?.Contains("[AUTO-ASSIGN]") == true) reservation.Notes += autoNote;
+                    reservation.Notes += $"\n[AUTO-ASSIGN] Assigned {assignedCount}/{roomsNeeded} room(s): {string.Join(", ", assignedNotes)}";
                 }
                 else
                 {
-                    var failNote = "\n[AUTO-ASSIGN] FAILED: No available rooms found.";
-                    if (!reservation.Notes?.Contains(failNote) == true) reservation.Notes += failNote;
+                    // Safe fallback: no room assigned — receptionist must assign manually before Check-in
+                    var reason = targetRoomTypeId.HasValue
+                        ? "No available rooms found for matched type."
+                        : string.IsNullOrWhiteSpace(data.RoomTypeHint)
+                            ? "Room type not found in PDF."
+                            : $"No confident RoomType match for '{data.RoomTypeHint}'.";
+                    reservation.Notes += $"\n[WARN] Room unassigned — {reason} Please assign a room manually before Check-in.";
                 }
 
                 await _context.SaveChangesAsync(cancellationToken);

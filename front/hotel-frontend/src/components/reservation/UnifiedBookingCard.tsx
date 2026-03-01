@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Hash, CalendarDays, Bed, LogIn, LogOut, Eye, AlertCircle, Utensils, Lock } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { BookingDisplayData } from '@/api/adapters/bookingAdapter';
+import { StatusBadge } from '@/components/reservation/StatusBadge';
 
 interface UnifiedBookingCardProps {
     booking: BookingDisplayData;
@@ -60,6 +61,7 @@ export const UnifiedBookingCard = ({
                                     {booking.guestName}
                                 </span>
                                 <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", statusColor)} title={booking.status} />
+                                <StatusBadge status={booking.status} className="ml-1 scale-[0.85] origin-left" />
                             </div>
                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
                                 {booking.phone || t('no_phone', 'No Phone')}
@@ -92,7 +94,7 @@ export const UnifiedBookingCard = ({
                     <div className="flex items-center gap-3 min-w-0 text-[10px] font-bold text-slate-400">
                         <div className="flex items-center gap-1 truncate uppercase tracking-tighter bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
                             <Hash className="w-2.5 h-2.5 text-slate-300" />
-                            <span>{booking.bookingNumber || t('pending', 'Pending')}</span>
+                            <span>{booking.bookingNumber || '—'}</span>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
                             <CalendarDays className="w-2.5 h-2.5 text-slate-300" />

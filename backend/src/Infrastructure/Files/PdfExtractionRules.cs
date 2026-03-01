@@ -557,6 +557,121 @@ public static class PdfExtractionRules
         return null;
     }
 
+    /// <summary>
+    /// Extracts the room type hint string from the PDF text (e.g., "Double Room", "Suite", "Triple").
+    /// Uses keyword-based matching from common OTA room description labels.
+    /// Returns the raw string for later fuzzy-matching against local RoomType names.
+    /// </summary>
+    public static string? ExtractRoomTypeHint(string text)
+    {
+        // Label-anchored patterns: "Room type:", "Accommodation type:", "Unit type:", etc.
+        var labelPatterns = new[]
+        {
+            @"(?:Room\s*type|Accommodation\s*type|Unit\s*type|Property\s*type|Type\s*of\s*room)\s*[:：]\s*([^\r\n\|]{3,60})",
+            @"(?:You\s*(?:have\s*)?booked|Reserved\s*room(?:\s*type)?)\s*[:：]?\s*([^\r\n\|]{3,60})",
+        };
+
+        foreach (var pattern in labelPatterns)
+        {
+            var m = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+            if (m.Success)
+            {
+                var hint = CleanRoomTypeHint(m.Groups[1].Value);
+                if (!string.IsNullOrWhiteSpace(hint)) return hint;
+            }
+        }
+
+        // Keyword scan: if we find an explicit room keyword on its own line, use that line
+        var roomKeywords = new[]
+        {
+            "Deluxe", "Standard", "Superior", "Suite", "Executive",
+            "Family", "Double", "Twin", "Triple", "Single", "Quadruple",
+            "Junior Suite", "Penthouse", "Bungalow", "Villa", "Studio",
+            "Economy", "Classic", "Premium", "Comfort", "Business"
+        };
+
+        var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            // Skip very short or very long lines (not a room type line)
+            if (trimmed.Length < 3 || trimmed.Length > 80) continue;
+            // Skip lines that look like dates, amounts, or pure digits
+            if (Regex.IsMatch(trimmed, @"^\d+[/\-]\d+|^\$|^€|^£|^\d+\.\d+")) continue;
+
+            foreach (var keyword in roomKeywords)
+            {
+                if (trimmed.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                {
+                    var hint = CleanRoomTypeHint(trimmed);
+                    if (!string.IsNullOrWhiteSpace(hint)) return hint;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts the number of guests/persons from the PDF (e.g., "2 adults", "Total guests: 3").
+    /// </summary>
+    public static int? ExtractNumberOfPersons(string text)
+    {
+        var patterns = new[]
+        {
+            @"(?:Total\s*guests?|No\.\s*of\s*guests?|Number\s*of\s*guests?|Guests?)\s*[:：]?\s*(\d{1,2})\b",
+            @"(\d{1,2})\s*adult[s]?(?:\s*[,\+&]\s*\d{1,2}\s*child(?:ren)?)?",
+            @"(\d{1,2})\s*(?:guests?|persons?|pax|people)\b",
+            @"(?:عدد\s*الضيوف|الأشخاص)\s*[:：]?\s*(\d{1,2})\b", // Arabic
+        };
+
+        int? maxGuests = null;
+
+        foreach (var pattern in patterns)
+        {
+            var matches = Regex.Matches(text, pattern, RegexOptions.IgnoreCase);
+            foreach (Match m in matches)
+            {
+                if (int.TryParse(m.Groups[1].Value, out var count) && count > 0 && count <= 20)
+                {
+                    // Take the largest reasonable number (multi-room bookings may have multiple "2 adults" lines)
+                    if (!maxGuests.HasValue || count > maxGuests.Value)
+                        maxGuests = count;
+                }
+            }
+        }
+
+        return maxGuests;
+    }
+
+    /// <summary>
+    /// Extracts the hotel/property name from the PDF.
+    /// Looks for common OTA label patterns like "Property: ...", "Hotel: ...", etc.
+    /// </summary>
+    public static string? ExtractHotelName(string text)
+    {
+        var labelPatterns = new[]
+        {
+            @"(?:Property\s*name|Hotel\s*name|Accommodation\s*name|Resort\s*name|Establishment)\s*[:：]\s*([^\r\n\|]{3,100})",
+            @"(?:Property|Hotel|Resort|Venue)\s*[:：]\s*([^\r\n\|]{3,100})",
+            @"(?:You\s*are\s*(?:staying\s*at|checking\s*into))\s*[:：]?\s*([^\r\n\|]{3,100})",
+            @"(?:اسم\s*الفندق|اسم\s*المنشأة)\s*[:：]\s*([^\r\n\|]{3,100})", // Arabic
+        };
+
+        foreach (var pattern in labelPatterns)
+        {
+            var m = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+            if (m.Success)
+            {
+                var name = CleanExtractedText(m.Groups[1].Value);
+                if (!string.IsNullOrWhiteSpace(name) && name.Length >= 3 && name.Length <= 100)
+                    return name;
+            }
+        }
+
+        return null;
+    }
+
     #endregion
 
     #region Private Helpers
@@ -686,6 +801,22 @@ public static class PdfExtractionRules
         // Remove trailing punctuation
         text = Regex.Replace(text, @"[,;:\-]+$", "").Trim();
         return text;
+    }
+
+    /// <summary>
+    /// Cleans a room type hint candidate: strips meal plan words, prices, and noise leaving core room type text.
+    /// </summary>
+    private static string CleanRoomTypeHint(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
+        var text = CleanExtractedText(raw);
+        // Remove price artifacts (e.g. "$123", "USD 200")
+        text = Regex.Replace(text, @"[\$€£]\s*[\d,.]+|[\d,.]+\s*(?:USD|EUR|EGP|GBP)\b", "", RegexOptions.IgnoreCase).Trim();
+        // Remove meal plan words that might bleed in
+        text = Regex.Replace(text, @"\b(?:All\s*Inclusive|Full\s*Board|Half\s*Board|Breakfast\s*Included|Room\s*Only|B&B|BB|HB|FB)\b", "", RegexOptions.IgnoreCase).Trim();
+        // Remove trailing/leading dashes
+        text = Regex.Replace(text, @"^[\-–—\s]+|[\-–—\s]+$", "").Trim();
+        return text.Length >= 3 ? text : string.Empty;
     }
 
     #endregion

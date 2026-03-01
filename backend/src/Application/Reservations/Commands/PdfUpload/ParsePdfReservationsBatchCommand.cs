@@ -198,22 +198,23 @@ public class ParsePdfReservationsBatchCommandHandler
                 
                 var logEntry = $"[PARSING_DIAGNOSTICS] Step=MapFields | Duration={(DateTime.UtcNow - startTime).TotalMilliseconds}ms | CorrelationId={correlationId}";
                 
-                // Build extracted marker (Unified with Single Command)
+                // Build extracted marker (Unified with Single Command — includes all metadata)
                 var extractedParts = new List<string>();
                 if (data.RoomsCount.HasValue && data.RoomsCount.Value > 0)
-                {
                     extractedParts.Add($"RoomsCount={data.RoomsCount.Value}");
-                }
                 if (!string.IsNullOrWhiteSpace(data.RoomTypeHint))
-                {
                     extractedParts.Add($"RoomTypeHint={data.RoomTypeHint}");
-                }
                 if (!string.IsNullOrWhiteSpace(data.MealPlan))
-                {
                     extractedParts.Add($"MealPlan={data.MealPlan}");
-                }
-                var extractedMarker = extractedParts.Any() 
-                    ? $"[EXTRACTED_V2] {string.Join(" | ", extractedParts)}" 
+                if (data.NumberOfPersons.HasValue)
+                    extractedParts.Add($"Guests={data.NumberOfPersons.Value}");
+                if (!string.IsNullOrWhiteSpace(data.HotelName))
+                    extractedParts.Add($"Hotel={data.HotelName}");
+                if (!string.IsNullOrWhiteSpace(data.Phone))
+                    extractedParts.Add($"Phone={data.Phone}");
+
+                var extractedMarker = extractedParts.Any()
+                    ? $"[EXTRACTED_V2] {string.Join(" | ", extractedParts)}"
                     : "";
                     
                 reservation.Notes = $"{cleanNotes}\n{logEntry}\n{extractedMarker}\n[PARSING_STATUS] Parsed".Trim();

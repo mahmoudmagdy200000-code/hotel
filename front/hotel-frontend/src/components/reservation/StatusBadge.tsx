@@ -7,7 +7,15 @@ const STATUS_CONFIG: Record<string, { style: string; labelKey: string }> = {
         style: "bg-blue-50 text-blue-600 border-blue-100",
         labelKey: 'confirmed'
     },
+    'Confirmed': {
+        style: "bg-blue-50 text-blue-600 border-blue-100",
+        labelKey: 'confirmed'
+    },
     [ReservationStatus.Draft]: {
+        style: "bg-slate-100 text-slate-600 border-slate-200",
+        labelKey: 'draft'
+    },
+    'Draft': {
         style: "bg-slate-100 text-slate-600 border-slate-200",
         labelKey: 'draft'
     },
@@ -15,7 +23,15 @@ const STATUS_CONFIG: Record<string, { style: string; labelKey: string }> = {
         style: "bg-emerald-50 text-emerald-600 border-emerald-100",
         labelKey: 'checked_in'
     },
+    'CheckedIn': {
+        style: "bg-emerald-50 text-emerald-600 border-emerald-100",
+        labelKey: 'checked_in'
+    },
     [ReservationStatus.CheckedOut]: {
+        style: "bg-purple-50 text-purple-600 border-purple-100",
+        labelKey: 'checked_out'
+    },
+    'CheckedOut': {
         style: "bg-purple-50 text-purple-600 border-purple-100",
         labelKey: 'checked_out'
     },
@@ -23,7 +39,15 @@ const STATUS_CONFIG: Record<string, { style: string; labelKey: string }> = {
         style: "bg-rose-50 text-rose-600 border-rose-100",
         labelKey: 'cancelled'
     },
+    'Cancelled': {
+        style: "bg-rose-50 text-rose-600 border-rose-100",
+        labelKey: 'cancelled'
+    },
     [ReservationStatus.NoShow]: {
+        style: "bg-rose-50 text-rose-600 border-rose-100",
+        labelKey: 'no_show'
+    },
+    'NoShow': {
         style: "bg-rose-50 text-rose-600 border-rose-100",
         labelKey: 'no_show'
     },
