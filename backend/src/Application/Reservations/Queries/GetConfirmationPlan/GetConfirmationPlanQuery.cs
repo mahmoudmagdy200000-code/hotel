@@ -232,18 +232,22 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             }
 
             // Phase 2: Fill remaining slots from best available candidates
-            var needed = item.RequestedRoomCount - item.ProposedRooms.Count;
-            if (needed > 0)
+            // [PRODUCTION FIX]: For PDF sources, skip auto-filling. We want 100% manual assignment.
+            if (draft.Source != ReservationSource.PDF)
             {
-                var remainingCandidates = item.CandidateRooms
-                    .Where(c => !item.ProposedRooms.Any(p => p.RoomId == c.RoomId))
-                    .Take(needed)
-                    .ToList();
-                
-                foreach (var pick in remainingCandidates)
+                var needed = item.RequestedRoomCount - item.ProposedRooms.Count;
+                if (needed > 0)
                 {
-                     pick.IsRecommended = true;
-                     item.ProposedRooms.Add(pick);
+                    var remainingCandidates = item.CandidateRooms
+                        .Where(c => !item.ProposedRooms.Any(p => p.RoomId == c.RoomId))
+                        .Take(needed)
+                        .ToList();
+                    
+                    foreach (var pick in remainingCandidates)
+                    {
+                         pick.IsRecommended = true;
+                         item.ProposedRooms.Add(pick);
+                    }
                 }
             }
             

@@ -163,79 +163,11 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
                 }
 
                 // ---------------------------------------------------------
-                // AUTO-ASSIGN LOGIC — TEXT/KEYWORD BASED ONLY (Bug 1 Fix)
+                // AUTO-ASSIGN LOGIC — DISABLED FOR PRODUCTION SAFETY
                 // ---------------------------------------------------------
-                // Room matching is performed ONLY via text matching of RoomTypeHint.
-                // Price-based fallback has been removed: OTA prices (with Genius discounts,
-                // seasonal rates, etc.) must NEVER drive room type selection.
-                // Safe Fallback: if no text match → leave reservation unassigned.
-                // The receptionist will manually pick the correct room before Check-in.
-
-                var checkIn = reservation.CheckInDate;
-                var checkOut = reservation.CheckOutDate;
-
-                // Identify occupied rooms (overlapping confirmed/checked-in bookings only)
-                var blockingStatuses = new[] { ReservationStatus.Confirmed, ReservationStatus.CheckedIn, ReservationStatus.CheckedOut };
-                var occupiedRoomIds = await _context.ReservationLines
-                    .Where(l => blockingStatuses.Contains(l.Reservation!.Status) &&
-                                l.Reservation.CheckInDate < checkOut &&
-                                l.Reservation.CheckOutDate > checkIn)
-                    .Select(l => l.RoomId)
-                    .Distinct()
-                    .ToListAsync(cancellationToken);
-
-                // Resolve target RoomType ID via STRICT ALL-WORDS match only.
-                // Rule: a RoomType is only accepted if EVERY word in its Name
-                //       is found somewhere in the PDF hint (case-insensitive).
-                // Example: "DOUBLE VIEW" requires the hint to contain BOTH "double" AND "view".
-                //          "TRIPLE VIEW" is rejected if the hint doesn't contain "triple".
-                // Safe Fallback: if no room type passes, leave unassigned (0 lines).
-                int? targetRoomTypeId = null;
-                if (!string.IsNullOrWhiteSpace(data.RoomTypeHint))
-                {
-                    var activeRoomTypes = await _context.RoomTypes
-                        .Where(rt => rt.IsActive)
-                        .ToListAsync(cancellationToken);
-
-                    var hintLower = data.RoomTypeHint.ToLowerInvariant();
-
-                    // Build a list of strict matches (all words of RoomType.Name are in the hint)
-                    var strictMatches = activeRoomTypes
-                        .Where(rt =>
-                        {
-                            // Split RoomType name into individual words (≥3 chars, alpha)
-                            var nameWords = Regex.Split(rt.Name.ToLowerInvariant(), @"\W+")
-                                                 .Where(w => w.Length >= 3)
-                                                 .ToArray();
-                            // Must have at least one meaningful word
-                            if (nameWords.Length == 0) return false;
-                            // STRICT: every word of the type name must appear in the hint
-                            return nameWords.All(w => hintLower.Contains(w));
-                        })
-                        .ToList();
-
-                    if (strictMatches.Count == 1)
-                    {
-                        // Unambiguous single match — use it
-                        targetRoomTypeId = strictMatches[0].Id;
-                        Console.WriteLine($"[AUTO-ASSIGN] Strict match: '{strictMatches[0].Name}' for hint '{data.RoomTypeHint}'");
-                    }
-                    else if (strictMatches.Count > 1)
-                    {
-                        // Multiple matches — pick the one whose name has the most words
-                        // (more specific type wins: "DOUBLE SEA VIEW" beats "DOUBLE")
-                        var best = strictMatches
-                            .OrderByDescending(rt => Regex.Split(rt.Name, @"\W+").Length)
-                            .First();
-                        targetRoomTypeId = best.Id;
-                        Console.WriteLine($"[AUTO-ASSIGN] Ambiguous strict match ({strictMatches.Count} candidates). Chose most specific: '{best.Name}' for hint '{data.RoomTypeHint}'");
-                    }
-                    else
-                    {
-                        // No strict match — leave unassigned
-                        Console.WriteLine($"[AUTO-ASSIGN] No strict match for hint '{data.RoomTypeHint}'. Leaving unassigned.");
-                    }
-                }
+                // All PDF reservations now default to an 'Unassigned' state.
+                // The receptionist must manually assign the room in the UI.
+                // This prevents misallocations due to complex OTA room descriptions.
 
                 // Remove previous lines (re-parse scenario)
                 var existingLines = await _context.ReservationLines
@@ -244,65 +176,15 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
                 _context.ReservationLines.RemoveRange(existingLines);
 
                 var roomsNeeded = data.RoomsCount ?? 1;
-                var nights = (checkOut - checkIn).Days;
-                if (nights < 1) nights = 1;
-                var totalAmount = reservation.TotalAmount;
-                var perRoomTotal = Math.Round(totalAmount / roomsNeeded, 2);
 
-                var assignedRoomIds = new List<int>();
-                var assignedNotes = new List<string>();
-                var assignedCount = 0;
+                // Skip assignment loop - forcing unassigned state
 
-                if (targetRoomTypeId.HasValue)
-                {
-                    for (int roomIdx = 0; roomIdx < roomsNeeded; roomIdx++)
-                    {
-                        var excludedIds = occupiedRoomIds.Concat(assignedRoomIds).Distinct().ToList();
-
-                        var availableRoom = await _context.Rooms
-                            .Include(r => r.RoomType)
-                            .Where(r => r.IsActive && r.RoomTypeId == targetRoomTypeId.Value && !excludedIds.Contains(r.Id))
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (availableRoom != null)
-                        {
-                            var lineTotal = (roomIdx == roomsNeeded - 1)
-                                ? totalAmount - (perRoomTotal * (roomsNeeded - 1))
-                                : perRoomTotal;
-
-                            var line = new ReservationLine
-                            {
-                                ReservationId = reservation.Id,
-                                RoomId = availableRoom.Id,
-                                RoomTypeId = availableRoom.RoomTypeId,
-                                Nights = nights,
-                                LineTotal = lineTotal,
-                                RatePerNight = Math.Round(lineTotal / nights, 2)
-                            };
-
-                            _context.ReservationLines.Add(line);
-                            assignedRoomIds.Add(availableRoom.Id);
-                            assignedNotes.Add($"Room {availableRoom.RoomNumber} ({availableRoom.RoomType?.Name})");
-                            assignedCount++;
-                        }
-                    }
-                }
-
-                // Update notes with assignment result
-                if (assignedCount > 0)
-                {
-                    reservation.Notes += $"\n[AUTO-ASSIGN] Assigned {assignedCount}/{roomsNeeded} room(s): {string.Join(", ", assignedNotes)}";
-                }
-                else
-                {
-                    // Safe fallback: no room assigned — receptionist must assign manually before Check-in
-                    var reason = targetRoomTypeId.HasValue
-                        ? "No available rooms found for matched type."
-                        : string.IsNullOrWhiteSpace(data.RoomTypeHint)
-                            ? "Room type not found in PDF."
-                            : $"No confident RoomType match for '{data.RoomTypeHint}'.";
-                    reservation.Notes += $"\n[WARN] Room unassigned — {reason} Please assign a room manually before Check-in.";
-                }
+                // Update notes with manual assignment requirement
+                var hintInfo = !string.IsNullOrWhiteSpace(data.RoomTypeHint) 
+                    ? $" (Hint: {data.RoomTypeHint})" 
+                    : "";
+                
+                reservation.Notes += $"\n[WARN] Room unassigned{hintInfo}. Please review the PDF and assign a room manually before Check-in.";
 
                 await _context.SaveChangesAsync(cancellationToken);
                 
