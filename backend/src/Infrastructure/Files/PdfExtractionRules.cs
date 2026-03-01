@@ -566,7 +566,6 @@ public static class PdfExtractionRules
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
 
-        // 1. Split text into clean, non-empty lines
         var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                         .Select(l => l.Trim())
                         .Where(l => l.Length > 0)
@@ -574,57 +573,58 @@ public static class PdfExtractionRules
 
         string? foundHint = null;
 
-        // 2. Structural Match: Find the Booking.com Dates line (e.g., "01 - 04 Mar 2026")
-        var dateRegex = new System.Text.RegularExpressions.Regex(@"\d{2}\s*(?:-[^-]+)?\s*[A-Za-z]{3}\s*\d{4}");
+        // 1. Smart Keyword Scan (Most Reliable for OTA PDFs)
+        var keywords = new[] { "Room", "Suite", "Chalet", "Villa", "Apartment", "Studio", "Tent", "View" };
+        
+        var candidate = lines.FirstOrDefault(l => 
+            keywords.Any(k => l.Contains(k, StringComparison.OrdinalIgnoreCase)) &&
+            !l.Contains("Total", StringComparison.OrdinalIgnoreCase) &&
+            !l.Contains("units", StringComparison.OrdinalIgnoreCase) &&
+            !l.Contains("price", StringComparison.OrdinalIgnoreCase) &&
+            !l.Contains("guest", StringComparison.OrdinalIgnoreCase) &&
+            !l.Contains("Check-", StringComparison.OrdinalIgnoreCase) &&
+            l.Length >= 5 && l.Length <= 60
+        );
 
-        for (int i = 0; i < lines.Count; i++)
+        if (!string.IsNullOrEmpty(candidate))
         {
-            if (dateRegex.IsMatch(lines[i]))
+            foundHint = candidate;
+        }
+        else
+        {
+            // 2. Structural Fallback (If no keywords match, e.g., "Standard Promo")
+            var dateRegex = new System.Text.RegularExpressions.Regex(@"\d{2}\s*(?:-[^-]+)?\s*[A-Za-z]{3}\s*\d{4}");
+            for (int i = 0; i < lines.Count; i++)
             {
-                // The room name is usually 1 or 2 lines ABOVE the dates
-                if (i >= 1)
+                if (dateRegex.IsMatch(lines[i]) && i >= 1)
                 {
                     string lineAbove = lines[i - 1];
-                    
-                    // If the line above is a Meal Plan or Cancellation note, skip it and go 1 more line up
+                    // Skip common meal plans
                     if (lineAbove.Contains("Breakfast", StringComparison.OrdinalIgnoreCase) ||
                         lineAbove.Contains("Meal", StringComparison.OrdinalIgnoreCase) ||
+                        lineAbove.Contains("inclusive", StringComparison.OrdinalIgnoreCase) ||
+                        lineAbove.Contains("board", StringComparison.OrdinalIgnoreCase) ||
                         lineAbove.Contains("Canceled", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (i >= 2)
-                        {
-                            foundHint = lines[i - 2];
-                        }
+                        if (i >= 2) foundHint = lines[i - 2];
                     }
                     else
                     {
                         foundHint = lineAbove;
                     }
+                    break; 
                 }
-                break; // Stop after first date match
             }
         }
 
-        // 3. Fallback (Basic keyword scan if structural fails)
-        if (string.IsNullOrEmpty(foundHint))
-        {
-            var keywords = new[] { "Room", "Suite", "Chalet", "Villa", "Apartment", "Studio", "Tent" };
-            foundHint = lines.FirstOrDefault(l => keywords.Any(k => l.Contains(k, StringComparison.OrdinalIgnoreCase)) 
-                                             && !l.Contains("Total", StringComparison.OrdinalIgnoreCase));
-        }
-
-        // 4. CRITICAL DB SAFEGUARD: Truncate and clean to prevent MySql Truncation Exception
+        // 3. Cleanup & DB Safeguard
         if (!string.IsNullOrEmpty(foundHint))
         {
-            // Reject invalid lines that accidentally got caught
-            if (foundHint.Contains("Total price", StringComparison.OrdinalIgnoreCase) || 
-                foundHint.StartsWith("US$")) return null;
-
-            // Truncate to maximum 65 characters
-            if (foundHint.Length > 65)
-            {
-                foundHint = foundHint.Substring(0, 65);
-            }
+            // Strip leading garbage or prices if accidentally caught
+            foundHint = System.Text.RegularExpressions.Regex.Replace(foundHint, @"^(?:US\$|EUR|EGP|GBP)\s*[\d\.,]+\s*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            
+            // Strict truncation for UI/DB safety
+            if (foundHint.Length > 45) foundHint = foundHint.Substring(0, 45);
             
             return foundHint.Trim();
         }
