@@ -566,25 +566,47 @@ public static class PdfExtractionRules
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
 
-        var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+        // Pre-process: PdfPig sometimes merges lines without whitespace.
+        // Insert a newline before known room keywords when they appear fused with price/text.
+        // e.g. "US$98.00Double Room" → "US$98.00\nDouble Room"
+        var preprocessed = System.Text.RegularExpressions.Regex.Replace(
+            text,
+            @"(\b(?:US\$|EUR|EGP|GBP|\$|€)[\d\.,]+)([A-Z][a-z])",
+            "$1\n$2");
+        // Also split where a sentence ends then immediately a Room keyword starts
+        preprocessed = System.Text.RegularExpressions.Regex.Replace(
+            preprocessed,
+            @"(\w)(Double|Triple|Single|Twin|Suite|Chalet|Villa|Studio|Apartment|Standard|Superior|Deluxe|Premium|Classic)",
+            "$1\n$2");
+
+        var lines = preprocessed.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                         .Select(l => l.Trim())
                         .Where(l => l.Length > 0)
                         .ToList();
 
         string? foundHint = null;
 
-        // 1. Smart Keyword Scan (Most Reliable for OTA PDFs)
-        var keywords = new[] { "Room", "Suite", "Chalet", "Villa", "Apartment", "Studio", "Tent", "View" };
-        
-        var candidate = lines.FirstOrDefault(l => 
-            keywords.Any(k => l.Contains(k, StringComparison.OrdinalIgnoreCase)) &&
-            !l.Contains("Total", StringComparison.OrdinalIgnoreCase) &&
-            !l.Contains("units", StringComparison.OrdinalIgnoreCase) &&
-            !l.Contains("price", StringComparison.OrdinalIgnoreCase) &&
-            !l.Contains("guest", StringComparison.OrdinalIgnoreCase) &&
-            !l.Contains("Check-", StringComparison.OrdinalIgnoreCase) &&
-            l.Length >= 5 && l.Length <= 60
-        );
+        // 1. Smart Keyword Scan — matches OTA room name lines.
+        //    Length raised to 90 to handle verbose names like "Double Room with Private Bathroom".
+        var keywords = new[] { "Room", "Suite", "Chalet", "Villa", "Apartment", "Studio", "Tent", "View",
+                                "Double", "Triple", "Single", "Twin", "Superior", "Deluxe", "Standard" };
+
+        string? candidate = null;
+        foreach (var line in lines)
+        {
+            if (!keywords.Any(k => line.Contains(k, StringComparison.OrdinalIgnoreCase))) continue;
+            if (line.Contains("Total",   StringComparison.OrdinalIgnoreCase)) continue;
+            if (line.Contains("units",   StringComparison.OrdinalIgnoreCase)) continue;
+            if (line.Contains("price",   StringComparison.OrdinalIgnoreCase)) continue;
+            if (line.Contains("guest",   StringComparison.OrdinalIgnoreCase)) continue;
+            if (line.Contains("Check-",  StringComparison.OrdinalIgnoreCase)) continue;
+            if (line.Contains("inclusive", StringComparison.OrdinalIgnoreCase)) continue;
+            if (line.Contains("Breakfast",StringComparison.OrdinalIgnoreCase)) continue;
+            if (line.Length < 4 || line.Length > 90) continue;
+
+            candidate = line;
+            break; // Take first match
+        }
 
         if (!string.IsNullOrEmpty(candidate))
         {
@@ -592,41 +614,49 @@ public static class PdfExtractionRules
         }
         else
         {
-            // 2. Structural Fallback (If no keywords match, e.g., "Standard Promo")
+            // 2. Structural Fallback: find the line immediately above a date pattern.
             var dateRegex = new System.Text.RegularExpressions.Regex(@"\d{2}\s*(?:-[^-]+)?\s*[A-Za-z]{3}\s*\d{4}");
             for (int i = 0; i < lines.Count; i++)
             {
-                if (dateRegex.IsMatch(lines[i]) && i >= 1)
+                if (!dateRegex.IsMatch(lines[i]) || i < 1) continue;
+
+                // Walk upward, skipping meal-plan and cancellation lines
+                for (int up = 1; up <= 2 && i - up >= 0; up++)
                 {
-                    string lineAbove = lines[i - 1];
-                    // Skip common meal plans
-                    if (lineAbove.Contains("Breakfast", StringComparison.OrdinalIgnoreCase) ||
-                        lineAbove.Contains("Meal", StringComparison.OrdinalIgnoreCase) ||
-                        lineAbove.Contains("inclusive", StringComparison.OrdinalIgnoreCase) ||
-                        lineAbove.Contains("board", StringComparison.OrdinalIgnoreCase) ||
-                        lineAbove.Contains("Canceled", StringComparison.OrdinalIgnoreCase))
+                    var above = lines[i - up];
+                    bool isMealPlan =
+                        above.Contains("Breakfast",  StringComparison.OrdinalIgnoreCase) ||
+                        above.Contains("inclusive",  StringComparison.OrdinalIgnoreCase) ||
+                        above.Contains("board",      StringComparison.OrdinalIgnoreCase) ||
+                        above.Contains("Meal",       StringComparison.OrdinalIgnoreCase) ||
+                        above.Contains("Canceled",   StringComparison.OrdinalIgnoreCase) ||
+                        above.Contains("Room only",  StringComparison.OrdinalIgnoreCase);
+
+                    if (!isMealPlan)
                     {
-                        if (i >= 2) foundHint = lines[i - 2];
+                        foundHint = above;
+                        break;
                     }
-                    else
-                    {
-                        foundHint = lineAbove;
-                    }
-                    break; 
                 }
+                break;
             }
         }
 
         // 3. Cleanup & DB Safeguard
         if (!string.IsNullOrEmpty(foundHint))
         {
-            // Strip leading garbage or prices if accidentally caught
-            foundHint = System.Text.RegularExpressions.Regex.Replace(foundHint, @"^(?:US\$|EUR|EGP|GBP)\s*[\d\.,]+\s*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            
-            // Strict truncation for UI/DB safety
+            // Strip leading price/currency garbage (e.g. "US$98.00" prefix from PdfPig fuse)
+            foundHint = System.Text.RegularExpressions.Regex.Replace(
+                foundHint,
+                @"^(?:US\$|USD|EUR|EGP|GBP|\$|€)\s*[\d\.,]+\s*",
+                "",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            // Strict truncation for UI/DB safety (column limit)
             if (foundHint.Length > 45) foundHint = foundHint.Substring(0, 45);
-            
-            return foundHint.Trim();
+
+            var result = foundHint.Trim();
+            return string.IsNullOrEmpty(result) ? null : result;
         }
 
         return null;
