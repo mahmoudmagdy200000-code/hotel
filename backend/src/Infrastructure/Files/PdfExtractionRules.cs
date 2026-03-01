@@ -564,7 +564,12 @@ public static class PdfExtractionRules
     /// </summary>
     public static string? ExtractRoomTypeHint(string text)
     {
-        // Label-anchored patterns: "Room type:", "Accommodation type:", "Unit type:", etc.
+        var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(l => l.Trim())
+                        .Where(l => !string.IsNullOrWhiteSpace(l))
+                        .ToList();
+
+        // 1. Label-anchored patterns (Highest precision)
         var labelPatterns = new[]
         {
             @"(?:Room\s*type|Accommodation\s*type|Unit\s*type|Property\s*type|Type\s*of\s*room)\s*[:：]\s*([^\r\n\|]{3,60})",
@@ -581,7 +586,43 @@ public static class PdfExtractionRules
             }
         }
 
-        // Keyword scan: if we find an explicit room keyword on its own line, use that line
+        // 2. Structural Fallback (Booking.com specific layout)
+        // Look for Meal Plan matches or Date Range patterns and capture the line above.
+        var dateRangePattern = @"\d{2}\s*-\s*\d{2}\s*[A-Za-z]{3}\s*\d{4}";
+        var mealPlanKeywords = new[] { "included", "inclusive", "board", "Room only" };
+
+        for (int i = 0; i < lines.Count; i++)
+        {
+            var currentLine = lines[i];
+            bool isAnchor = Regex.IsMatch(currentLine, dateRangePattern) || 
+                           mealPlanKeywords.Any(k => currentLine.Contains(k, StringComparison.OrdinalIgnoreCase));
+
+            if (isAnchor && i > 0)
+            {
+                // Inspect 1 and 2 lines above
+                for (int offset = 1; offset <= 2; offset++)
+                {
+                    int targetIdx = i - offset;
+                    if (targetIdx < 0) break;
+
+                    var candidate = lines[targetIdx];
+                    
+                    // Filter out noise
+                    if (candidate.Contains("Total price", StringComparison.OrdinalIgnoreCase) ||
+                        candidate.Contains("Booking number", StringComparison.OrdinalIgnoreCase) ||
+                        candidate.Length < 3 || candidate.Length > 80)
+                    {
+                        continue;
+                    }
+
+                    // If it's a valid candidate, return it
+                    var hint = CleanRoomTypeHint(candidate);
+                    if (!string.IsNullOrWhiteSpace(hint)) return hint;
+                }
+            }
+        }
+
+        // 3. Keyword scan (Fallback)
         var roomKeywords = new[]
         {
             "Deluxe", "Standard", "Superior", "Suite", "Executive",
@@ -590,20 +631,16 @@ public static class PdfExtractionRules
             "Economy", "Classic", "Premium", "Comfort", "Business"
         };
 
-        var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
         foreach (var line in lines)
         {
-            var trimmed = line.Trim();
-            // Skip very short or very long lines (not a room type line)
-            if (trimmed.Length < 3 || trimmed.Length > 80) continue;
             // Skip lines that look like dates, amounts, or pure digits
-            if (Regex.IsMatch(trimmed, @"^\d+[/\-]\d+|^\$|^€|^£|^\d+\.\d+")) continue;
+            if (Regex.IsMatch(line, @"^\d+[/\-]\d+|^\$|^€|^£|^\d+\.\d+")) continue;
 
             foreach (var keyword in roomKeywords)
             {
-                if (trimmed.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                if (line.Contains(keyword, StringComparison.OrdinalIgnoreCase))
                 {
-                    var hint = CleanRoomTypeHint(trimmed);
+                    var hint = CleanRoomTypeHint(line);
                     if (!string.IsNullOrWhiteSpace(hint)) return hint;
                 }
             }
