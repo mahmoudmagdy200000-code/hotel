@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CalendarDays, Hash, ArrowLeft } from 'lucide-react';
 import type {
     ReservationAllocationPlanDto,
@@ -111,143 +110,153 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                     ) : !plan || plan.items.length === 0 ? (
                         <div className="text-center p-8 text-muted-foreground">No pending items selected.</div>
                     ) : (
-                        <Table>
-                            <TableHeader className="bg-slate-50/50">
-                                <TableRow className="border-b border-slate-100 uppercase tracking-tighter font-black text-[9px] sm:text-xs">
-                                    <TableHead className="px-2 sm:px-4 py-3">Guest & Details</TableHead>
-                                    <TableHead className="px-2 sm:px-4 py-3 hidden md:table-cell">Target Price</TableHead>
-                                    <TableHead className="px-2 sm:px-4 py-3 min-w-[110px] sm:min-w-[200px]">Assignment</TableHead>
-                                    <TableHead className="px-2 sm:px-4 py-3 hidden lg:table-cell">Diff</TableHead>
-                                    <TableHead className="px-2 sm:px-4 py-3 text-right">Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {plan.items.map(item => {
-                                    const selectedRoomIds = selections[item.reservationId] || [];
-                                    const requestedCount = item.requestedRoomCount || 1;
+                        <div className="space-y-3 px-0.5">
+                            {plan.items.map(item => {
+                                const selectedRoomIds = selections[item.reservationId] || [];
+                                const requestedCount = item.requestedRoomCount || 1;
+                                const getRoomDetails = (rId: number) => item.candidateRooms.find(r => r.roomId === rId);
 
-                                    // Helper to find room details
-                                    const getRoomDetails = (rId: number) => item.candidateRooms.find(r => r.roomId === rId);
+                                return (
+                                    <div key={item.reservationId} className="group border border-slate-100 rounded-2xl bg-white shadow-sm p-4 hover:bg-slate-50/50 transition-all">
+                                        <div className="flex flex-col md:flex-row md:items-center gap-5">
+                                            {/* Mobile Header / Desktop Column 1: Guest Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between md:block">
+                                                    <div className="font-black text-slate-900 text-sm sm:text-base uppercase tracking-tight truncate pr-2">
+                                                        {item.guestName}
+                                                    </div>
+                                                    <div className="md:hidden">
+                                                        {getStatusBadge(item.status)}
+                                                    </div>
+                                                </div>
 
-                                    return (
-                                        <TableRow key={item.reservationId} className="group hover:bg-blue-50/20 transition-colors">
-                                            <TableCell className="align-top py-3 px-2 sm:px-4">
-                                                <div className="font-black text-slate-900 text-[10px] sm:text-sm uppercase tracking-tight truncate max-w-[80px] sm:max-w-none">
-                                                    {item.guestName}
+                                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2">
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                                                        <Hash className="w-3 h-3" />
+                                                        <span>{item.bookingNumber}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600/80">
+                                                        <CalendarDays className="w-3 h-3" />
+                                                        <span>{item.checkInDate.split('T')[0]} → {item.checkOutDate.split('T')[0]}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-1 mt-0.5 text-[8px] sm:text-[10px] font-bold text-slate-400">
-                                                    <Hash className="w-2 sm:w-3 h-2 sm:h-3" />
-                                                    <span>{item.bookingNumber}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1 mt-1 text-[8px] sm:text-[10px] font-bold text-blue-600/80">
-                                                    <CalendarDays className="w-2 sm:w-3 h-2 sm:h-3" />
-                                                    <span>{item.checkInDate.split('T')[0]} → {item.checkOutDate.split('T')[0]}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="align-top py-3 px-2 sm:px-4 hidden md:table-cell">
+                                            </div>
+
+                                            {/* Desktop Column 2: Price (Hidden on mobile as it's less critical for quick assignments) */}
+                                            <div className="hidden md:block w-32 shrink-0">
+                                                <div className="text-[10px] uppercase font-black text-slate-400 tracking-wider mb-1">Target</div>
                                                 <div className="font-bold text-slate-900">
                                                     {item.targetNightlyPrice ? formatCurrency(item.targetNightlyPrice) : '—'}
                                                 </div>
                                                 {requestedCount > 1 && item.targetNightlyPrice && (
                                                     <div className="text-[10px] text-slate-400 font-bold">
-                                                        ({formatCurrency(item.targetNightlyPrice / requestedCount)}/r)
+                                                        {formatCurrency(item.targetNightlyPrice / requestedCount)}/r
                                                     </div>
                                                 )}
-                                            </TableCell>
-                                            <TableCell className="align-top py-3 px-2 sm:px-4">
-                                                <div className="flex flex-col gap-1.5">
-                                                    {Array.from({ length: requestedCount }).map((_, idx) => {
-                                                        const currentRoomId = selectedRoomIds[idx];
-                                                        return (
-                                                            <div key={idx} className="flex gap-1 items-center">
-                                                                {requestedCount > 1 && <span className="text-[8px] font-black text-slate-300 w-3">#{idx + 1}</span>}
-                                                                {item.candidateRooms.length > 0 ? (
-                                                                    <div className="relative w-full">
-                                                                        <select
-                                                                            className="w-full h-7 sm:h-9 rounded-lg border border-slate-200 bg-white px-2 py-0 text-[10px] sm:text-xs font-bold text-slate-700 shadow-sm focus:ring-1 focus:ring-blue-500 outline-none"
-                                                                            value={currentRoomId || ''}
-                                                                            onChange={(e) => handleRoomChange(item.reservationId, idx, parseInt(e.target.value))}
-                                                                        >
-                                                                            <option value="" disabled>Select Room...</option>
-                                                                            {item.candidateRooms.map(room => {
-                                                                                const isSelectedElsewhere = selectedRoomIds.some((id, otherIdx) => id === room.roomId && otherIdx !== idx);
-                                                                                return (
-                                                                                    <option key={room.roomId} value={room.roomId} disabled={isSelectedElsewhere}>
-                                                                                        {room.roomNumber} - {room.roomTypeName || 'Standard'} - {formatCurrency(room.roomPrice)}
-                                                                                    </option>
-                                                                                );
-                                                                            })}
-                                                                        </select>
-                                                                    </div>
-                                                                ) : (
-                                                                    <span className="text-rose-600 text-[10px] font-black uppercase tracking-tight">No Rooms</span>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                    {item.warnings.map((w, i) => (
-                                                        <div key={i} className="text-rose-500 text-[8px] font-bold leading-none mt-1">{w}</div>
-                                                    ))}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="align-top py-3 px-2 sm:px-4 hidden lg:table-cell">
-                                                {selectedRoomIds.map((rId, idx) => {
-                                                    const room = getRoomDetails(rId);
-                                                    if (!room || !item.targetNightlyPrice) return null;
+                                            </div>
 
-                                                    const targetPerRoom = item.targetNightlyPrice / requestedCount;
-                                                    const diff = room.roomPrice - targetPerRoom;
+                                            {/* Assignment Section: Vertical stack on mobile, flexible row on desktop */}
+                                            <div className="flex-[2] space-y-2.5">
+                                                <div className="md:hidden text-[10px] uppercase font-black text-slate-400 tracking-wider">Select Assignment</div>
+                                                {Array.from({ length: requestedCount }).map((_, idx) => {
+                                                    const currentRoomId = selectedRoomIds[idx];
+                                                    const room = getRoomDetails(currentRoomId);
 
                                                     return (
-                                                        <div key={idx} className={cn(
-                                                            "text-[10px] font-black h-7 sm:h-9 flex items-center",
-                                                            diff > 0.01 ? "text-amber-600" : diff < -0.01 ? "text-emerald-600" : "text-slate-400"
-                                                        )}>
-                                                            {diff > 0 ? '+' : ''}
-                                                            {formatCurrency(diff)}
+                                                        <div key={idx} className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                                                            <div className="flex-1 relative">
+                                                                {item.candidateRooms.length > 0 ? (
+                                                                    <select
+                                                                        className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 py-0 text-xs font-bold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none truncate"
+                                                                        value={currentRoomId || ''}
+                                                                        onChange={(e) => handleRoomChange(item.reservationId, idx, parseInt(e.target.value))}
+                                                                    >
+                                                                        <option value="" disabled>Select Room Assignment...</option>
+                                                                        {item.candidateRooms.map(c => {
+                                                                            const isSelectedElsewhere = selectedRoomIds.some((id, otherIdx) => id === c.roomId && otherIdx !== idx);
+                                                                            return (
+                                                                                <option key={c.roomId} value={c.roomId} disabled={isSelectedElsewhere}>
+                                                                                    {c.roomNumber} - {c.roomTypeName} - {formatCurrency(c.roomPrice)}
+                                                                                </option>
+                                                                            );
+                                                                        })}
+                                                                    </select>
+                                                                ) : (
+                                                                    <div className="h-10 flex items-center px-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-tight">
+                                                                        No Rooms Available
+                                                                    </div>
+                                                                )}
+                                                                {item.candidateRooms.length > 0 && (
+                                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                                        <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Diff for this specific room - shown next to dropdown on large screens, or below on small */}
+                                                            {room && item.targetNightlyPrice && (
+                                                                <div className={cn(
+                                                                    "shrink-0 font-black text-[10px] px-2 py-1 rounded-lg sm:bg-transparent",
+                                                                    (room.roomPrice - (item.targetNightlyPrice / requestedCount)) > 0.01
+                                                                        ? "bg-amber-50 text-amber-600"
+                                                                        : (room.roomPrice - (item.targetNightlyPrice / requestedCount)) < -0.01
+                                                                            ? "bg-emerald-50 text-emerald-600"
+                                                                            : "bg-slate-50 text-slate-400"
+                                                                )}>
+                                                                    {(room.roomPrice - (item.targetNightlyPrice / requestedCount)) > 0 ? '+' : ''}
+                                                                    {formatCurrency(room.roomPrice - (item.targetNightlyPrice / requestedCount))}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     );
                                                 })}
-                                            </TableCell>
-                                            <TableCell className="align-top py-3 px-2 sm:px-4 text-right">
-                                                {(() => {
-                                                    if (item.status !== 'Proposed') return getStatusBadge(item.status);
+                                                {item.warnings.map((w, i) => (
+                                                    <div key={i} className="flex items-center gap-1.5 text-rose-500 text-[10px] font-bold mt-1 bg-rose-50/50 w-fit px-2 py-0.5 rounded-md">
+                                                        <span>⚠️</span> {w}
+                                                    </div>
+                                                ))}
+                                            </div>
 
-                                                    // Calculate total difference
+                                            {/* Desktop Status Badge & Total Diff */}
+                                            <div className="hidden md:flex flex-col items-end gap-1.5 w-24 shrink-0">
+                                                {getStatusBadge(item.status)}
+                                                {(() => {
+                                                    if (item.status !== 'Proposed') return null;
+
                                                     let totalDiff = 0;
                                                     let hasSelection = false;
 
                                                     selectedRoomIds.forEach(rId => {
-                                                        const room = getRoomDetails(rId);
-                                                        if (room && item.targetNightlyPrice) {
+                                                        const r = getRoomDetails(rId);
+                                                        if (r && item.targetNightlyPrice) {
                                                             const targetPerRoom = item.targetNightlyPrice / requestedCount;
-                                                            totalDiff += (room.roomPrice - targetPerRoom);
+                                                            totalDiff += (r.roomPrice - targetPerRoom);
                                                             hasSelection = true;
                                                         }
                                                     });
 
-                                                    if (!hasSelection) return getStatusBadge('Pending');
+                                                    if (!hasSelection) return null;
 
                                                     if (Math.abs(totalDiff) < 0.01) {
-                                                        return <span className="bg-slate-50 text-slate-400 border-slate-100 font-black text-[8px] sm:text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded border">Match</span>;
+                                                        return <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Match</span>;
                                                     }
 
                                                     const isExtra = totalDiff > 0;
                                                     return (
-                                                        <span className={cn(
-                                                            "font-black text-[8px] sm:text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded border whitespace-nowrap",
+                                                        <div className={cn(
+                                                            "text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border",
                                                             isExtra ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"
                                                         )}>
                                                             {isExtra ? '+' : ''}{formatCurrency(totalDiff).replace('$', '')}
-                                                        </span>
+                                                        </div>
                                                     );
                                                 })()}
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     )}
                 </div>
 

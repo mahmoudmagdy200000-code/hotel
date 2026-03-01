@@ -159,8 +159,34 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             
             occupiedRoomIds.UnionWith(newlyAllocatedRoomIds);
 
+            // Requirement B: Strict Auto-Allocation / Token Matching
+            int? targetRoomTypeId = null;
+            if (draft.Source == ReservationSource.PDF && !string.IsNullOrEmpty(draft.Notes))
+            {
+                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint\s*=\s*([^|\n]+)", RegexOptions.IgnoreCase);
+                if (hintMatch.Success)
+                {
+                    var rawHint = hintMatch.Groups[1].Value.Trim().ToLower();
+                    
+                    // Fetch all possible room types to match against
+                    var roomTypes = await _context.RoomTypes.Where(rt => rt.IsActive).ToListAsync(cancellationToken);
+                    
+                    var matchingTypes = roomTypes.Where(rt => {
+                        var typeWords = rt.Name.ToLower().Split(new[] { ' ', '-', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                        return typeWords.Length > 0 && typeWords.All(word => rawHint.Contains(word));
+                    }).ToList();
+
+                    if (matchingTypes.Count == 1)
+                    {
+                        targetRoomTypeId = matchingTypes[0].Id;
+                        Console.WriteLine($"[DEBUG] ConfirmAllPlan: ResId={draft.Id} | Hint='{rawHint}' | Matched={matchingTypes[0].Name}");
+                    }
+                }
+            }
+
             var availableRooms = allRooms
                 .Where(r => !occupiedRoomIds.Contains(r.Id))
+                .Where(r => targetRoomTypeId == null || r.RoomTypeId == targetRoomTypeId) // Requirement A: Filter by type if matched, otherwise show all
                 .Select(r => {
                     var perRoomTarget = item.TargetNightlyPrice.HasValue 
                         ? (item.TargetNightlyPrice.Value / item.RequestedRoomCount)
@@ -232,8 +258,8 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             }
 
             // Phase 2: Fill remaining slots from best available candidates
-            // [PRODUCTION FIX]: For PDF sources, skip auto-filling. We want 100% manual assignment.
-            if (draft.Source != ReservationSource.PDF)
+            // [STRICT AUTO-ASSIGN]: Only auto-fill if we have a 100% room type match and it's not ambiguous
+            if (draft.Source != ReservationSource.PDF || targetRoomTypeId != null)
             {
                 var needed = item.RequestedRoomCount - item.ProposedRooms.Count;
                 if (needed > 0)
@@ -243,6 +269,8 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
                         .Take(needed)
                         .ToList();
                     
+                    // If we matched a type but don't have enough rooms of THAT type, 
+                    // item.CandidateRooms is already filtered, so this will naturally only pick the correct type.
                     foreach (var pick in remainingCandidates)
                     {
                          pick.IsRecommended = true;
@@ -256,7 +284,7 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             {
                 newlyAllocatedLines.Add(new ReservationLine
                 {
-                    RoomId = proposedRoom.RoomId,
+                    RoomId = proposedRoom.RoomId, // Correct property name from ProposedRoomDto
                     Reservation = new Reservation 
                     {
                         CheckInDate = draft.CheckInDate,
@@ -265,20 +293,24 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
                 });
             }
             
-            // Final Status Check
+            // Final Status Check (Requirement A & Fix for "NO ROOMS" bug)
             if (item.ProposedRooms.Count == item.RequestedRoomCount)
             {
-                // check for issues?
+                item.Status = "Proposed";
             }
-            else if (item.ProposedRooms.Count > 0)
+            else if (item.CandidateRooms.Count > 0)
             {
                  item.Status = "NeedsManual";
-                 item.Warnings.Add($"Only {item.ProposedRooms.Count} / {item.RequestedRoomCount} rooms available.");
+                 item.Warnings.Add(targetRoomTypeId != null 
+                    ? $"Only {item.ProposedRooms.Count} / {item.RequestedRoomCount} matching rooms available."
+                    : $"Please assign room(s) manually. {item.CandidateRooms.Count} available candidates.");
             }
             else
             {
                  item.Status = "NoRooms";
-                 item.Warnings.Add("No available rooms found for these dates.");
+                 item.Warnings.Add(targetRoomTypeId != null
+                    ? $"No available rooms of type '{item.CandidateRooms.FirstOrDefault()?.RoomTypeName ?? "Requested"}' found."
+                    : "No available rooms found for these dates.");
             }
 
             plan.Items.Add(item);
