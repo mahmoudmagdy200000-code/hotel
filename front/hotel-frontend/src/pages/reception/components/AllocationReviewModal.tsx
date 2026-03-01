@@ -173,7 +173,7 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                                                 const isSelectedElsewhere = selectedRoomIds.some((id, otherIdx) => id === room.roomId && otherIdx !== idx);
                                                                                 return (
                                                                                     <option key={room.roomId} value={room.roomId} disabled={isSelectedElsewhere}>
-                                                                                        {room.roomNumber} - {formatCurrency(room.roomPrice)}
+                                                                                        {room.roomNumber} - {room.roomTypeName || 'Standard'} - {formatCurrency(room.roomPrice)}
                                                                                     </option>
                                                                                 );
                                                                             })}
