@@ -145,9 +145,9 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                 {(item.requestedRoomHint || item.requestedRoomTypeName || (item.guestCount ?? 0) > 0 || (item.otaPrice ?? 0) > 0) && (
                                                     <div className="flex flex-wrap items-center gap-3 mt-2 text-xs font-medium text-slate-600 bg-slate-50 p-2 rounded border border-slate-100 overflow-hidden">
                                                         {(item.requestedRoomTypeName || item.requestedRoomHint) && (
-                                                            <div className="flex items-center gap-1 text-blue-700 min-w-0">
+                                                            <div className="flex items-center gap-1 text-blue-700 min-w-0 max-w-[200px] sm:max-w-[300px]">
                                                                 <Bed size={14} className="shrink-0" />
-                                                                <span className="truncate max-w-[180px]" title={item.requestedRoomTypeName || item.requestedRoomHint || ''}>
+                                                                <span className="truncate block" title={item.requestedRoomTypeName || item.requestedRoomHint || ''}>
                                                                     {item.requestedRoomTypeName || item.requestedRoomHint}
                                                                 </span>
                                                             </div>
@@ -194,9 +194,11 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                         <div key={idx} className="flex flex-col sm:flex-row gap-2 sm:items-center">
                                                             <div className="flex-1 relative">
                                                                 {(item.requestedRoomTypeName || item.requestedRoomHint) && (
-                                                                    <div className="text-[10px] font-bold text-slate-400 mb-1 flex items-center gap-1">
-                                                                        <Bed className="w-3 h-3" />
-                                                                        <span>Req: {item.requestedRoomTypeName || item.requestedRoomHint}</span>
+                                                                    <div className="text-[10px] font-bold text-slate-400 mb-1 flex items-center gap-1 min-w-0">
+                                                                        <Bed className="w-3 h-3 shrink-0" />
+                                                                        <span className="truncate block" title={item.requestedRoomTypeName || item.requestedRoomHint || ''}>
+                                                                            Req: {item.requestedRoomTypeName || item.requestedRoomHint}
+                                                                        </span>
                                                                     </div>
                                                                 )}
                                                                 <div className="relative">

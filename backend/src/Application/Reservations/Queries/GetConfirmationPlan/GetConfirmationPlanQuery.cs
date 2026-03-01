@@ -115,7 +115,8 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
                 var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint=([^\r\n]+)", RegexOptions.IgnoreCase);
                 if (hintMatch.Success) 
                 {
-                    item.RequestedRoomHint = hintMatch.Groups[1].Value.Trim();
+                    var rawHint = hintMatch.Groups[1].Value.Trim();
+                    item.RequestedRoomHint = rawHint.Length > 45 ? rawHint.Substring(0, 45) + "..." : rawHint;
                 }
                 
                 var guestsMatch = Regex.Match(draft.Notes, @"Guests=([^\r\n]+)", RegexOptions.IgnoreCase);
@@ -183,7 +184,7 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             int? targetRoomTypeId = null;
             if (draft.Source == ReservationSource.PDF && !string.IsNullOrEmpty(draft.Notes))
             {
-                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint\s*=\s*([^|\n]+)", RegexOptions.IgnoreCase);
+                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint=([^\r\n]+)", RegexOptions.IgnoreCase);
                 if (hintMatch.Success)
                 {
                     var rawHint = hintMatch.Groups[1].Value.Trim().ToLower();
@@ -213,7 +214,8 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             // Populate formal room type name if resolved
             if (targetRoomTypeId != null)
             {
-                item.RequestedRoomTypeName = allRooms.FirstOrDefault(r => r.RoomTypeId == targetRoomTypeId)?.RoomType?.Name;
+                var rawTypeName = allRooms.FirstOrDefault(r => r.RoomTypeId == targetRoomTypeId)?.RoomType?.Name;
+                item.RequestedRoomTypeName = rawTypeName != null && rawTypeName.Length > 45 ? rawTypeName.Substring(0, 45) + "..." : rawTypeName;
             }
 
             var availableRooms = allRooms
