@@ -637,26 +637,62 @@ public static class PdfExtractionRules
     /// </summary>
     public static int? ExtractNumberOfPersons(string text)
     {
-        var patterns = new[]
-        {
-            @"(?:Total\s*guests?|No\.\s*of\s*guests?|Number\s*of\s*guests?|Guests?)\s*[:：]?\s*(\d{1,2})\b",
-            @"(\d{1,2})\s*adult[s]?(?:\s*[,\+&]\s*\d{1,2}\s*child(?:ren)?)?",
-            @"(\d{1,2})\s*(?:guests?|persons?|pax|people)\b",
-            @"(?:عدد\s*الضيوف|الأشخاص)\s*[:：]?\s*(\d{1,2})\b", // Arabic
-        };
+        if (string.IsNullOrWhiteSpace(text)) return null;
 
         int? maxGuests = null;
 
-        foreach (var pattern in patterns)
+        // Strategy 1: Run labeled patterns on the full text (high precision)
+        var labeledPatterns = new[]
+        {
+            @"(?:Total\s*guests?|No\.\s*of\s*guests?|Number\s*of\s*guests?|Guests?)\s*[:：]?\s*(\d{1,2})\b",
+            @"(?:عدد\s*الضيوف|الأشخاص)\s*[:：]?\s*(\d{1,2})\b", // Arabic
+        };
+
+        foreach (var pattern in labeledPatterns)
         {
             var matches = Regex.Matches(text, pattern, RegexOptions.IgnoreCase);
             foreach (Match m in matches)
             {
                 if (int.TryParse(m.Groups[1].Value, out var count) && count > 0 && count <= 20)
                 {
-                    // Take the largest reasonable number (multi-room bookings may have multiple "2 adults" lines)
                     if (!maxGuests.HasValue || count > maxGuests.Value)
                         maxGuests = count;
+                }
+            }
+        }
+
+        // If labeled patterns found a result, return it (most reliable)
+        if (maxGuests.HasValue) return maxGuests;
+
+        // Strategy 2: Run context-sensitive patterns LINE-BY-LINE to avoid
+        // matching dates like "Feb 14" when looking for "2 adults".
+        var dateLineRegex = new Regex(@"\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b", RegexOptions.IgnoreCase);
+        var checkLineRegex = new Regex(@"Check-(?:in|out)", RegexOptions.IgnoreCase);
+        var taxLineRegex   = new Regex(@"\bTAX\b",          RegexOptions.IgnoreCase);
+
+        var contextPatterns = new[]
+        {
+            @"(\d{1,2})\s*adult[s]?(?:\s*[,\+&]\s*\d{1,2}\s*child(?:ren)?)?",
+            @"(\d{1,2})\s*(?:guests?|persons?|pax|people)\b",
+        };
+
+        var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            // Skip any line that looks like a date or check-in/out or tax line
+            if (dateLineRegex.IsMatch(line) || checkLineRegex.IsMatch(line) || taxLineRegex.IsMatch(line))
+                continue;
+
+            foreach (var pattern in contextPatterns)
+            {
+                var matches = Regex.Matches(line, pattern, RegexOptions.IgnoreCase);
+                foreach (Match m in matches)
+                {
+                    if (int.TryParse(m.Groups[1].Value, out var count) && count > 0 && count <= 20)
+                    {
+                        if (!maxGuests.HasValue || count > maxGuests.Value)
+                            maxGuests = count;
+                    }
                 }
             }
         }

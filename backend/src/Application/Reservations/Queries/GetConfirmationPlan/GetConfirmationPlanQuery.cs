@@ -111,15 +111,15 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             // 1.5 Parse metadata from Notes field safely
             if (draft.Source == ReservationSource.PDF && !string.IsNullOrEmpty(draft.Notes) && draft.Notes.Contains("[EXTRACTED_V2]"))
             {
-                // Fix: Use [^\r\n]+ to capture strictly until the end of the line
-                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint=([^\r\n]+)", RegexOptions.IgnoreCase);
+                // Use [^|\r\n]+ to stop at the pipe separator (Notes are stored as key=val | key=val)
+                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint=([^|\r\n]+)", RegexOptions.IgnoreCase);
                 if (hintMatch.Success) 
                 {
                     var rawHint = hintMatch.Groups[1].Value.Trim();
                     item.RequestedRoomHint = rawHint.Length > 45 ? rawHint.Substring(0, 45) + "..." : rawHint;
                 }
                 
-                var guestsMatch = Regex.Match(draft.Notes, @"Guests=([^\r\n]+)", RegexOptions.IgnoreCase);
+                var guestsMatch = Regex.Match(draft.Notes, @"Guests=([^|\r\n]+)", RegexOptions.IgnoreCase);
                 if (guestsMatch.Success && int.TryParse(guestsMatch.Groups[1].Value.Trim(), out int g)) 
                 {
                     item.GuestCount = g;
