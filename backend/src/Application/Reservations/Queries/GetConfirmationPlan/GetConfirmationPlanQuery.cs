@@ -199,6 +199,18 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
                 }
             }
 
+            // Resolve from existing lines if hint match didn't happen (manual drafts)
+            if (targetRoomTypeId == null && draft.Lines != null && draft.Lines.Any())
+            {
+                targetRoomTypeId = draft.Lines.FirstOrDefault(l => l.RoomTypeId != null)?.RoomTypeId;
+            }
+
+            // Populate formal room type name if resolved
+            if (targetRoomTypeId != null)
+            {
+                item.RequestedRoomTypeName = allRooms.FirstOrDefault(r => r.RoomTypeId == targetRoomTypeId)?.RoomType?.Name;
+            }
+
             var availableRooms = allRooms
                 .Where(r => !occupiedRoomIds.Contains(r.Id))
                 .Where(r => targetRoomTypeId == null || r.RoomTypeId == targetRoomTypeId) // Requirement A: Filter by type if matched, otherwise show all

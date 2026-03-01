@@ -20,6 +20,7 @@ public class ReservationAllocationItemDto
     public int RequestedRoomCount { get; set; } = 1; // Default to 1
 
     public string? RequestedRoomHint { get; set; }
+    public string? RequestedRoomTypeName { get; set; }
     public int? GuestCount { get; set; }
     public decimal? OtaPrice { get; set; }
 

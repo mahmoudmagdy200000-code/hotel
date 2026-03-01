@@ -142,12 +142,14 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                 </div>
 
                                                 {/* PDF Metadata Enrichment */}
-                                                {(item.requestedRoomHint || item.guestCount || item.otaPrice) && (
+                                                {(item.requestedRoomHint || item.requestedRoomTypeName || item.guestCount || item.otaPrice) && (
                                                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 border-t border-slate-50 pt-2">
-                                                        {item.requestedRoomHint && (
+                                                        {(item.requestedRoomTypeName || item.requestedRoomHint) && (
                                                             <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500">
                                                                 <Bed className="w-3.5 h-3.5 text-slate-400" />
-                                                                <span className="truncate max-w-[120px] sm:max-w-none">{item.requestedRoomHint}</span>
+                                                                <span className="truncate max-w-[150px] sm:max-w-none">
+                                                                    {item.requestedRoomTypeName || item.requestedRoomHint}
+                                                                </span>
                                                             </div>
                                                         )}
                                                         {item.guestCount && (
@@ -189,10 +191,10 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                     return (
                                                         <div key={idx} className="flex flex-col sm:flex-row gap-2 sm:items-center">
                                                             <div className="flex-1 relative">
-                                                                {item.requestedRoomHint && (
+                                                                {(item.requestedRoomTypeName || item.requestedRoomHint) && (
                                                                     <div className="text-[10px] font-bold text-slate-400 mb-1 flex items-center gap-1">
                                                                         <Bed className="w-3 h-3" />
-                                                                        <span>Req: {item.requestedRoomHint}</span>
+                                                                        <span>Req: {item.requestedRoomTypeName || item.requestedRoomHint}</span>
                                                                     </div>
                                                                 )}
                                                                 <div className="relative">
