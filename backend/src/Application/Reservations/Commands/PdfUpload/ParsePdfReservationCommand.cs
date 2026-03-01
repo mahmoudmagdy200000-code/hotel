@@ -184,7 +184,12 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
                     .Distinct()
                     .ToListAsync(cancellationToken);
 
-                // Resolve target RoomType ID via keyword/text match only
+                // Resolve target RoomType ID via STRICT ALL-WORDS match only.
+                // Rule: a RoomType is only accepted if EVERY word in its Name
+                //       is found somewhere in the PDF hint (case-insensitive).
+                // Example: "DOUBLE VIEW" requires the hint to contain BOTH "double" AND "view".
+                //          "TRIPLE VIEW" is rejected if the hint doesn't contain "triple".
+                // Safe Fallback: if no room type passes, leave unassigned (0 lines).
                 int? targetRoomTypeId = null;
                 if (!string.IsNullOrWhiteSpace(data.RoomTypeHint))
                 {
@@ -192,43 +197,43 @@ public class ParsePdfReservationCommandHandler : IRequestHandler<ParsePdfReserva
                         .Where(rt => rt.IsActive)
                         .ToListAsync(cancellationToken);
 
-                    // Score each room type: higher score = better match
-                    // Strategy: split the hint into keywords and count how many appear in the type name (and vice-versa)
-                    var hint = data.RoomTypeHint.ToUpperInvariant();
-                    var hintKeywords = Regex.Split(hint, @"\W+").Where(w => w.Length >= 3).ToArray();
+                    var hintLower = data.RoomTypeHint.ToLowerInvariant();
 
-                    int bestScore = 0;
-                    Domain.Entities.RoomType? bestType = null;
-
-                    foreach (var rt in activeRoomTypes)
-                    {
-                        var rtName = rt.Name.ToUpperInvariant();
-                        var rtKeywords = Regex.Split(rtName, @"\W+").Where(w => w.Length >= 3).ToArray();
-
-                        int score = 0;
-                        // Keyword overlap: hint keywords found in room type name
-                        score += hintKeywords.Count(k => rtName.Contains(k));
-                        // Keyword overlap: room type name keywords found in hint
-                        score += rtKeywords.Count(k => hint.Contains(k));
-                        // Bonus: exact substring match in either direction
-                        if (rtName.Contains(hint) || hint.Contains(rtName)) score += 5;
-
-                        if (score > bestScore)
+                    // Build a list of strict matches (all words of RoomType.Name are in the hint)
+                    var strictMatches = activeRoomTypes
+                        .Where(rt =>
                         {
-                            bestScore = score;
-                            bestType = rt;
-                        }
-                    }
+                            // Split RoomType name into individual words (≥3 chars, alpha)
+                            var nameWords = Regex.Split(rt.Name.ToLowerInvariant(), @"\W+")
+                                                 .Where(w => w.Length >= 3)
+                                                 .ToArray();
+                            // Must have at least one meaningful word
+                            if (nameWords.Length == 0) return false;
+                            // STRICT: every word of the type name must appear in the hint
+                            return nameWords.All(w => hintLower.Contains(w));
+                        })
+                        .ToList();
 
-                    // Only use the match if confidence is sufficient (score >= 2 means at least one keyword matched bidirectionally)
-                    if (bestScore >= 2 && bestType != null)
+                    if (strictMatches.Count == 1)
                     {
-                        targetRoomTypeId = bestType.Id;
-                        Console.WriteLine($"[AUTO-ASSIGN] RoomType matched: '{bestType.Name}' (score={bestScore}) for hint '{data.RoomTypeHint}'");
+                        // Unambiguous single match — use it
+                        targetRoomTypeId = strictMatches[0].Id;
+                        Console.WriteLine($"[AUTO-ASSIGN] Strict match: '{strictMatches[0].Name}' for hint '{data.RoomTypeHint}'");
+                    }
+                    else if (strictMatches.Count > 1)
+                    {
+                        // Multiple matches — pick the one whose name has the most words
+                        // (more specific type wins: "DOUBLE SEA VIEW" beats "DOUBLE")
+                        var best = strictMatches
+                            .OrderByDescending(rt => Regex.Split(rt.Name, @"\W+").Length)
+                            .First();
+                        targetRoomTypeId = best.Id;
+                        Console.WriteLine($"[AUTO-ASSIGN] Ambiguous strict match ({strictMatches.Count} candidates). Chose most specific: '{best.Name}' for hint '{data.RoomTypeHint}'");
                     }
                     else
                     {
-                        Console.WriteLine($"[AUTO-ASSIGN] No confident RoomType match for hint '{data.RoomTypeHint}'. Leaving unassigned.");
+                        // No strict match — leave unassigned
+                        Console.WriteLine($"[AUTO-ASSIGN] No strict match for hint '{data.RoomTypeHint}'. Leaving unassigned.");
                     }
                 }
 

@@ -83,6 +83,8 @@ export interface ReservationDto {
     isEarlyCheckOut?: boolean;
     isPriceLocked: boolean;
     mealPlan?: string | null;
+    /** Number of guests extracted from PDF, stored in Notes tag. Null if unavailable. */
+    numberOfPersons?: number | null;
 }
 
 export interface GetReservationsQuery {

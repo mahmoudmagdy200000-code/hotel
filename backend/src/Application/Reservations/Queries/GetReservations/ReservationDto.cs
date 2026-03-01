@@ -23,6 +23,8 @@ public class ReservationDto
     public DateOnly? ActualCheckOutDate { get; init; }
     public bool IsEarlyCheckOut { get; init; }
     public string? MealPlan { get; init; }
+    /// <summary>Number of guests parsed from the EXTRACTED_V2 notes tag. Null if not available.</summary>
+    public int? NumberOfPersons { get; init; }
     
     public List<ReservationLineDto> Lines { get; init; } = new();
 
@@ -33,6 +35,12 @@ public class ReservationDto
             if (string.IsNullOrWhiteSpace(notes)) return null;
             var match = System.Text.RegularExpressions.Regex.Match(notes, $@"{key}=([^\|\[\n]+)");
             return match.Success ? match.Groups[1].Value.Trim() : null;
+        }
+
+        private static int? ParseGuestsCount(string? notes)
+        {
+            var raw = ParseNoteTag(notes, "Guests");
+            return int.TryParse(raw, out var n) ? n : (int?)null;
         }
 
         public Mapping()
@@ -46,7 +54,8 @@ public class ReservationDto
                 .ForMember(d => d.ActualCheckOutDate, opt => opt.MapFrom(s => s.ActualCheckOutDate.HasValue ? DateOnly.FromDateTime(s.ActualCheckOutDate.Value) : (DateOnly?)null))
                 .ForMember(d => d.IsEarlyCheckOut, opt => opt.MapFrom(s => s.Status == ReservationStatus.CheckedOut && s.ActualCheckOutDate.HasValue && s.ActualCheckOutDate.Value.Date < s.CheckOutDate.Date))
                 .ForMember(d => d.IsPriceLocked, opt => opt.MapFrom(s => s.Source != Domain.Enums.ReservationSource.Manual))
-                .ForMember(d => d.MealPlan, opt => opt.MapFrom(s => ParseNoteTag(s.Notes, "MealPlan")));
+                .ForMember(d => d.MealPlan, opt => opt.MapFrom(s => ParseNoteTag(s.Notes, "MealPlan")))
+                .ForMember(d => d.NumberOfPersons, opt => opt.MapFrom(s => ParseGuestsCount(s.Notes)));
         }
     }
 }

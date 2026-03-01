@@ -29,7 +29,8 @@ import {
     Zap,
     Briefcase,
     AlertCircle,
-    Utensils
+    Utensils,
+    Users
 } from 'lucide-react';
 import { getAttachmentMetadata } from '@/api/attachments';
 import { AttachmentList } from '@/components/attachments/AttachmentList';
@@ -361,6 +362,12 @@ const ReservationDetails = () => {
                                     <div className="text-[10px] font-black text-sky-600 bg-sky-50 px-2.5 py-1 rounded-lg uppercase tracking-tighter flex items-center gap-1.5 border border-sky-100 shadow-sm">
                                         <Utensils className="w-3 h-3" />
                                         {res.mealPlan}
+                                    </div>
+                                )}
+                                {res.numberOfPersons && res.numberOfPersons > 0 && (
+                                    <div className="text-[10px] font-black text-violet-600 bg-violet-50 px-2.5 py-1 rounded-lg uppercase tracking-tighter flex items-center gap-1.5 border border-violet-100 shadow-sm">
+                                        <Users className="w-3 h-3" />
+                                        {res.numberOfPersons} {res.numberOfPersons === 1 ? 'Guest' : 'Guests'}
                                     </div>
                                 )}
                                 <div className="text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg uppercase tracking-tighter shadow-sm">
