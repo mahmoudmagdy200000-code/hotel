@@ -222,20 +222,28 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                                 )}
                                                             </div>
 
-                                                            {/* Diff for this specific room - shown next to dropdown on large screens, or below on small */}
-                                                            {room && item.targetNightlyPrice && (
-                                                                <div className={cn(
-                                                                    "shrink-0 font-black text-[10px] px-2 py-1 rounded-lg sm:bg-transparent",
-                                                                    (room.roomPrice - (item.targetNightlyPrice / requestedCount)) > 0.01
-                                                                        ? "bg-amber-50 text-amber-600"
-                                                                        : (room.roomPrice - (item.targetNightlyPrice / requestedCount)) < -0.01
-                                                                            ? "bg-emerald-50 text-emerald-600"
-                                                                            : "bg-slate-50 text-slate-400"
-                                                                )}>
-                                                                    {(room.roomPrice - (item.targetNightlyPrice / requestedCount)) > 0 ? '+' : ''}
-                                                                    {formatCurrency(room.roomPrice - (item.targetNightlyPrice / requestedCount))}
-                                                                </div>
-                                                            )}
+                                                            {/* Target & Diff Info */}
+                                                            <div className="flex items-center gap-3 shrink-0">
+                                                                {item.targetNightlyPrice && (
+                                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                                                                        Target: {formatCurrency(item.targetNightlyPrice / requestedCount)}
+                                                                    </div>
+                                                                )}
+
+                                                                {room && item.targetNightlyPrice && (
+                                                                    <div className={cn(
+                                                                        "font-black text-[10px] px-2 py-1 rounded-lg sm:bg-transparent",
+                                                                        (room.roomPrice - (item.targetNightlyPrice / requestedCount)) > 0.01
+                                                                            ? "bg-amber-50 text-amber-600"
+                                                                            : (room.roomPrice - (item.targetNightlyPrice / requestedCount)) < -0.01
+                                                                                ? "bg-emerald-50 text-emerald-600"
+                                                                                : "bg-slate-50 text-slate-400"
+                                                                    )}>
+                                                                        {(room.roomPrice - (item.targetNightlyPrice / requestedCount)) > 0 ? '+' : ''}
+                                                                        {formatCurrency(room.roomPrice - (item.targetNightlyPrice / requestedCount))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     );
                                                 })}
