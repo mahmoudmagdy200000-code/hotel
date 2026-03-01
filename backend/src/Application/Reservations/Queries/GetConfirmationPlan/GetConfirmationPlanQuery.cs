@@ -107,6 +107,21 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             }
 
             item.RequestedRoomCount = requestedCount;
+
+            // 1.5 Parse EXTRACTED_V2 metadata for UX enrichment
+            if (draft.Source == ReservationSource.PDF && !string.IsNullOrEmpty(draft.Notes))
+            {
+                // Parse RoomTypeHint
+                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint\s*=\s*([^|\n]+)", RegexOptions.IgnoreCase);
+                if (hintMatch.Success) item.RequestedRoomHint = hintMatch.Groups[1].Value.Trim();
+
+                // Parse Guests
+                var guestMatch = Regex.Match(draft.Notes, @"Guests\s*=\s*(\d+)", RegexOptions.IgnoreCase);
+                if (guestMatch.Success && int.TryParse(guestMatch.Groups[1].Value, out int guests)) item.GuestCount = guests;
+
+                // OtaPrice is simply the TotalAmount we extracted during parsing
+                item.OtaPrice = draft.TotalAmount;
+            }
             
             Console.WriteLine($"[DEBUG] ConfirmAllPlan: ResId={draft.Id} | Booking={draft.BookingNumber} | FinalRequested={requestedCount} | NotesMatchCount={(draft.Notes != null ? Regex.Matches(draft.Notes, "RoomsCount").Count : 0)}");
 

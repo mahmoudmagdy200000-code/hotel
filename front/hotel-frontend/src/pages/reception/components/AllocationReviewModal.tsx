@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, Hash, ArrowLeft } from 'lucide-react';
+import { CalendarDays, Hash, ArrowLeft, Bed, Users, Tag } from 'lucide-react';
 import type {
     ReservationAllocationPlanDto,
     ConfirmAllocationRequest
@@ -140,6 +140,30 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                         <span>{item.checkInDate.split('T')[0]} → {item.checkOutDate.split('T')[0]}</span>
                                                     </div>
                                                 </div>
+
+                                                {/* PDF Metadata Enrichment */}
+                                                {(item.requestedRoomHint || item.guestCount || item.otaPrice) && (
+                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 border-t border-slate-50 pt-2">
+                                                        {item.requestedRoomHint && (
+                                                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500">
+                                                                <Bed className="w-3.5 h-3.5 text-slate-400" />
+                                                                <span className="truncate max-w-[120px] sm:max-w-none">{item.requestedRoomHint}</span>
+                                                            </div>
+                                                        )}
+                                                        {item.guestCount && (
+                                                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500">
+                                                                <Users className="w-3.5 h-3.5 text-slate-400" />
+                                                                <span>{item.guestCount} {item.guestCount === 1 ? 'Guest' : 'Guests'}</span>
+                                                            </div>
+                                                        )}
+                                                        {item.otaPrice && (
+                                                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-emerald-600">
+                                                                <Tag className="w-3.5 h-3.5 text-emerald-400" />
+                                                                <span>OTA: {formatCurrency(item.otaPrice)}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Desktop Column 2: Price (Hidden on mobile as it's less critical for quick assignments) */}
@@ -172,14 +196,19 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                                         onChange={(e) => handleRoomChange(item.reservationId, idx, parseInt(e.target.value))}
                                                                     >
                                                                         <option value="" disabled>Select Room Assignment...</option>
-                                                                        {item.candidateRooms.map(c => {
-                                                                            const isSelectedElsewhere = selectedRoomIds.some((id, otherIdx) => id === c.roomId && otherIdx !== idx);
-                                                                            return (
-                                                                                <option key={c.roomId} value={c.roomId} disabled={isSelectedElsewhere}>
+                                                                        {item.candidateRooms
+                                                                            .filter(c => {
+                                                                                // Double Booking Prevention: 
+                                                                                // Filter out rooms already selected in OTHER rows of THIS reservation
+                                                                                const isSelectedElsewhere = selectedRoomIds.some((id, otherIdx) => id === c.roomId && otherIdx !== idx);
+                                                                                return !isSelectedElsewhere;
+                                                                            })
+                                                                            .map(c => (
+                                                                                <option key={c.roomId} value={c.roomId}>
                                                                                     {c.roomNumber} - {c.roomTypeName} - {formatCurrency(c.roomPrice)}
                                                                                 </option>
-                                                                            );
-                                                                        })}
+                                                                            ))
+                                                                        }
                                                                     </select>
                                                                 ) : (
                                                                     <div className="h-10 flex items-center px-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-tight">

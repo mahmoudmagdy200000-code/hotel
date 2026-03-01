@@ -19,6 +19,10 @@ public class ReservationAllocationItemDto
     public decimal? TargetNightlyPrice { get; set; }
     public int RequestedRoomCount { get; set; } = 1; // Default to 1
 
+    public string? RequestedRoomHint { get; set; }
+    public int? GuestCount { get; set; }
+    public decimal? OtaPrice { get; set; }
+
     // The algorithm's specific recommendation (subset of candidates)
     public List<ProposedRoomDto> ProposedRooms { get; set; } = new();
     

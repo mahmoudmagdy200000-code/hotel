@@ -201,6 +201,9 @@ export interface ReservationAllocationItemDto {
     checkOutDate: string;
     targetNightlyPrice?: number | null;
     requestedRoomCount: number;
+    requestedRoomHint?: string | null;
+    guestCount?: number | null;
+    otaPrice?: number | null;
     proposedRooms: ProposedRoomDto[];
     candidateRooms: ProposedRoomDto[];
     status: string; // 'Proposed' | 'NeedsManual' | 'PriceUnknown' | 'NoRooms'
