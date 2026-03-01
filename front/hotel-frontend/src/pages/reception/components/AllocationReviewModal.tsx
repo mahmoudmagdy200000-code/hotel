@@ -189,37 +189,45 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                     return (
                                                         <div key={idx} className="flex flex-col sm:flex-row gap-2 sm:items-center">
                                                             <div className="flex-1 relative">
-                                                                {item.candidateRooms.length > 0 ? (
-                                                                    <select
-                                                                        className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 py-0 text-xs font-bold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none truncate"
-                                                                        value={currentRoomId || ''}
-                                                                        onChange={(e) => handleRoomChange(item.reservationId, idx, parseInt(e.target.value))}
-                                                                    >
-                                                                        <option value="" disabled>Select Room Assignment...</option>
-                                                                        {item.candidateRooms
-                                                                            .filter(c => {
-                                                                                // Double Booking Prevention: 
-                                                                                // Filter out rooms already selected in OTHER rows of THIS reservation
-                                                                                const isSelectedElsewhere = selectedRoomIds.some((id, otherIdx) => id === c.roomId && otherIdx !== idx);
-                                                                                return !isSelectedElsewhere;
-                                                                            })
-                                                                            .map(c => (
-                                                                                <option key={c.roomId} value={c.roomId}>
-                                                                                    {c.roomNumber} - {c.roomTypeName} - {formatCurrency(c.roomPrice)}
-                                                                                </option>
-                                                                            ))
-                                                                        }
-                                                                    </select>
-                                                                ) : (
-                                                                    <div className="h-10 flex items-center px-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-tight">
-                                                                        No Rooms Available
+                                                                {item.requestedRoomHint && (
+                                                                    <div className="text-[10px] font-bold text-slate-400 mb-1 flex items-center gap-1">
+                                                                        <Bed className="w-3 h-3" />
+                                                                        <span>Req: {item.requestedRoomHint}</span>
                                                                     </div>
                                                                 )}
-                                                                {item.candidateRooms.length > 0 && (
-                                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                                                        <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
-                                                                    </div>
-                                                                )}
+                                                                <div className="relative">
+                                                                    {item.candidateRooms.length > 0 ? (
+                                                                        <select
+                                                                            className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 py-0 text-xs font-bold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none truncate"
+                                                                            value={currentRoomId || ''}
+                                                                            onChange={(e) => handleRoomChange(item.reservationId, idx, parseInt(e.target.value))}
+                                                                        >
+                                                                            <option value="" disabled>Select Room Assignment...</option>
+                                                                            {item.candidateRooms
+                                                                                .filter(c => {
+                                                                                    // Double Booking Prevention: 
+                                                                                    // Filter out rooms already selected in OTHER rows of THIS reservation
+                                                                                    const isSelectedElsewhere = selectedRoomIds.some((id, otherIdx) => id === c.roomId && otherIdx !== idx);
+                                                                                    return !isSelectedElsewhere;
+                                                                                })
+                                                                                .map(c => (
+                                                                                    <option key={c.roomId} value={c.roomId}>
+                                                                                        {c.roomNumber} - {c.roomTypeName} - {formatCurrency(c.roomPrice)}
+                                                                                    </option>
+                                                                                ))
+                                                                            }
+                                                                        </select>
+                                                                    ) : (
+                                                                        <div className="h-10 flex items-center px-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-tight">
+                                                                            No Rooms Available
+                                                                        </div>
+                                                                    )}
+                                                                    {item.candidateRooms.length > 0 && (
+                                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                                            <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             </div>
 
                                                             {/* Target & Diff Info */}
