@@ -559,8 +559,8 @@ public static class PdfExtractionRules
 
     /// <summary>
     /// Extracts the room type hint string from the PDF text (e.g., "Double Room", "Suite", "Triple").
-    /// Uses keyword-based matching from common OTA room description labels.
-    /// Returns the raw string for later fuzzy-matching against local RoomType names.
+    /// Uses a structured Room Pattern regex as primary match, with anti-pricing filters and
+    /// a structural fallback above the date line. Returns the raw string truncated to 45 chars.
     /// </summary>
     public static string? ExtractRoomTypeHint(string text)
     {
@@ -568,12 +568,10 @@ public static class PdfExtractionRules
 
         // Pre-process: PdfPig sometimes merges lines without whitespace.
         // Insert a newline before known room keywords when they appear fused with price/text.
-        // e.g. "US$98.00Double Room" → "US$98.00\nDouble Room"
         var preprocessed = System.Text.RegularExpressions.Regex.Replace(
             text,
             @"(\b(?:US\$|EUR|EGP|GBP|\$|€)[\d\.,]+)([A-Z][a-z])",
             "$1\n$2");
-        // Also split where a sentence ends then immediately a Room keyword starts
         preprocessed = System.Text.RegularExpressions.Regex.Replace(
             preprocessed,
             @"(\w)(Double|Triple|Single|Twin|Suite|Chalet|Villa|Studio|Apartment|Standard|Superior|Deluxe|Premium|Classic)",
@@ -584,75 +582,107 @@ public static class PdfExtractionRules
                         .Where(l => l.Length > 0)
                         .ToList();
 
+        // ─── Anti-Pricing Filter ────────────────────────────────────────────────
+        // These terms appear in pricing/policy table rows. Any line matching them
+        // is guaranteed NOT to be a room name and must be skipped.
+        static bool IsPricingLine(string line)
+        {
+            var pricingKeywords = new[]
+            {
+                "Rate", "Deal", "Discount", "Commission", "Commissionable",
+                "amount", "TAX", "VAT", "night", "nights",
+                "Early", "Promo", "Offer", "Policy", "Cancellation",
+                "x US$", "x EUR", "per night", "% off",
+                "Total", "Subtotal", "Price", "Charge", "Fee",
+                "Inclusive", "Breakfast", "Meal", "Board",
+                "Check-in", "Check-out", "Checkout", "Check in",
+                "guest", "Adult", "Child"
+            };
+            return pricingKeywords.Any(k => line.Contains(k, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // ─── Room Pattern Regex ─────────────────────────────────────────────────
+        // Matches standalone room name lines like:
+        //   "Double Room with Private Bathroom"
+        //   "Superior Suite - Mountain View"
+        //   "Chalet Standard"
+        //   "Studio Apartment"
+        // Must start with a room classifier and must NOT contain currency symbols or digits at start.
+        var roomPattern = new System.Text.RegularExpressions.Regex(
+            @"^(?:Double|Triple|Single|Twin|Standard|Superior|Deluxe|Premium|Classic|Budget|Luxury|Executive|Family|Junior|Grand|Royal)\b" +
+            @"|^(?:Room|Suite|Chalet|Villa|Apartment|Studio|Tent|Cabin|Bungalow)\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // ─── Pass 1: Room Pattern Match ─────────────────────────────────────────
         string? foundHint = null;
-
-        // 1. Smart Keyword Scan — matches OTA room name lines.
-        //    Length raised to 90 to handle verbose names like "Double Room with Private Bathroom".
-        var keywords = new[] { "Room", "Suite", "Chalet", "Villa", "Apartment", "Studio", "Tent", "View",
-                                "Double", "Triple", "Single", "Twin", "Superior", "Deluxe", "Standard" };
-
-        string? candidate = null;
         foreach (var line in lines)
         {
-            if (!keywords.Any(k => line.Contains(k, StringComparison.OrdinalIgnoreCase))) continue;
-            if (line.Contains("Total",   StringComparison.OrdinalIgnoreCase)) continue;
-            if (line.Contains("units",   StringComparison.OrdinalIgnoreCase)) continue;
-            if (line.Contains("price",   StringComparison.OrdinalIgnoreCase)) continue;
-            if (line.Contains("guest",   StringComparison.OrdinalIgnoreCase)) continue;
-            if (line.Contains("Check-",  StringComparison.OrdinalIgnoreCase)) continue;
-            if (line.Contains("inclusive", StringComparison.OrdinalIgnoreCase)) continue;
-            if (line.Contains("Breakfast",StringComparison.OrdinalIgnoreCase)) continue;
-            if (line.Length < 4 || line.Length > 90) continue;
+            if (line.Length < 3 || line.Length > 90) continue;
+            if (IsPricingLine(line)) continue;
 
-            candidate = line;
-            break; // Take first match
+            // Line must start with a room type word (most reliable signal)
+            if (roomPattern.IsMatch(line))
+            {
+                foundHint = line;
+                break;
+            }
         }
 
-        if (!string.IsNullOrEmpty(candidate))
+        // ─── Pass 2: Broader Keyword Scan (fallback for uncategorized names) ───
+        if (string.IsNullOrEmpty(foundHint))
         {
-            foundHint = candidate;
+            var secondaryKeywords = new[] { "Room", "Suite", "Chalet", "Villa", "Apartment", "Studio", "View" };
+            foreach (var line in lines)
+            {
+                if (line.Length < 3 || line.Length > 90) continue;
+                if (IsPricingLine(line)) continue;
+                if (!secondaryKeywords.Any(k => line.Contains(k, StringComparison.OrdinalIgnoreCase))) continue;
+
+                foundHint = line;
+                break;
+            }
         }
-        else
+
+        // ─── Pass 3: Structural Fallback ────────────────────────────────────────
+        // Booking.com puts the room name 1-2 lines above the date range line.
+        if (string.IsNullOrEmpty(foundHint))
         {
-            // 2. Structural Fallback: find the line immediately above a date pattern.
             var dateRegex = new System.Text.RegularExpressions.Regex(@"\d{2}\s*(?:-[^-]+)?\s*[A-Za-z]{3}\s*\d{4}");
             for (int i = 0; i < lines.Count; i++)
             {
                 if (!dateRegex.IsMatch(lines[i]) || i < 1) continue;
 
-                // Walk upward, skipping meal-plan and cancellation lines
-                for (int up = 1; up <= 2 && i - up >= 0; up++)
+                for (int up = 1; up <= 3 && i - up >= 0; up++)
                 {
                     var above = lines[i - up];
-                    bool isMealPlan =
-                        above.Contains("Breakfast",  StringComparison.OrdinalIgnoreCase) ||
-                        above.Contains("inclusive",  StringComparison.OrdinalIgnoreCase) ||
-                        above.Contains("board",      StringComparison.OrdinalIgnoreCase) ||
-                        above.Contains("Meal",       StringComparison.OrdinalIgnoreCase) ||
-                        above.Contains("Canceled",   StringComparison.OrdinalIgnoreCase) ||
-                        above.Contains("Room only",  StringComparison.OrdinalIgnoreCase);
+                    if (IsPricingLine(above)) continue;
+                    if (above.Length < 3) continue;
 
-                    if (!isMealPlan)
-                    {
-                        foundHint = above;
-                        break;
-                    }
+                    foundHint = above;
+                    break;
                 }
                 break;
             }
         }
 
-        // 3. Cleanup & DB Safeguard
+        // ─── Cleanup & DB Safeguard ─────────────────────────────────────────────
         if (!string.IsNullOrEmpty(foundHint))
         {
-            // Strip leading price/currency garbage (e.g. "US$98.00" prefix from PdfPig fuse)
+            // Strip leading currency/price prefix (PdfPig fuse artifact)
             foundHint = System.Text.RegularExpressions.Regex.Replace(
                 foundHint,
                 @"^(?:US\$|USD|EUR|EGP|GBP|\$|€)\s*[\d\.,]+\s*",
                 "",
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-            // Strict truncation for UI/DB safety (column limit)
+            // Strip trailing meal-plan tags: "Double Room - All inclusive" → "Double Room"
+            foundHint = System.Text.RegularExpressions.Regex.Replace(
+                foundHint,
+                @"\s*[-–,|]\s*(?:All\s*inclusive|Breakfast\s*included?|Half\s*board|Full\s*board|Room\s*only|Meal\s*plan)[^$]*$",
+                "",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            // Strict truncation for UI/DB safety
             if (foundHint.Length > 45) foundHint = foundHint.Substring(0, 45);
 
             var result = foundHint.Trim();
