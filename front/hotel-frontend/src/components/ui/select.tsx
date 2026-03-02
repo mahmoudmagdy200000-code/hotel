@@ -50,10 +50,29 @@ const Select = ({ children, value, onValueChange, className, ...props }: SelectP
         const items: React.ReactNode[] = [];
         React.Children.forEach(nodes, node => {
             if (React.isValidElement(node)) {
-                if ((node.type as any).displayName === 'SelectItem') {
+                const displayName = (node.type as any).displayName;
+                if (displayName === 'SelectItem') {
                     items.push(node);
-                } else if ((node.type as any).displayName === 'SelectContent' || !((node.type as any).displayName)) {
-                    // Recurse into SelectContent or generic wrappers (like fragments or arrays)
+                } else if (displayName === 'SelectGroup') {
+                    // Render as native <optgroup> with label from first SelectLabel child
+                    const groupChildren = (node.props as any).children as React.ReactNode;
+                    let groupLabel = '';
+                    const groupItems: React.ReactNode[] = [];
+                    React.Children.forEach(groupChildren, child => {
+                        if (React.isValidElement(child)) {
+                            if ((child.type as any).displayName === 'SelectLabel') {
+                                groupLabel = (child.props as any).children as string;
+                            } else if ((child.type as any).displayName === 'SelectItem') {
+                                groupItems.push(child);
+                            }
+                        }
+                    });
+                    items.push(
+                        <optgroup key={groupLabel} label={groupLabel}>
+                            {groupItems}
+                        </optgroup>
+                    );
+                } else if (displayName === 'SelectContent' || !(displayName)) {
                     items.push(...extractItems((node.props as any).children));
                 }
             }
@@ -121,10 +140,22 @@ const SelectItem = ({ value, children }: { value: string | number; children?: Re
 );
 SelectItem.displayName = 'SelectItem';
 
+const SelectGroup = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
+SelectGroup.displayName = 'SelectGroup';
+
+// SelectLabel is a visual-only hint used in group rendering; the actual label
+// text is extracted by the Select component's extractItems traversal.
+const SelectLabel = ({ children, className }: { children?: React.ReactNode; className?: string }) => (
+    <span className={className}>{children}</span>
+);
+SelectLabel.displayName = 'SelectLabel';
+
 export {
     Select,
     SelectTrigger,
     SelectValue,
     SelectContent,
-    SelectItem
+    SelectGroup,
+    SelectItem,
+    SelectLabel
 }

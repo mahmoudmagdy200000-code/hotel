@@ -22,7 +22,9 @@ import { PaymentMethodEnum, CurrencyCodeEnum, type PaymentMethodValue, type Curr
 import {
     Select,
     SelectContent,
+    SelectGroup,
     SelectItem,
+    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
@@ -118,34 +120,13 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                 setCurrencyCode(reservation.currencyCode as CurrencyCodeValue);
             }
 
-            // Date processing
+            // Dates — always use the scheduled dates as-is.
+            // The backend enforces the ±1 day window; do NOT auto-shift here.
             const origCheckIn = reservation.checkIn ? parseISO(reservation.checkIn) : undefined;
             const origCheckOut = reservation.checkOut ? parseISO(reservation.checkOut) : undefined;
-            const today = parseISO(businessDate);
-
-            if (origCheckIn && origCheckOut) {
-                const diffMs = Math.abs(origCheckIn.getTime() - today.getTime());
-                const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-                if (diffDays > 1) {
-                    const nights = Math.max(1, Math.round((origCheckOut.getTime() - origCheckIn.getTime()) / (1000 * 60 * 60 * 24)));
-                    const adjustedCheckOut = new Date(today);
-                    adjustedCheckOut.setDate(adjustedCheckOut.getDate() + nights);
-                    setCheckInDate(today);
-                    setCheckOutDate(adjustedCheckOut);
-                    setDateWasAutoAdjusted(true);
-                } else {
-                    setCheckInDate(origCheckIn);
-                    setCheckOutDate(origCheckOut);
-                    setDateWasAutoAdjusted(false);
-                }
-            } else {
-                setCheckInDate(origCheckIn || today);
-                setCheckOutDate(origCheckOut);
-
-                const diffDaysCheck = origCheckIn ? Math.round(Math.abs(origCheckIn.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-                setDateWasAutoAdjusted(!origCheckIn || diffDaysCheck > 1);
-            }
+            setCheckInDate(origCheckIn);
+            setCheckOutDate(origCheckOut);
+            setDateWasAutoAdjusted(false);
         }
     }, [reservation, isOpen, businessDate]);
 
@@ -358,10 +339,12 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                         </Label>
                         <div className="space-y-2">
                             {reservation.lines.map((line, idx) => {
-                                // Filter rooms of the same type
-                                const availableForType = rooms.filter(r => r.roomTypeName === line.roomTypeName);
                                 const currentRoomId = roomAssignments[line.id] ?? roomAssignmentsByIndex[idx];
                                 const selectedRoom = rooms.find(r => r.roomId === currentRoomId);
+
+                                // Split all rooms into: matching type (recommended) vs everything else
+                                const matchedRooms = rooms.filter(r => r.roomTypeId === line.roomTypeId);
+                                const otherRooms = rooms.filter(r => r.roomTypeId !== line.roomTypeId);
 
                                 // Occupied status is always a block
                                 const isOccupied = selectedRoom && selectedRoom.status === 'Occupied';
@@ -371,6 +354,23 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                     selectedRoom.reservation?.reservationId !== reservation.reservationId;
 
                                 const isPotentiallyOccupied = isOccupied || isTakenByOther;
+
+                                const renderRoomItem = (r: typeof rooms[0]) => (
+                                    <SelectItem key={r.roomId} value={r.roomId.toString()}>
+                                        <div className="flex items-center gap-2">
+                                            <Circle className={cn(
+                                                "w-2 h-2 fill-current",
+                                                r.status === 'Available' ? "text-emerald-500" :
+                                                    r.status === 'Occupied' ? "text-rose-500" : "text-amber-500"
+                                            )} />
+                                            <span>{r.roomNumber}</span>
+                                            <span className="text-[10px] text-slate-400 ml-1">{r.roomTypeName}</span>
+                                            {r.status !== 'Available' && (
+                                                <span className="text-[10px] opacity-60 ml-auto">({r.status})</span>
+                                            )}
+                                        </div>
+                                    </SelectItem>
+                                );
 
                                 return (
                                     <div key={line.id || idx} className="flex flex-col gap-2 p-3 border border-slate-100 rounded-xl bg-slate-50/50">
@@ -400,21 +400,22 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                                 <SelectValue placeholder={t('reception.select_room', 'Select Room')} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {availableForType.map(r => (
-                                                    <SelectItem key={r.roomId} value={r.roomId.toString()}>
-                                                        <div className="flex items-center gap-2">
-                                                            <Circle className={cn(
-                                                                "w-2 h-2 fill-current",
-                                                                r.status === 'Available' ? "text-emerald-500" :
-                                                                    r.status === 'Occupied' ? "text-rose-500" : "text-amber-500"
-                                                            )} />
-                                                            <span>{r.roomNumber}</span>
-                                                            {r.status !== 'Available' && (
-                                                                <span className="text-[10px] opacity-60 ml-auto">({r.status})</span>
-                                                            )}
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
+                                                {matchedRooms.length > 0 && (
+                                                    <SelectGroup>
+                                                        <SelectLabel className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">
+                                                            ✓ {t('reception.recommended_rooms', 'Recommended')} — {line.roomTypeName}
+                                                        </SelectLabel>
+                                                        {matchedRooms.map(renderRoomItem)}
+                                                    </SelectGroup>
+                                                )}
+                                                {otherRooms.length > 0 && (
+                                                    <SelectGroup>
+                                                        <SelectLabel className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                                            {t('reception.other_rooms', 'Other Available Rooms')}
+                                                        </SelectLabel>
+                                                        {otherRooms.map(renderRoomItem)}
+                                                    </SelectGroup>
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>

@@ -249,6 +249,7 @@ export interface ReceptionRoomStatusReservationDto {
 export interface ReceptionRoomStatusItemDto {
     roomId: number;
     roomNumber: string;
+    roomTypeId: number;
     roomTypeName: string;
     status: 'Available' | 'Reserved' | 'Occupied';
     reservation?: ReceptionRoomStatusReservationDto | null;
