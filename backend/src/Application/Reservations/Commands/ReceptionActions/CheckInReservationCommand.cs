@@ -83,11 +83,28 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
             return MapToDto(entity, request.BusinessDate);
         }
 
-        // Validate transitions rules
+        // Validate transition rules
         if (entity.Status != ReservationStatus.Confirmed && entity.Status != ReservationStatus.Draft)
         {
             throw new ConflictException($"Cannot check-in reservation with status {entity.Status}. Only Confirmed or Draft reservations can be checked-in.");
         }
+
+        // ── DATE WINDOW GUARD ──────────────────────────────────────────────────
+        // Must run FIRST, against the ORIGINAL scheduled CheckInDate from the DB.
+        // A Check-In is only valid when BusinessDate is within ±1 day of the
+        // reservation's scheduled arrival (yesterday / today / tomorrow).
+        // Signed diff: negative = scheduled in the past relative to business date.
+        var scheduledCheckIn = DateOnly.FromDateTime(entity.CheckInDate);
+        var signedDiff = scheduledCheckIn.DayNumber - request.BusinessDate.DayNumber;
+
+        if (signedDiff < -1 || signedDiff > 1)
+        {
+            throw new ConflictException(
+                $"DATE_MISMATCH: Reservation is scheduled for {scheduledCheckIn:yyyy-MM-dd}. " +
+                $"Check-in can only be performed within 1 day of the scheduled arrival " +
+                $"(business date: {request.BusinessDate:yyyy-MM-dd}).");
+        }
+        // ──────────────────────────────────────────────────────────────────────
 
         // Phase 7.4 — Apply edits BEFORE changing status
         if (!string.IsNullOrWhiteSpace(request.GuestName))
@@ -176,30 +193,24 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
             }
         }
 
-        // Handle Date Changes + ALWAYS check occupancy for current/new dates
-        var newIn = request.CheckInDate ?? entity.CheckInDate;
-        var newOut = request.CheckOutDate ?? entity.CheckOutDate;
-
-        // Check overlaps for all rooms in this reservation
-        // We use the updated state from the previous loop (applying request changes)
+        // ── OCCUPANCY OVERLAP CHECK ────────────────────────────────────────────
+        // Use the entity's ORIGINAL (unchanged) scheduled dates.
+        // Date shifting is intentionally NOT performed at Check-In.
         for (int i = 0; i < dbLines.Count; i++)
         {
             var line = dbLines[i];
-            
-            // Critical: Ensure we check the room ID that was just assigned/updated
             var roomId = line.RoomId;
 
-            // 2. Standard Date Overlap Check
             var overlappingLine = await _context.ReservationLines
                 .Include(l => l.Reservation)
                 .Where(l => l.RoomId == roomId &&
                             l.ReservationId != entity.Id &&
                             !l.Reservation!.IsDeleted &&
-                            (l.Reservation.Status == ReservationStatus.Confirmed || 
+                            (l.Reservation.Status == ReservationStatus.Confirmed ||
                                 l.Reservation.Status == ReservationStatus.CheckedIn ||
                                 l.Reservation.Status == ReservationStatus.CheckedOut) &&
-                            newIn.Date < l.Reservation.CheckOutDate.Date &&
-                            l.Reservation.CheckInDate.Date < newOut.Date)
+                            entity.CheckInDate.Date < l.Reservation.CheckOutDate.Date &&
+                            l.Reservation.CheckInDate.Date < entity.CheckOutDate.Date)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (overlappingLine != null)
@@ -208,58 +219,7 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
                 throw new ConflictException($"Room {line.Room?.RoomNumber ?? roomId.ToString()} is currently occupied or reserved by another guest for these dates. Please change the room assignment before a new Check-In can be performed for this room.");
             }
         }
-
-        if (newIn != entity.CheckInDate || newOut != entity.CheckOutDate)
-        {
-            entity.CheckInDate = newIn;
-            entity.CheckOutDate = newOut;
-
-            // Recalculate nights
-            var nights = (newOut.Date - newIn.Date).Days;
-            if (nights < 1) nights = 1;
-
-            foreach (var line in entity.Lines)
-            {
-                line.Nights = nights;
-                
-                // If we have a manual total from request, we'll set it at the end.
-                // But we should try to keep RatePerNight consistent.
-                if (request.TotalAmount.HasValue && entity.Lines.Count > 0)
-                {
-                    // Distribute total amount to lines if they had 0 rate (common for PDF drafts)
-                    if (line.RatePerNight == 0)
-                    {
-                        line.RatePerNight = Math.Round(request.TotalAmount.Value / (nights * entity.Lines.Count), 2);
-                    }
-                    line.LineTotal = Math.Round(line.RatePerNight * nights, 2);
-                }
-                else
-                {
-                    line.LineTotal = Math.Round(line.RatePerNight * nights, 2);
-                }
-            }
-
-            // Final safety: if user provided a total, USE IT. Do not overwrite with 0.
-            if (request.TotalAmount.HasValue)
-            {
-                entity.TotalAmount = request.TotalAmount.Value;
-            }
-            else
-            {
-                entity.TotalAmount = Math.Round(entity.Lines.Sum(l => l.LineTotal), 2);
-            }
-        }
-
-        // Date mismatch validation (AFTER date edits applied):
-        // The final check-in date MUST be within +/- 1 day of the business date
-        var finalCheckInDate = DateOnly.FromDateTime(entity.CheckInDate);
-        var diffDays = Math.Abs(finalCheckInDate.DayNumber - request.BusinessDate.DayNumber);
-
-        if (diffDays > 1)
-        {
-            throw new ConflictException(
-                $"DATE_MISMATCH: Check-in date ({finalCheckInDate:yyyy-MM-dd}) must be today, yesterday, or tomorrow relative to the business date ({request.BusinessDate:yyyy-MM-dd}). Please update the check-in date to a valid date within this range before proceeding.");
-        }
+        // ──────────────────────────────────────────────────────────────────────
 
         var oldStatus = entity.Status;
         entity.CheckIn(DateTime.UtcNow);
