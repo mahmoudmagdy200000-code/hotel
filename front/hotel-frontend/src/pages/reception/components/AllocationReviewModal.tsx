@@ -139,6 +139,11 @@ export function AllocationReviewModal({ isOpen, plan, isLoading, isSubmitting, o
                                                         <CalendarDays className="w-3 h-3" />
                                                         <span>{item.checkInDate.split('T')[0]} → {item.checkOutDate.split('T')[0]}</span>
                                                     </div>
+                                                    {item.isAutoMatched && (
+                                                        <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 text-[9px] font-black uppercase tracking-widest shrink-0">
+                                                            {t('reception.auto_match', 'Auto ✓')}
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Extracted PDF Metadata Row (Defensive Layout) */}

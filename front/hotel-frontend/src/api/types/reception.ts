@@ -203,6 +203,7 @@ export interface ReservationAllocationItemDto {
     requestedRoomCount: number;
     requestedRoomHint?: string | null;
     requestedRoomTypeName?: string | null;
+    isAutoMatched?: boolean;
     guestCount?: number | null;
     otaPrice?: number | null;
     proposedRooms: ProposedRoomDto[];

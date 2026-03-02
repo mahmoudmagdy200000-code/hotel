@@ -180,11 +180,11 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             
             occupiedRoomIds.UnionWith(newlyAllocatedRoomIds);
 
-            // Requirement B: Strict Auto-Allocation / Token Matching
+            // Requirement B: Smart Auto-Allocation / Score-Based Token Matching
             int? targetRoomTypeId = null;
             if (draft.Source == ReservationSource.PDF && !string.IsNullOrEmpty(draft.Notes))
             {
-                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint=([^\r\n]+)", RegexOptions.IgnoreCase);
+                var hintMatch = Regex.Match(draft.Notes, @"RoomTypeHint=([^|\r\n]+)", RegexOptions.IgnoreCase);
                 if (hintMatch.Success)
                 {
                     var rawHint = hintMatch.Groups[1].Value.Trim().ToLower();
@@ -192,15 +192,47 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
                     // Fetch all possible room types to match against
                     var roomTypes = await _context.RoomTypes.Where(rt => rt.IsActive).ToListAsync(cancellationToken);
                     
-                    var matchingTypes = roomTypes.Where(rt => {
-                        var typeWords = rt.Name.ToLower().Split(new[] { ' ', '-', '/' }, StringSplitOptions.RemoveEmptyEntries);
-                        return typeWords.Length > 0 && typeWords.All(word => rawHint.Contains(word));
-                    }).ToList();
+                    // 1. Define sets of keywords
+                    var classifiers = new[] { "single", "double", "triple", "twin", "suite", "standard", "superior", "deluxe", "family", "studio", "villa", "chalet", "apartment" };
+                    var views = new[] { "view", "mountain", "sea", "ocean", "garden", "pool", "lake", "city", "forest", "river", "beach" };
 
-                    if (matchingTypes.Count == 1)
+                    // 2. Extract keywords present in the PDF Hint
+                    var extractedClassifiers = classifiers.Where(c => rawHint.Contains(c)).ToList();
+                    var extractedViews = views.Where(v => rawHint.Contains(v)).ToList();
+
+                    // 3. Score each active room type
+                    var scoredTypes = roomTypes.Select(rt => {
+                        var rtName = rt.Name.ToLower();
+                        int score = 0;
+                        
+                        // +2 points for containing a matched classifier
+                        if (extractedClassifiers.Any(c => rtName.Contains(c))) score += 2;
+                        
+                        // +1 point for containing a matched view keyword
+                        if (extractedViews.Any(v => rtName.Contains(v))) score += 1;
+
+                        return new { RoomType = rt, Score = score };
+                    })
+                    .Where(x => x.Score > 0)
+                    .OrderByDescending(x => x.Score)
+                    .ToList();
+
+                    // 4. Select the best match if there's a clear winner
+                    if (scoredTypes.Count > 0)
                     {
-                        targetRoomTypeId = matchingTypes[0].Id;
-                        Console.WriteLine($"[DEBUG] ConfirmAllPlan: ResId={draft.Id} | Hint='{rawHint}' | Matched={matchingTypes[0].Name}");
+                        var topScore = scoredTypes.First().Score;
+                        var topMatches = scoredTypes.Where(x => x.Score == topScore).ToList();
+
+                        if (topMatches.Count == 1)
+                        {
+                            targetRoomTypeId = topMatches.First().RoomType.Id;
+                            item.IsAutoMatched = true; // Confident match
+                            Console.WriteLine($"[DEBUG] ConfirmAllPlan: ResId={draft.Id} | Hint='{rawHint}' | Matched={topMatches.First().RoomType.Name} | Score={topScore} | AutoMatched=true");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[DEBUG] ConfirmAllPlan: ResId={draft.Id} | Hint='{rawHint}' | Ambiguous tie between {topMatches.Count} types at Score {topScore}");
+                        }
                     }
                 }
             }

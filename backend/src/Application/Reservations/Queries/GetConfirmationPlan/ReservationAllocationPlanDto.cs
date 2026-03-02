@@ -21,6 +21,7 @@ public class ReservationAllocationItemDto
 
     public string? RequestedRoomHint { get; set; }
     public string? RequestedRoomTypeName { get; set; }
+    public bool IsAutoMatched { get; set; }
     public int? GuestCount { get; set; }
     public decimal? OtaPrice { get; set; }
 
