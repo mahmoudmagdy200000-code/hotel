@@ -37,8 +37,17 @@ public class GetReceptionRoomsStatusQueryHandler : IRequestHandler<GetReceptionR
             .Include(r => r.Lines)
             .Where(r => !r.IsDeleted &&
                         statuses.Contains(r.Status) &&
-                        r.CheckInDate <= targetDate &&
-                        r.CheckOutDate > targetDate)
+                        (
+                            // Branch 1 — Scheduled occupancy: target date falls within the booked window.
+                            // Handles Confirmed (and CheckedIn on-schedule).
+                            (r.CheckInDate <= targetDate && r.CheckOutDate > targetDate)
+                            ||
+                            // Branch 2 — Physical occupancy override:
+                            // If the guest is ALREADY physically checked in, the room is occupied
+                            // for any date before the scheduled checkout, even if the query date
+                            // falls before the original scheduled check-in (early check-in case).
+                            (r.Status == ReservationStatus.CheckedIn && r.CheckOutDate > targetDate)
+                        ))
             .ToListAsync(cancellationToken);
 
         // Create a lookup for roomId -> List of reservations
