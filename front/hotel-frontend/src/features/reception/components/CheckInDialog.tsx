@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
-import { Wallet, CreditCard, MoreHorizontal, Banknote, AlertTriangle, Home, Circle, Lock } from 'lucide-react';
+import { Wallet, CreditCard, MoreHorizontal, Banknote, AlertTriangle, Home, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useReceptionRoomsStatus } from '@/features/reception/hooks/useReceptionRoomsStatus';
 import { useCheckInPricingLock } from '@/features/reception/hooks/useCheckInPricingLock';
@@ -355,22 +355,23 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
 
                                 const isPotentiallyOccupied = isOccupied || isTakenByOther;
 
-                                const renderRoomItem = (r: typeof rooms[0]) => (
-                                    <SelectItem key={r.roomId} value={r.roomId.toString()}>
-                                        <div className="flex items-center gap-2">
-                                            <Circle className={cn(
-                                                "w-2 h-2 fill-current",
-                                                r.status === 'Available' ? "text-emerald-500" :
-                                                    r.status === 'Occupied' ? "text-rose-500" : "text-amber-500"
-                                            )} />
-                                            <span>{r.roomNumber}</span>
-                                            <span className="text-[10px] text-slate-400 ml-1">{r.roomTypeName}</span>
-                                            {r.status !== 'Available' && (
-                                                <span className="text-[10px] opacity-60 ml-auto">({r.status})</span>
-                                            )}
-                                        </div>
-                                    </SelectItem>
-                                );
+                                const renderRoomItem = (r: typeof rooms[0]) => {
+                                    const isOccupied = r.status === 'Occupied';
+                                    const statusSuffix = isOccupied
+                                        ? ' (Occupied — unavailable)'
+                                        : r.status === 'Reserved'
+                                            ? ' (Reserved)'
+                                            : '';
+                                    return (
+                                        <SelectItem
+                                            key={r.roomId}
+                                            value={r.roomId.toString()}
+                                            disabled={isOccupied}
+                                        >
+                                            {`${r.roomNumber} — ${r.roomTypeName}${statusSuffix}`}
+                                        </SelectItem>
+                                    );
+                                };
 
                                 return (
                                     <div key={line.id || idx} className="flex flex-col gap-2 p-3 border border-slate-100 rounded-xl bg-slate-50/50">

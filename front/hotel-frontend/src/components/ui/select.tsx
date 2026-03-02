@@ -135,8 +135,8 @@ SelectValue.displayName = 'SelectValue';
 const SelectContent = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
 SelectContent.displayName = 'SelectContent';
 
-const SelectItem = ({ value, children }: { value: string | number; children?: React.ReactNode }) => (
-    <option value={value}>{children}</option>
+const SelectItem = ({ value, children, disabled }: { value: string | number; children?: React.ReactNode; disabled?: boolean }) => (
+    <option value={value} disabled={disabled}>{children}</option>
 );
 SelectItem.displayName = 'SelectItem';
 
