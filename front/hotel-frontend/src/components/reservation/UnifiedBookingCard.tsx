@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
-import { Hash, CalendarDays, Bed, LogIn, LogOut, Eye, AlertCircle, Utensils, Lock, Home } from 'lucide-react';
+import { Hash, CalendarDays, Bed, LogIn, LogOut, Eye, AlertCircle, Utensils, Home } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { BookingDisplayData } from '@/api/adapters/bookingAdapter';
 import { StatusBadge } from '@/components/reservation/StatusBadge';
@@ -85,12 +85,7 @@ export const UnifiedBookingCard = ({
                             <span className="uppercase">{booking.mealPlan}</span>
                         </div>
                     )}
-                    {booking.isPriceLocked && (
-                        <div className="flex items-center gap-1 text-[9px] font-black text-amber-700 bg-amber-50 px-1.5 py-1 rounded border border-amber-200 uppercase tracking-tighter">
-                            <Lock className="w-3 h-3 text-amber-600" />
-                            <span>LOCKED</span>
-                        </div>
-                    )}
+
                     {booking.isEarlyCheckOut && (
                         <div className="px-1.5 py-1 bg-orange-50 text-orange-700 text-[9px] font-black rounded border border-orange-200 uppercase tracking-tighter">
                             {t('reception.left_early', 'Left Early')}
