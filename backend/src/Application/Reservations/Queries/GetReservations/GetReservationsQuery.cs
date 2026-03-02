@@ -39,12 +39,6 @@ public class GetReservationsQueryHandler : IRequestHandler<GetReservationsQuery,
         {
             query = query.Where(x => x.Status == request.Status.Value);
         }
-        else
-        {
-            // Default: exclude Draft status (Draft reservations appear only in Pending Requests queue)
-            // This aligns with Phase 6 workflow: Draft → Confirm → appears in Reservations list
-            query = query.Where(x => x.Status != ReservationStatus.Draft);
-        }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
@@ -64,7 +58,8 @@ public class GetReservationsQueryHandler : IRequestHandler<GetReservationsQuery,
 
         return await query
             .ProjectTo<ReservationDto>(_mapper.ConfigurationProvider)
-            .OrderBy(x => x.CheckInDate)
+            .OrderByDescending(x => x.Status == ReservationStatus.Draft)
+            .ThenBy(x => x.CheckInDate)
             .ToListAsync(cancellationToken);
     }
 }

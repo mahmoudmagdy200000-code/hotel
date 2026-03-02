@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { DateRange } from "react-day-picker";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -43,7 +43,7 @@ const ReservationsList = () => {
     const [status, setStatus] = useState<ReservationStatus | 'all'>('all');
     const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
         from: new Date(businessDate),
-        to: undefined
+        to: addDays(new Date(businessDate), 7)
     }));
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
