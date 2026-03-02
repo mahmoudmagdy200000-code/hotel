@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
-import { Hash, CalendarDays, Bed, LogIn, LogOut, Eye, AlertCircle, Utensils, Lock } from 'lucide-react';
+import { Hash, CalendarDays, Bed, LogIn, LogOut, Eye, AlertCircle, Utensils, Lock, Home } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { BookingDisplayData } from '@/api/adapters/bookingAdapter';
 import { StatusBadge } from '@/components/reservation/StatusBadge';
@@ -69,6 +69,12 @@ export const UnifiedBookingCard = ({
 
                 {/* ROW 2: Badges — Room Type, Meal Plan, Locked — wrap freely on their own row */}
                 <div className="flex flex-wrap items-center gap-1.5 pl-12">
+                    {booking.roomNumbers.length > 0 && (
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
+                            <Home className="w-3 h-3 text-emerald-600" />
+                            <span className="uppercase">{t('reception.room', 'Room')} {booking.roomNumbers.join(', ')}</span>
+                        </div>
+                    )}
                     <div className="flex items-center gap-1.5 text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
                         <Bed className="w-3 h-3 text-blue-600" />
                         <span className="uppercase">{booking.roomTypeNames.length > 0 ? booking.roomTypeNames.join(', ') : t('unassigned', 'Unassigned')}</span>
