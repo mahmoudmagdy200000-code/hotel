@@ -289,7 +289,8 @@ const ReservationDetails = () => {
                                 <Button
                                     variant="ghost"
                                     onClick={() => setIsEditOpen(true)}
-                                    className="flex-1 h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wide transition-all active:scale-[0.97]"
+                                    className="flex-1 h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wide transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={user?.role === 'Receptionist'}
                                 >
                                     <Pencil className="w-4 h-4 mr-2 opacity-80" />
                                     {t('edit')}

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Bed, AlertCircle, Utensils, ChevronRight, Lock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import type { BookingDisplayData } from '@/api/adapters/bookingAdapter';
+import { format, parseISO } from 'date-fns';
 import { StatusBadge } from '@/components/reservation/StatusBadge';
 
 interface UnifiedBookingRowProps {
@@ -12,13 +13,15 @@ interface UnifiedBookingRowProps {
     onAction?: (type: string, booking: BookingDisplayData) => void;
     detailPath?: string;
     showAction?: boolean;
+    isDesktop?: boolean;
 }
 
 export const UnifiedBookingRow = ({
     booking,
     onAction,
     detailPath,
-    showAction = true
+    showAction = true,
+    isDesktop = false
 }: UnifiedBookingRowProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -26,6 +29,16 @@ export const UnifiedBookingRow = ({
     const handleNavigate = () => {
         if (detailPath) {
             navigate(detailPath);
+        }
+    };
+
+    const formatDateStr = (dateStr: string) => {
+        if (!dateStr) return '';
+        if (!isDesktop) return dateStr; // Keep original for mobile
+        try {
+            return format(parseISO(dateStr), 'dd MMM');
+        } catch {
+            return dateStr;
         }
     };
 
@@ -60,9 +73,9 @@ export const UnifiedBookingRow = ({
 
             <TableCell className="py-4 px-4">
                 <div className="flex flex-col gap-0.5 relative group/dates">
-                    <span className="text-[10px] font-black text-slate-900 tracking-tighter">{booking.checkInDate}</span>
+                    <span className="text-[10px] font-black text-slate-900 tracking-tighter">{formatDateStr(booking.checkInDate)}</span>
                     <div className="flex items-center gap-1">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">to {booking.checkOutDate}</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">to {formatDateStr(booking.checkOutDate)}</span>
                         {booking.isEarlyCheckOut && (
                             <span className="px-1 py-0.5 bg-amber-50 text-amber-600 text-[8px] font-black rounded border border-amber-100 uppercase tracking-tighter shadow-sm">
                                 {t('reception.left_early', 'Left Early')}

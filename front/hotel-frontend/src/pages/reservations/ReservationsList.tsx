@@ -290,10 +290,10 @@ function DesktopTable({ reservations, t }: Omit<ListProps, 'navigate'>) {
                 <Table>
                     <TableHeader className="bg-slate-50/50">
                         <TableRow className="border-b border-slate-100 font-black text-[10px] uppercase tracking-tighter text-slate-400">
-                            <TableHead className="px-6 py-4">{t('reservations.guest', 'Guest')}</TableHead>
-                            <TableHead className="py-4">{t('reservations.booking_number', 'Booking #')}</TableHead>
-                            <TableHead className="py-4">{t('reception.temporal_range', 'Temporal Range')}</TableHead>
-                            <TableHead className="py-4">{t('reception.rooms', 'Rooms')}</TableHead>
+                            <TableHead className="px-6 py-4">{t('reservations.guest_details', 'Guest Details')}</TableHead>
+                            <TableHead className="py-4">{t('reservations.reference', 'Reference')}</TableHead>
+                            <TableHead className="py-4">{t('reception.stay_period', 'Stay Period')}</TableHead>
+                            <TableHead className="py-4">{t('reception.accommodation', 'Accommodation')}</TableHead>
                             <TableHead className="px-6 py-4 text-right"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -304,6 +304,7 @@ function DesktopTable({ reservations, t }: Omit<ListProps, 'navigate'>) {
                                 booking={mapReservationDto(res)}
                                 showAction={false}
                                 detailPath={`/reservations/${res.id}`}
+                                isDesktop={true}
                             />
                         ))}
                     </TableBody>
@@ -317,10 +318,10 @@ function DesktopTable({ reservations, t }: Omit<ListProps, 'navigate'>) {
             <Table>
                 <TableHeader className="bg-slate-50/50">
                     <TableRow className="border-b border-slate-100 font-black text-[10px] uppercase tracking-tighter text-slate-400">
-                        <TableHead className="px-6 py-4">{t('reservations.guest', 'Guest')}</TableHead>
-                        <TableHead className="py-4">{t('reservations.booking_number', 'Booking #')}</TableHead>
-                        <TableHead className="py-4">{t('reception.temporal_range', 'Temporal Range')}</TableHead>
-                        <TableHead className="py-4">{t('reception.rooms', 'Rooms')}</TableHead>
+                        <TableHead className="px-6 py-4">{t('reservations.guest_details', 'Guest Details')}</TableHead>
+                        <TableHead className="py-4">{t('reservations.reference', 'Reference')}</TableHead>
+                        <TableHead className="py-4">{t('reception.stay_period', 'Stay Period')}</TableHead>
+                        <TableHead className="py-4">{t('reception.accommodation', 'Accommodation')}</TableHead>
                         <TableHead className="px-6 py-4 text-right"></TableHead>
                     </TableRow>
                 </TableHeader>
@@ -349,6 +350,7 @@ function DesktopTable({ reservations, t }: Omit<ListProps, 'navigate'>) {
                                             booking={mapReservationDto(res)}
                                             showAction={false}
                                             detailPath={`/reservations/${res.id}`}
+                                            isDesktop={true}
                                         />
                                     </div>
                                 );
