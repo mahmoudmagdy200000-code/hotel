@@ -647,7 +647,7 @@ const ReservationDetails = () => {
                         } catch (err: unknown) {
                             const errorMsg = extractErrorMessage(err);
                             if (errorMsg.includes('DATE_MISMATCH')) {
-                                toast.error(t('reception.date_mismatch_desc', 'Check-in date must match today\'s date. Please update the check-in date before proceeding.'), {
+                                toast.error(t('reception.date_mismatch_desc', 'Check-in date must be today, yesterday, or tomorrow relative to the business date. Please update the check-in date before proceeding.'), {
                                     duration: 6000,
                                 });
                             } else {

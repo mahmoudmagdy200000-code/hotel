@@ -251,12 +251,14 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
         }
 
         // Date mismatch validation (AFTER date edits applied):
-        // The final check-in date MUST match the business date
+        // The final check-in date MUST be within +/- 1 day of the business date
         var finalCheckInDate = DateOnly.FromDateTime(entity.CheckInDate);
-        if (finalCheckInDate != request.BusinessDate)
+        var diffDays = Math.Abs(finalCheckInDate.DayNumber - request.BusinessDate.DayNumber);
+
+        if (diffDays > 1)
         {
             throw new ConflictException(
-                $"DATE_MISMATCH: Check-in date ({finalCheckInDate:yyyy-MM-dd}) must match today's date ({request.BusinessDate:yyyy-MM-dd}). Please update the check-in date to today before proceeding.");
+                $"DATE_MISMATCH: Check-in date ({finalCheckInDate:yyyy-MM-dd}) must be today, yesterday, or tomorrow relative to the business date ({request.BusinessDate:yyyy-MM-dd}). Please update the check-in date to a valid date within this range before proceeding.");
         }
 
         var oldStatus = entity.Status;

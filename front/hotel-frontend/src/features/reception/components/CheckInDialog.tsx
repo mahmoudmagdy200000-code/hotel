@@ -124,8 +124,10 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             const today = parseISO(businessDate);
 
             if (origCheckIn && origCheckOut) {
-                const checkInDateOnly = format(origCheckIn, 'yyyy-MM-dd');
-                if (checkInDateOnly !== businessDate) {
+                const diffMs = Math.abs(origCheckIn.getTime() - today.getTime());
+                const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+                if (diffDays > 1) {
                     const nights = Math.max(1, Math.round((origCheckOut.getTime() - origCheckIn.getTime()) / (1000 * 60 * 60 * 24)));
                     const adjustedCheckOut = new Date(today);
                     adjustedCheckOut.setDate(adjustedCheckOut.getDate() + nights);
@@ -140,7 +142,9 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
             } else {
                 setCheckInDate(origCheckIn || today);
                 setCheckOutDate(origCheckOut);
-                setDateWasAutoAdjusted(!origCheckIn || format(origCheckIn!, 'yyyy-MM-dd') !== businessDate);
+
+                const diffDaysCheck = origCheckIn ? Math.round(Math.abs(origCheckIn.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+                setDateWasAutoAdjusted(!origCheckIn || diffDaysCheck > 1);
             }
         }
     }, [reservation, isOpen, businessDate]);
@@ -475,11 +479,9 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    disabled={isPricingLocked}
                                     className={cn(
                                         "h-11 border-slate-200 focus:ring-2 focus:ring-slate-900/5 rounded-xl transition-all",
-                                        currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7",
-                                        isPricingLocked && "bg-slate-50 text-slate-500 cursor-not-allowed"
+                                        currencyCode === CurrencyCodeEnum.EGP ? "pl-10" : "pl-7"
                                     )}
                                     value={balanceDue}
                                     onChange={(e) => setBalanceDue(parseFloat(e.target.value) || 0)}
@@ -494,11 +496,13 @@ const CheckInDialog: React.FC<CheckInDialogProps> = ({
                                 key={code}
                                 type="button"
                                 onClick={() => setCurrencyCode(code)}
+                                disabled={isPricingLocked}
                                 className={cn(
                                     "px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border transition-all",
                                     currencyCode === code
                                         ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                                        : "bg-white text-slate-400 border-slate-100 hover:border-slate-200"
+                                        : "bg-white text-slate-400 border-slate-100 hover:border-slate-200",
+                                    isPricingLocked && "opacity-50 cursor-not-allowed"
                                 )}
                             >
                                 {code === CurrencyCodeEnum.EGP ? 'EGP' : code === CurrencyCodeEnum.USD ? 'USD' : 'EUR'}
