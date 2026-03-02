@@ -12,6 +12,20 @@ import {
 import { getReservationDetails, updateReservation } from '@/api/reservations';
 import type { PaymentMethodValue, CurrencyCodeValue } from '@/api/types/reservations';
 
+/**
+ * Extracts a human-readable message from an API error.
+ * Prefers `detail` from RFC 7231 ProblemDetails, falls back to `title`,
+ * then to a caller-supplied fallback string.
+ */
+const extractErrorMessage = (error: unknown, fallback: string): string => {
+    if (isAxiosError(error) && error.response) {
+        const data = error.response.data;
+        // ProblemDetails: always prefer `detail` (specific) over `title` (generic)
+        return data?.detail || data?.title || fallback;
+    }
+    return fallback;
+};
+
 export const useReceptionActions = () => {
     const queryClient = useQueryClient();
 
@@ -19,6 +33,9 @@ export const useReceptionActions = () => {
         mutationFn: (id: number) => parsePendingRequest(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['pendingRequests'] });
+        },
+        onError: (error) => {
+            toast.error(extractErrorMessage(error, 'Failed to parse the PDF reservation.'));
         },
     });
 
@@ -84,6 +101,9 @@ export const useReceptionActions = () => {
             queryClient.invalidateQueries({ queryKey: ['reception'] });
             queryClient.invalidateQueries({ queryKey: ['reservations'] });
         },
+        onError: (error) => {
+            toast.error(extractErrorMessage(error, 'Could not complete check-in. Please try again.'), { duration: 6000 });
+        },
     });
 
     const checkOut = useMutation({
@@ -95,17 +115,8 @@ export const useReceptionActions = () => {
             toast.success('Successfully checked out. Final balance updated.');
         },
         onError: (error) => {
-            if (isAxiosError(error) && error.response) {
-                const status = error.response.status;
-                if (status === 409 || status === 400) {
-                    toast.error(error.response.data?.detail || 'Could not checkout reservation due to a conflict or invalid state.');
-                } else {
-                    toast.error('An error occurred while checking out the reservation.');
-                }
-            } else {
-                toast.error('Failed to communicate with the server.');
-            }
-        }
+            toast.error(extractErrorMessage(error, 'Could not check out. Please verify the reservation state and try again.'), { duration: 6000 });
+        },
     });
 
     const confirm = useMutation({
@@ -116,19 +127,8 @@ export const useReceptionActions = () => {
             toast.success('Reservation confirmed successfully.');
         },
         onError: (error) => {
-            if (isAxiosError(error) && error.response) {
-                const status = error.response.status;
-                if (status === 409) {
-                    toast.error('This chalet was just booked by another user. Please select another date.', { duration: 5000 });
-                } else if (status === 400) {
-                    toast.error(error.response.data?.detail || 'Bad request: Ensure all required fields are filled.');
-                } else {
-                    toast.error('An error occurred while confirming the reservation.');
-                }
-            } else {
-                toast.error('Failed to communicate with the server.');
-            }
-        }
+            toast.error(extractErrorMessage(error, 'Could not confirm the reservation. Please try again.'), { duration: 6000 });
+        },
     });
 
     const cancel = useMutation({
@@ -138,6 +138,9 @@ export const useReceptionActions = () => {
             queryClient.invalidateQueries({ queryKey: ['reception'] });
             queryClient.invalidateQueries({ queryKey: ['reservations'] });
         },
+        onError: (error) => {
+            toast.error(extractErrorMessage(error, 'Could not cancel the reservation.'));
+        },
     });
 
     const noShow = useMutation({
@@ -146,6 +149,9 @@ export const useReceptionActions = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['reception'] });
             queryClient.invalidateQueries({ queryKey: ['reservations'] });
+        },
+        onError: (error) => {
+            toast.error(extractErrorMessage(error, 'Could not mark reservation as No Show.'));
         },
     });
 
