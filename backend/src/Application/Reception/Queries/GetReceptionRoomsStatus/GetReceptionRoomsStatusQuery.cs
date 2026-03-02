@@ -55,6 +55,7 @@ public class GetReceptionRoomsStatusQueryHandler : IRequestHandler<GetReceptionR
             {
                 RoomId = room.Id,
                 RoomNumber = room.RoomNumber,
+                RoomTypeId = room.RoomTypeId,
                 RoomTypeName = room.RoomType?.Name ?? "Unknown",
                 Status = "Available",
                 Reservation = null

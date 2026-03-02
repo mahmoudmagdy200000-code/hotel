@@ -10,6 +10,7 @@ public class ReceptionRoomStatusItemDto
 {
     public int RoomId { get; set; }
     public string RoomNumber { get; set; } = string.Empty;
+    public int RoomTypeId { get; set; }
     public string RoomTypeName { get; set; } = string.Empty;
     public string Status { get; set; } = "Available"; // "Available" | "Reserved" | "Occupied"
     public ReceptionRoomStatusReservationDto? Reservation { get; set; }
