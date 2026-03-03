@@ -120,7 +120,15 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
 
         // 5. Build Summary
         var totalRev = revenueByDay.TotalRevenue; // Sum of daily revenue matches total
-        var totalExp = expensesList.Sum(e => e.Amount);
+
+        // Split expenses by today's date so Actuals and Forecast are never double-counted.
+        // "Actual"   → only expenses already incurred (BusinessDate <= today).
+        // "Forecast" → only expenses not yet incurred   (BusinessDate >  today).
+        var todayDate = DateOnly.FromDateTime(today.Date); // 'today' from _dateTimeProvider already resolved above
+        var actualExpenses   = expensesList.Where(e => e.BusinessDate <= todayDate).Sum(e => e.Amount);
+        var forecastExpenses = expensesList.Where(e => e.BusinessDate >  todayDate).Sum(e => e.Amount);
+        var totalExp = mode == "Actual" ? actualExpenses : forecastExpenses;
+
         var netProfit = totalRev - totalExp;
         
         decimal avgAdr = occupancy.SoldRoomNights > 0 ? totalRev / occupancy.SoldRoomNights : 0;
