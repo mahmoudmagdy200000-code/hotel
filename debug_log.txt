@@ -168,3 +168,169 @@
 [DEBUG] Parsing Finished. Total Price: 162.15
 [DEBUG] Extracting Total Price. Text Length: 661
 [DEBUG] Text Dump: Booking number:6715814614Guest information:Oleksandr ArapovUkraineTotal guests:2 adultsTotal units/rooms:2Preferred language:UkrainianApproximate arrival time:No time providedCheck-in:Thu, Feb 12, 2026Check-out:Sat, Feb 14, 2026Length of stay:2 nightsTotal price:US$162.15Commission:US$21.15Commissionable amount:US$141Double Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal, Genius discount 10%2 x US$40.50TAX14 %US$11.34City tax1 %US$0.81Total unit/room priceUS$93.15Single Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal2 x US$30City tax1 %US$0.60TAX14 %US$8.40Total unit/room priceUS$69\n
+[DEBUG] Extracting Total Price. Text Length: 14
+[DEBUG] Text Dump: Total: 500 USD
+[DEBUG] Extracting Total Price. Text Length: 67
+[DEBUG] Text Dump: \nRate per night: 1,200 EGP\nNights: 4 Rooms: 2\nTotal: 9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 25
+[DEBUG] Text Dump: Grand Total: EUR 1.234,56
+[DEBUG] Extracting Total Price. Text Length: 79
+[DEBUG] Text Dump: \nInvoice details\nRoom Charges: 500\nTaxes: 50\nTotal amount\n:\n550.00\nUSD\n
+[DEBUG] Extracting Total Price. Text Length: 21
+[DEBUG] Text Dump: \nTotal:\n9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 24
+[DEBUG] Text Dump: Total Price: 1530.50 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total payment: $150.00
+[DEBUG] Extracting Total Price. Text Length: 23
+[DEBUG] Text Dump: Total due: 1 234.56 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total price\n100.00 USD
+[DEBUG] Extracting Total Price. Text Length: 28
+[DEBUG] Text Dump: Grand Total:\n   2,500.00\nEUR
+[DEBUG] Extracting Total Price. Text Length: 301
+[DEBUG] Text Dump: تأكيد الحجز\n\nرقم الحجز: EG-2026-5567\n\nاسم الضيف: أحمد محمد علي\nالهاتف: +20 1234567890\n\nمعلومات الإقامة\nتاريخ الدخول: 2026-03-10\nتاريخ الخروج: 2026-03-12\nعدد الليالي: 2\n\nنوع الغرفة: غرفة مزدوجة ديلوكس\nعدد الغرف: 1\n\nالإجمالي: LE 2,500.00\n\nملاحظات:\n- الدفع عند الوصول\n- الإفطار مشمول\n
+[DEBUG] Extracting Total Price. Text Length: 500
+[DEBUG] Text Dump: AGODA BOOKING VOUCHER\n\nReference: AGD-8765432109\n\nReserved for: Maria Elena González\nContact: +34 612 345 678\n\nHOTEL: Grand Plaza Hotel\nAddress: 123 Main Street, Barcelona\n\nArrival date: 27/01/2026\nDeparture date: 30/01/2026\n3 Nights\n\nROOM DETAILS\n1 Room - Superior Twin\n\nPRICE BREAKDOWN\nRoom subtotal: EUR 285.00\nTaxes & fees: EUR 45.00\nGrand total: EUR 330.00\n\nPOLICIES\nEarly check-in available\nFree WiFi included\nBreakfast not included\n\nThis booking is non-refundable.\n
+[DEBUG] Extracting Total Price. Text Length: 471
+[DEBUG] Text Dump: Booking Confirmation\n\nConfirmation number: 4598271234\nBooking Reference #: 4598271234\n\nGuest information\nName: John Michael Smith\nPhone: +1 555-123-4567\nEmail: john.smith@email.com\n\nStay Details\nCheck-in: 2026-02-15\nCheck-out: 2026-02-18\nNumber of nights: 3\n\nRoom type: Deluxe Double Room\n1 Room\n\nPayment Summary\nTotal price: USD 450.00\n\nImportant Information\n- Check-in time: 14:00\n- Check-out time: 12:00\n- Free cancellation until Feb 12, 2026\n
+[DEBUG] Extracting Total Price. Text Length: 661
+[DEBUG] Text Dump: Booking number:6715814614Guest information:Oleksandr ArapovUkraineTotal guests:2 adultsTotal units/rooms:2Preferred language:UkrainianApproximate arrival time:No time providedCheck-in:Thu, Feb 12, 2026Check-out:Sat, Feb 14, 2026Length of stay:2 nightsTotal price:US$162.15Commission:US$21.15Commissionable amount:US$141Double Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal, Genius discount 10%2 x US$40.50TAX14 %US$11.34City tax1 %US$0.81Total unit/room priceUS$93.15Single Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal2 x US$30City tax1 %US$0.60TAX14 %US$8.40Total unit/room priceUS$69\n
+[DEBUG] Extracting Total Price. Text Length: 14
+[DEBUG] Text Dump: Total: 500 USD
+[DEBUG] Extracting Total Price. Text Length: 67
+[DEBUG] Text Dump: \nRate per night: 1,200 EGP\nNights: 4 Rooms: 2\nTotal: 9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 79
+[DEBUG] Text Dump: \nInvoice details\nRoom Charges: 500\nTaxes: 50\nTotal amount\n:\n550.00\nUSD\n
+[DEBUG] Extracting Total Price. Text Length: 21
+[DEBUG] Text Dump: \nTotal:\n9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 24
+[DEBUG] Text Dump: Total Price: 1530.50 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total payment: $150.00
+[DEBUG] Extracting Total Price. Text Length: 23
+[DEBUG] Text Dump: Total due: 1 234.56 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total price\n100.00 USD
+[DEBUG] Extracting Total Price. Text Length: 28
+[DEBUG] Text Dump: Grand Total:\n   2,500.00\nEUR
+[DEBUG] Extracting Total Price. Text Length: 25
+[DEBUG] Text Dump: Grand Total: EUR 1.234,56
+[DEBUG] Extracting Total Price. Text Length: 301
+[DEBUG] Text Dump: تأكيد الحجز\n\nرقم الحجز: EG-2026-5567\n\nاسم الضيف: أحمد محمد علي\nالهاتف: +20 1234567890\n\nمعلومات الإقامة\nتاريخ الدخول: 2026-03-10\nتاريخ الخروج: 2026-03-12\nعدد الليالي: 2\n\nنوع الغرفة: غرفة مزدوجة ديلوكس\nعدد الغرف: 1\n\nالإجمالي: LE 2,500.00\n\nملاحظات:\n- الدفع عند الوصول\n- الإفطار مشمول\n
+[DEBUG] Extracting Total Price. Text Length: 500
+[DEBUG] Text Dump: AGODA BOOKING VOUCHER\n\nReference: AGD-8765432109\n\nReserved for: Maria Elena González\nContact: +34 612 345 678\n\nHOTEL: Grand Plaza Hotel\nAddress: 123 Main Street, Barcelona\n\nArrival date: 27/01/2026\nDeparture date: 30/01/2026\n3 Nights\n\nROOM DETAILS\n1 Room - Superior Twin\n\nPRICE BREAKDOWN\nRoom subtotal: EUR 285.00\nTaxes & fees: EUR 45.00\nGrand total: EUR 330.00\n\nPOLICIES\nEarly check-in available\nFree WiFi included\nBreakfast not included\n\nThis booking is non-refundable.\n
+[DEBUG] Extracting Total Price. Text Length: 471
+[DEBUG] Text Dump: Booking Confirmation\n\nConfirmation number: 4598271234\nBooking Reference #: 4598271234\n\nGuest information\nName: John Michael Smith\nPhone: +1 555-123-4567\nEmail: john.smith@email.com\n\nStay Details\nCheck-in: 2026-02-15\nCheck-out: 2026-02-18\nNumber of nights: 3\n\nRoom type: Deluxe Double Room\n1 Room\n\nPayment Summary\nTotal price: USD 450.00\n\nImportant Information\n- Check-in time: 14:00\n- Check-out time: 12:00\n- Free cancellation until Feb 12, 2026\n
+[DEBUG] Extracting Total Price. Text Length: 661
+[DEBUG] Text Dump: Booking number:6715814614Guest information:Oleksandr ArapovUkraineTotal guests:2 adultsTotal units/rooms:2Preferred language:UkrainianApproximate arrival time:No time providedCheck-in:Thu, Feb 12, 2026Check-out:Sat, Feb 14, 2026Length of stay:2 nightsTotal price:US$162.15Commission:US$21.15Commissionable amount:US$141Double Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal, Genius discount 10%2 x US$40.50TAX14 %US$11.34City tax1 %US$0.81Total unit/room priceUS$93.15Single Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal2 x US$30City tax1 %US$0.60TAX14 %US$8.40Total unit/room priceUS$69\n
+[DEBUG] Extracting Total Price. Text Length: 25
+[DEBUG] Text Dump: Grand Total: EUR 1.234,56
+[DEBUG] Extracting Total Price. Text Length: 301
+[DEBUG] Text Dump: تأكيد الحجز\n\nرقم الحجز: EG-2026-5567\n\nاسم الضيف: أحمد محمد علي\nالهاتف: +20 1234567890\n\nمعلومات الإقامة\nتاريخ الدخول: 2026-03-10\nتاريخ الخروج: 2026-03-12\nعدد الليالي: 2\n\nنوع الغرفة: غرفة مزدوجة ديلوكس\nعدد الغرف: 1\n\nالإجمالي: LE 2,500.00\n\nملاحظات:\n- الدفع عند الوصول\n- الإفطار مشمول\n
+[DEBUG] Extracting Total Price. Text Length: 500
+[DEBUG] Text Dump: AGODA BOOKING VOUCHER\n\nReference: AGD-8765432109\n\nReserved for: Maria Elena González\nContact: +34 612 345 678\n\nHOTEL: Grand Plaza Hotel\nAddress: 123 Main Street, Barcelona\n\nArrival date: 27/01/2026\nDeparture date: 30/01/2026\n3 Nights\n\nROOM DETAILS\n1 Room - Superior Twin\n\nPRICE BREAKDOWN\nRoom subtotal: EUR 285.00\nTaxes & fees: EUR 45.00\nGrand total: EUR 330.00\n\nPOLICIES\nEarly check-in available\nFree WiFi included\nBreakfast not included\n\nThis booking is non-refundable.\n
+[DEBUG] Extracting Total Price. Text Length: 471
+[DEBUG] Text Dump: Booking Confirmation\n\nConfirmation number: 4598271234\nBooking Reference #: 4598271234\n\nGuest information\nName: John Michael Smith\nPhone: +1 555-123-4567\nEmail: john.smith@email.com\n\nStay Details\nCheck-in: 2026-02-15\nCheck-out: 2026-02-18\nNumber of nights: 3\n\nRoom type: Deluxe Double Room\n1 Room\n\nPayment Summary\nTotal price: USD 450.00\n\nImportant Information\n- Check-in time: 14:00\n- Check-out time: 12:00\n- Free cancellation until Feb 12, 2026\n
+[DEBUG] Extracting Total Price. Text Length: 14
+[DEBUG] Text Dump: Total: 500 USD
+[DEBUG] Extracting Total Price. Text Length: 67
+[DEBUG] Text Dump: \nRate per night: 1,200 EGP\nNights: 4 Rooms: 2\nTotal: 9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 79
+[DEBUG] Text Dump: \nInvoice details\nRoom Charges: 500\nTaxes: 50\nTotal amount\n:\n550.00\nUSD\n
+[DEBUG] Extracting Total Price. Text Length: 21
+[DEBUG] Text Dump: \nTotal:\n9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 24
+[DEBUG] Text Dump: Total Price: 1530.50 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total payment: $150.00
+[DEBUG] Extracting Total Price. Text Length: 23
+[DEBUG] Text Dump: Total due: 1 234.56 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total price\n100.00 USD
+[DEBUG] Extracting Total Price. Text Length: 28
+[DEBUG] Text Dump: Grand Total:\n   2,500.00\nEUR
+[DEBUG] Extracting Total Price. Text Length: 661
+[DEBUG] Text Dump: Booking number:6715814614Guest information:Oleksandr ArapovUkraineTotal guests:2 adultsTotal units/rooms:2Preferred language:UkrainianApproximate arrival time:No time providedCheck-in:Thu, Feb 12, 2026Check-out:Sat, Feb 14, 2026Length of stay:2 nightsTotal price:US$162.15Commission:US$21.15Commissionable amount:US$141Double Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal, Genius discount 10%2 x US$40.50TAX14 %US$11.34City tax1 %US$0.81Total unit/room priceUS$93.15Single Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal2 x US$30City tax1 %US$0.60TAX14 %US$8.40Total unit/room priceUS$69\n
+[DEBUG] Extracting Total Price. Text Length: 25
+[DEBUG] Text Dump: Grand Total: EUR 1.234,56
+[DEBUG] Extracting Total Price. Text Length: 301
+[DEBUG] Text Dump: تأكيد الحجز\n\nرقم الحجز: EG-2026-5567\n\nاسم الضيف: أحمد محمد علي\nالهاتف: +20 1234567890\n\nمعلومات الإقامة\nتاريخ الدخول: 2026-03-10\nتاريخ الخروج: 2026-03-12\nعدد الليالي: 2\n\nنوع الغرفة: غرفة مزدوجة ديلوكس\nعدد الغرف: 1\n\nالإجمالي: LE 2,500.00\n\nملاحظات:\n- الدفع عند الوصول\n- الإفطار مشمول\n
+[DEBUG] Extracting Total Price. Text Length: 500
+[DEBUG] Text Dump: AGODA BOOKING VOUCHER\n\nReference: AGD-8765432109\n\nReserved for: Maria Elena González\nContact: +34 612 345 678\n\nHOTEL: Grand Plaza Hotel\nAddress: 123 Main Street, Barcelona\n\nArrival date: 27/01/2026\nDeparture date: 30/01/2026\n3 Nights\n\nROOM DETAILS\n1 Room - Superior Twin\n\nPRICE BREAKDOWN\nRoom subtotal: EUR 285.00\nTaxes & fees: EUR 45.00\nGrand total: EUR 330.00\n\nPOLICIES\nEarly check-in available\nFree WiFi included\nBreakfast not included\n\nThis booking is non-refundable.\n
+[DEBUG] Extracting Total Price. Text Length: 471
+[DEBUG] Text Dump: Booking Confirmation\n\nConfirmation number: 4598271234\nBooking Reference #: 4598271234\n\nGuest information\nName: John Michael Smith\nPhone: +1 555-123-4567\nEmail: john.smith@email.com\n\nStay Details\nCheck-in: 2026-02-15\nCheck-out: 2026-02-18\nNumber of nights: 3\n\nRoom type: Deluxe Double Room\n1 Room\n\nPayment Summary\nTotal price: USD 450.00\n\nImportant Information\n- Check-in time: 14:00\n- Check-out time: 12:00\n- Free cancellation until Feb 12, 2026\n
+[DEBUG] Extracting Total Price. Text Length: 14
+[DEBUG] Text Dump: Total: 500 USD
+[DEBUG] Extracting Total Price. Text Length: 67
+[DEBUG] Text Dump: \nRate per night: 1,200 EGP\nNights: 4 Rooms: 2\nTotal: 9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 79
+[DEBUG] Text Dump: \nInvoice details\nRoom Charges: 500\nTaxes: 50\nTotal amount\n:\n550.00\nUSD\n
+[DEBUG] Extracting Total Price. Text Length: 21
+[DEBUG] Text Dump: \nTotal:\n9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 24
+[DEBUG] Text Dump: Total Price: 1530.50 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total payment: $150.00
+[DEBUG] Extracting Total Price. Text Length: 23
+[DEBUG] Text Dump: Total due: 1 234.56 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total price\n100.00 USD
+[DEBUG] Extracting Total Price. Text Length: 28
+[DEBUG] Text Dump: Grand Total:\n   2,500.00\nEUR
+[DEBUG] Extracting Total Price. Text Length: 661
+[DEBUG] Text Dump: Booking number:6715814614Guest information:Oleksandr ArapovUkraineTotal guests:2 adultsTotal units/rooms:2Preferred language:UkrainianApproximate arrival time:No time providedCheck-in:Thu, Feb 12, 2026Check-out:Sat, Feb 14, 2026Length of stay:2 nightsTotal price:US$162.15Commission:US$21.15Commissionable amount:US$141Double Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal, Genius discount 10%2 x US$40.50TAX14 %US$11.34City tax1 %US$0.81Total unit/room priceUS$93.15Single Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal2 x US$30City tax1 %US$0.60TAX14 %US$8.40Total unit/room priceUS$69\n
+[DEBUG] Extracting Total Price. Text Length: 14
+[DEBUG] Text Dump: Total: 500 USD
+[DEBUG] Extracting Total Price. Text Length: 67
+[DEBUG] Text Dump: \nRate per night: 1,200 EGP\nNights: 4 Rooms: 2\nTotal: 9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 79
+[DEBUG] Text Dump: \nInvoice details\nRoom Charges: 500\nTaxes: 50\nTotal amount\n:\n550.00\nUSD\n
+[DEBUG] Extracting Total Price. Text Length: 21
+[DEBUG] Text Dump: \nTotal:\n9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 24
+[DEBUG] Text Dump: Total Price: 1530.50 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total payment: $150.00
+[DEBUG] Extracting Total Price. Text Length: 23
+[DEBUG] Text Dump: Total due: 1 234.56 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total price\n100.00 USD
+[DEBUG] Extracting Total Price. Text Length: 28
+[DEBUG] Text Dump: Grand Total:\n   2,500.00\nEUR
+[DEBUG] Extracting Total Price. Text Length: 25
+[DEBUG] Text Dump: Grand Total: EUR 1.234,56
+[DEBUG] Extracting Total Price. Text Length: 301
+[DEBUG] Text Dump: تأكيد الحجز\n\nرقم الحجز: EG-2026-5567\n\nاسم الضيف: أحمد محمد علي\nالهاتف: +20 1234567890\n\nمعلومات الإقامة\nتاريخ الدخول: 2026-03-10\nتاريخ الخروج: 2026-03-12\nعدد الليالي: 2\n\nنوع الغرفة: غرفة مزدوجة ديلوكس\nعدد الغرف: 1\n\nالإجمالي: LE 2,500.00\n\nملاحظات:\n- الدفع عند الوصول\n- الإفطار مشمول\n
+[DEBUG] Extracting Total Price. Text Length: 500
+[DEBUG] Text Dump: AGODA BOOKING VOUCHER\n\nReference: AGD-8765432109\n\nReserved for: Maria Elena González\nContact: +34 612 345 678\n\nHOTEL: Grand Plaza Hotel\nAddress: 123 Main Street, Barcelona\n\nArrival date: 27/01/2026\nDeparture date: 30/01/2026\n3 Nights\n\nROOM DETAILS\n1 Room - Superior Twin\n\nPRICE BREAKDOWN\nRoom subtotal: EUR 285.00\nTaxes & fees: EUR 45.00\nGrand total: EUR 330.00\n\nPOLICIES\nEarly check-in available\nFree WiFi included\nBreakfast not included\n\nThis booking is non-refundable.\n
+[DEBUG] Extracting Total Price. Text Length: 471
+[DEBUG] Text Dump: Booking Confirmation\n\nConfirmation number: 4598271234\nBooking Reference #: 4598271234\n\nGuest information\nName: John Michael Smith\nPhone: +1 555-123-4567\nEmail: john.smith@email.com\n\nStay Details\nCheck-in: 2026-02-15\nCheck-out: 2026-02-18\nNumber of nights: 3\n\nRoom type: Deluxe Double Room\n1 Room\n\nPayment Summary\nTotal price: USD 450.00\n\nImportant Information\n- Check-in time: 14:00\n- Check-out time: 12:00\n- Free cancellation until Feb 12, 2026\n
+[DEBUG] Extracting Total Price. Text Length: 661
+[DEBUG] Text Dump: Booking number:6715814614Guest information:Oleksandr ArapovUkraineTotal guests:2 adultsTotal units/rooms:2Preferred language:UkrainianApproximate arrival time:No time providedCheck-in:Thu, Feb 12, 2026Check-out:Sat, Feb 14, 2026Length of stay:2 nightsTotal price:US$162.15Commission:US$21.15Commissionable amount:US$141Double Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal, Genius discount 10%2 x US$40.50TAX14 %US$11.34City tax1 %US$0.81Total unit/room priceUS$93.15Single Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal2 x US$30City tax1 %US$0.60TAX14 %US$8.40Total unit/room priceUS$69\n
+[DEBUG] Extracting Total Price. Text Length: 25
+[DEBUG] Text Dump: Grand Total: EUR 1.234,56
+[DEBUG] Extracting Total Price. Text Length: 14
+[DEBUG] Text Dump: Total: 500 USD
+[DEBUG] Extracting Total Price. Text Length: 67
+[DEBUG] Text Dump: \nRate per night: 1,200 EGP\nNights: 4 Rooms: 2\nTotal: 9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 79
+[DEBUG] Text Dump: \nInvoice details\nRoom Charges: 500\nTaxes: 50\nTotal amount\n:\n550.00\nUSD\n
+[DEBUG] Extracting Total Price. Text Length: 21
+[DEBUG] Text Dump: \nTotal:\n9,600 EGP\n
+[DEBUG] Extracting Total Price. Text Length: 24
+[DEBUG] Text Dump: Total Price: 1530.50 USD
+[DEBUG] Extracting Total Price. Text Length: 500
+[DEBUG] Text Dump: AGODA BOOKING VOUCHER\n\nReference: AGD-8765432109\n\nReserved for: Maria Elena González\nContact: +34 612 345 678\n\nHOTEL: Grand Plaza Hotel\nAddress: 123 Main Street, Barcelona\n\nArrival date: 27/01/2026\nDeparture date: 30/01/2026\n3 Nights\n\nROOM DETAILS\n1 Room - Superior Twin\n\nPRICE BREAKDOWN\nRoom subtotal: EUR 285.00\nTaxes & fees: EUR 45.00\nGrand total: EUR 330.00\n\nPOLICIES\nEarly check-in available\nFree WiFi included\nBreakfast not included\n\nThis booking is non-refundable.\n
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total payment: $150.00
+[DEBUG] Extracting Total Price. Text Length: 23
+[DEBUG] Text Dump: Total due: 1 234.56 USD
+[DEBUG] Extracting Total Price. Text Length: 22
+[DEBUG] Text Dump: Total price\n100.00 USD
+[DEBUG] Extracting Total Price. Text Length: 28
+[DEBUG] Text Dump: Grand Total:\n   2,500.00\nEUR
+[DEBUG] Extracting Total Price. Text Length: 471
+[DEBUG] Text Dump: Booking Confirmation\n\nConfirmation number: 4598271234\nBooking Reference #: 4598271234\n\nGuest information\nName: John Michael Smith\nPhone: +1 555-123-4567\nEmail: john.smith@email.com\n\nStay Details\nCheck-in: 2026-02-15\nCheck-out: 2026-02-18\nNumber of nights: 3\n\nRoom type: Deluxe Double Room\n1 Room\n\nPayment Summary\nTotal price: USD 450.00\n\nImportant Information\n- Check-in time: 14:00\n- Check-out time: 12:00\n- Free cancellation until Feb 12, 2026\n
+[DEBUG] Extracting Total Price. Text Length: 661
+[DEBUG] Text Dump: Booking number:6715814614Guest information:Oleksandr ArapovUkraineTotal guests:2 adultsTotal units/rooms:2Preferred language:UkrainianApproximate arrival time:No time providedCheck-in:Thu, Feb 12, 2026Check-out:Sat, Feb 14, 2026Length of stay:2 nightsTotal price:US$162.15Commission:US$21.15Commissionable amount:US$141Double Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal, Genius discount 10%2 x US$40.50TAX14 %US$11.34City tax1 %US$0.81Total unit/room priceUS$93.15Single Room with Private BathroomAll inclusive12 - 14 Feb 2026Full board, Early Year Deal2 x US$30City tax1 %US$0.60TAX14 %US$8.40Total unit/room priceUS$69\n

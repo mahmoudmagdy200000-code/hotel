@@ -125,4 +125,17 @@ public class IdentityService : IIdentityService
         var addResult = await _userManager.AddToRolesAsync(user, roles);
         return addResult.ToApplicationResult();
     }
+
+    public async Task<Result> UpdatePasswordAsync(string userId, string newPassword)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return Result.Failure(new[] { "User not found." });
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+        return result.ToApplicationResult();
+    }
 }

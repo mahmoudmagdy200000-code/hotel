@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
+    DialogHeader,
+    DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -278,10 +280,10 @@ const UserManagement = () => {
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-[380px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden">
-                                    <div className="bg-slate-900 p-8 text-white">
-                                        <h2 className="text-xl font-black uppercase tracking-tighter">{t('admin.create_branch', 'Create Branch')}</h2>
+                                    <DialogHeader className="bg-slate-900 p-8 text-white">
+                                        <DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">{t('admin.create_branch', 'Create Branch')}</DialogTitle>
                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">Property Node</p>
-                                    </div>
+                                    </DialogHeader>
                                     <form onSubmit={handleCreateBranch} className="p-8 space-y-5">
                                         <div className="space-y-1.5">
                                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
@@ -316,10 +318,10 @@ const UserManagement = () => {
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-[425px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden">
-                                    <div className="bg-slate-900 p-8 text-white">
-                                        <h2 className="text-xl font-black uppercase tracking-tighter">{t('admin.add_new_user', 'Provision User')}</h2>
+                                    <DialogHeader className="bg-slate-900 p-8 text-white">
+                                        <DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">{t('admin.add_new_user', 'Provision User')}</DialogTitle>
                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">Identity Management</p>
-                                    </div>
+                                    </DialogHeader>
                                     <form onSubmit={handleCreateUser} className="p-8 space-y-4">
                                         <div className="space-y-1.5">
                                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('auth.email', 'Corporate Email')}</Label>
@@ -441,12 +443,12 @@ const UserManagement = () => {
             {/* PASSWORD RESET DIALOG */}
             <Dialog open={!!passwordResetUserId} onOpenChange={open => { if (!open) setPasswordResetUserId(null); }}>
                 <DialogContent className="sm:max-w-[400px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden">
-                    <div className="bg-slate-900 p-8 text-white">
-                        <h2 className="text-xl font-black uppercase tracking-tighter">{t('admin.reset_password', 'Reset Password')}</h2>
+                    <DialogHeader className="bg-slate-900 p-8 text-white">
+                        <DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">{t('admin.reset_password', 'Reset Password')}</DialogTitle>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60 truncate">
                             {passwordResetUser?.email}
                         </p>
-                    </div>
+                    </DialogHeader>
                     <form onSubmit={handlePasswordReset} className="p-8 space-y-4">
                         <div className="space-y-1.5">
                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('admin.new_password', 'New Password')}</Label>

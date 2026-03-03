@@ -19,4 +19,6 @@ public interface IIdentityService
     Task<List<(string Id, string? Email, Guid? BranchId, List<string> Roles)>> GetUsersAsync();
 
     Task<Result> UpdateUserRolesAsync(string userId, IEnumerable<string> roles);
+
+    Task<Result> UpdatePasswordAsync(string userId, string newPassword);
 }

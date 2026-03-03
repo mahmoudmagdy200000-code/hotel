@@ -2,201 +2,66 @@
 trigger: always_on
 ---
 
-# PHASE 8 — Branch-Scoped Admin + Listings (Implementation Reference)
+# Role
+You are an Expert Full-Stack .NET Developer and Software Architect specializing in Clean Architecture, Domain-Driven Design (DDD), and secure enterprise systems.
 
-> **Purpose:** This document is the single source of truth for implementing Phase 8 in strict numbered sub-phases.  
-> **Rule:** The AI agent MUST follow the phase numbers and MUST NOT implement items from later phases early.  
-> **Testing:** **No tests** in phases 8.1–8.5. All tests will be done in the final testing phase.
+# Context
+We are implementing backend updates for "Nexa PMS" (currently in PRODUCTION) based on the previous architecture analysis. We are now executing **Phase 1 (Update User Password)** and **Phase 2 (Create Branch)** strictly in the Backend (.NET). 
 
----
+# Task
+Write the exact, production-ready C# code to implement these features. Adhere strictly to Clean Code, SOLID principles, and our existing Clean Architecture structure (Domain, Application, Infrastructure, Web/API). 
+**CONSTRAINT:** Do NOT create or run any EF Core Migrations, as the database schema already supports these changes. Do NOT modify any React/Frontend files in this prompt.
 
-## Phase 8.1 — Branch Foundation
-### Goal
-Introduce a first-class `Branch` entity (property/branch) as the foundation for branch isolation.
+# Implementation Requirements
 
-### Backend Deliverables
-1) **Domain**
-- Add entity `Branch`:
-  - `Guid Id`
-  - `string Name` (required, max 120)
-- Minimal invariants: Name not empty; length <= 120.
+## Phase 1: Update User & Password Reset
+1. **IIdentityService & IdentityService (Infrastructure layer):**
+   - Add `Task<Result> UpdatePasswordAsync(string userId, string newPassword);` to the interface.
+   - Implement it in `IdentityService` using ASP.NET Core Identity: Generate a reset token (`GeneratePasswordResetTokenAsync`) and reset the password (`ResetPasswordAsync`).
+2. **UpdateUserCommand & Handler (Application layer):**
+   - Add an optional property: `public string? NewPassword { get; init; }`
+   - In the Handler, check if `NewPassword` is provided and not empty, then call `_identityService.UpdatePasswordAsync(...)`.
+   - **CRITICAL SECURITY GUARD (Anti-Self-Lock):** Inject the `ICurrentUserService` (or equivalent context accessor). If the user executing the request is an "Administrator" and they are updating their *own* user profile, throw a validation exception or return a failure result if the new roles list does NOT include "Administrator". They must not be able to accidentally strip their own admin privileges.
 
-2) **Infrastructure (EF Core)**
-- Add `DbSet<Branch>` to DbContext.
-- Add `BranchConfiguration`:
-  - Name required, max length 120
-  - (Optional) unique index on Name if consistent with repo style.
+## Phase 2: Create Branch (Vertical Slice)
+1. **CreateBranchCommand & Handler (Application layer):**
+   - Create `CreateBranchCommand` containing a `Name` property (string).
+   - Create the corresponding Handler. Instantiate a new `Branch` entity, add it to the context, and save changes. Return the new `Guid`.
+2. **API Endpoint (Web/API layer):**
+   - Add the `POST /branches` minimal API endpoint (e.g., in a `Branches.cs` endpoint configuration file).
+   - Ensure it is secured: `.RequireAuthorization(policy => policy.RequireRole(Roles.Administrator, Roles.Owner));`
+   - Return `Results.Ok(id)` upon successful creation.
 
-3) **Migration**
-- Create migration `AddBranches` → creates `Branches` table.
+# Output Format
+Please provide the exact code blocks for each modified or newly created file. Include the expected file path as a comment at the top of each code block so I know exactly where to place it. Ensure the code is robust and ready for production.
 
-4) **Seed (Optional)**
-- Only if the repo already seeds reference data:
-  - seed “Branch A”, “Branch B”.
-- Otherwise skip.
+# Role
+You are an Expert Full-Stack (.NET/React) Developer and QA Automation Engineer specializing in Clean Architecture, React Best Practices, and Test-Driven Development (TDD).
 
-### Out of Scope
-- No `BranchId` on any other tables.
-- No authorization/filtering.
-- No frontend work.
-- No listings/aliases.
+# Context
+We are continuing the implementation for "Nexa PMS" (Production Environment). The Backend endpoints and commands for "Update User (with Password Reset)" and "Create Branch" have been created. 
+We now need to execute **Phase 3 & Phase 4 (Frontend React/TypeScript Implementation)** and **Phase 5 (Backend Unit Testing)** to guarantee production stability.
 
----
+# Task 1: Frontend Implementation (React + TypeScript)
+Please provide the exact code changes for the following frontend files. Ensure you use existing UI patterns (Tailwind CSS, React hooks, existing state management):
 
-## Phase 8.2 — BranchId on Core Tables + Backfill
-### Goal
-Add required `BranchId` FK columns to core data so isolation becomes possible.
+1. **API & Types (`api/types/auth.ts` & `api/branches.ts`):**
+   - Add optional `newPassword?: string` to the `UpdateUserCommand` TS interface.
+   - Create `createBranch(name: string): Promise<string>` in the branches API service.
+2. **Hooks (`hooks/admin/useUserManagement.ts`):**
+   - Add a `useCreateBranch` mutation hook that calls the new API and invalidates the branches query cache (e.g., using React Query if applicable, or updating local state).
+3. **UI Components (`pages/admin/UserManagement.tsx`):**
+   - **Password Reset UI:** Add a "Reset Password" action for existing users. This can be a secondary dialog/modal triggered by a button in the user row. It should accept a new password and call `updateUser` with the new payload.
+   - **Create Branch UI:** Add a "Create Branch" button (perhaps near the Global Nodes KPI card) that opens a simple modal with a "Branch Name" input and a submit button.
 
-### Backend Deliverables
-1) Add `Guid BranchId` to:
-- `Rooms`
-- `RoomTypes` (if used)
-- `Reservations`
-- `Expenses` (ONLY if Expenses already exists; otherwise defer)
+# Task 2: Backend Unit Tests (Guaranteeing Stability)
+To ensure our new backend logic does not break production or allow invalid states, write Unit Tests (using xUnit, Moq, and FluentAssertions) for the newly modified Application Layer Handlers.
 
-2) EF mapping:
-- Required FK to `Branches`
-- Indexes on `BranchId` for each table.
+1. **Test `UpdateUserCommandHandler`:**
+   - **Test Case 1:** Successfully updates user roles and calls `_identityService.UpdatePasswordAsync` when `NewPassword` is provided.
+   - **Test Case 2 (CRITICAL):** Throws a validation exception (or returns Failure) when an Administrator attempts to remove their own "Administrator" role (Anti-Self-Lock guard).
+2. **Test `CreateBranchCommandHandler`:**
+   - **Test Case 1:** Successfully adds a new branch to the mocked DbContext and returns a valid Guid.
 
-3) Migration + backfill (CRITICAL):
-- Migration name: `AddBranchIdToCoreTables`
-- Add columns (nullable first if needed)
-- Ensure at least one Branch exists:
-  - If none, insert `Default Branch`
-- Backfill all existing rows to default Branch
-- Enforce NOT NULL
-- Add FK constraints + indexes.
-
-4) Minimal create-flow assignment (temporary, no auth yet):
-- New records must have BranchId set to **default Branch**:
-  - CreateRoom
-  - CreateRoomType
-  - CreateReservation (manual + PDF draft creation if present)
-  - CreateExpense (if exists)
-- Implement a small helper:
-  - `IBranchResolver.GetDefaultBranchIdAsync()` used by handlers.
-
-### Out of Scope
-- Users BranchId / claims
-- Branch-based authorization and filtering
-- Frontend changes
-- Listings/Aliases
-
----
-
-## Phase 8.3 — User Branch Binding (Admin → Single Branch)
-### Goal
-Bind each Admin user to one `BranchId` and expose it in identity context (claims/current user service).
-
-### Backend Deliverables
-1) Storage
-- Add `BranchId` column to Users (e.g., `AspNetUsers` or `UserProfile`):
-  - `Guid? BranchId`
-- Rule:
-  - **Admin must have BranchId**
-  - Optional: Owner/SuperAdmin may have BranchId null (only if you support global access)
-
-2) Token/Claims
-- Include claim `branch_id` in JWT for users who have a BranchId.
-
-3) Current user context
-- Extend `ICurrentUserService` (or equivalent) with:
-  - `Guid? BranchId`
-  - (Optional) `bool IsOwnerOrSuperAdmin`
-
-4) Admin assignment workflow (minimal)
-- Ensure there is a path to set BranchId for Admin users:
-  - Either seed/update in DB for now,
-  - Or provide a minimal admin endpoint to set user branch (optional, keep minimal).
-
-### Out of Scope
-- Enforcing filters globally (that is 8.4)
-- Frontend branch selector
-- Listings/Aliases
-
----
-
-## Phase 8.4 — Enforcement (Branch-Scoped Data Isolation)
-### Goal
-**Admin must only see/modify data belonging to their Branch** — enforced in backend (not UI-only).
-
-### Backend Deliverables
-Choose ONE enforcement strategy and apply consistently:
-
-**Option A (Preferred): Global Query Filter**
-- Similar to SoftDelete filter.
-- DbContext gets current BranchId (via injected service).
-- Apply filter to:
-  - Reservations
-  - Rooms
-  - RoomTypes
-  - Expenses
-- If BranchId is null and user is Owner/SuperAdmin → no filter (optional).
-- Ensure audit queries using `.IgnoreQueryFilters()` remain correct.
-
-**Option B: Filter per Query/Handler**
-- Every admin query/command must apply:
-  - `.Where(x => x.BranchId == currentUser.BranchId)`
-- Guard endpoints that require Owner/SuperAdmin.
-
-Also update workflows:
-- CreateReservation must use current user’s BranchId (NOT default).
-- Same for Rooms/RoomTypes/Expenses.
-
-### Out of Scope
-- Listings dropdown for PDF upload (that is 8.5)
-- Auto-detect branch from PDF text
-
----
-
-## Phase 8.5 — Branch Listings (Aliases) + PDF Upload uses ListingId
-### Goal
-Replace manual hotel name typing with a predefined **Listings** list per Branch.
-PDF upload uses `listingId`, and backend resolves it to BranchId + listing name.
-
-### Backend Deliverables
-1) Entity: `BranchListing`
-- `Guid Id`
-- `Guid BranchId` (FK)
-- `string Name` (required, max 120)
-- `string? Channel` (optional: Booking/Agoda/Manual/Other)
-- `bool IsActive` (default true)
-- Unique index: `(BranchId, Name)`
-- Migration: `AddBranchListings`
-
-2) Endpoints (Admin-only, branch-scoped)
-- `GET /api/admin/listings?includeInactive=false`
-  - returns listings for current admin’s branch
-- `POST /api/admin/listings`
-  - body: `{ name, channel? }`
-- `PATCH /api/admin/listings/{id}`
-  - body: `{ name?, channel?, isActive? }`
-
-3) PDF upload changes
-- Replace manual `hotelName` requirement with `listingId` (Guid) in multipart/form-data.
-- Validate listing belongs to current user’s branch.
-- Save reservation draft:
-  - `BranchId = listing.BranchId`
-  - `HotelName (trace/display) = listing.Name` (or `ListingName` if you add a new field)
-- (Optional) keep old `hotelName` field for 1 release for backward compatibility, then remove.
-
-### Frontend Deliverables
-1) Admin management UI
-- Add a minimal “Listings” admin screen:
-  - add listing
-  - list listings
-  - activate/deactivate
-
-2) PDF upload UI
-- Replace manual hotel name input with a **dropdown**:
-  - fetch listings for current branch
-  - require selecting a listing before upload
-- Send `listingId` in upload request.
-
----
-
-## Final Notes
-- Each phase must end with a working build.
-- Do not mix phases.
-- Keep migrations deterministic and safe (especially backfill in 8.2).
-- Tests are deliberately postponed.
+# Output Format
+Provide the implementation in clearly separated code blocks with the intended file paths as comments at the top of each block. Start with the Frontend changes, followed by the Backend Unit Tests. Do NOT execute files directly; provide the code for review.
