@@ -42,9 +42,16 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 
+import { useAuth } from '@/hooks/useAuth';
+
 const UserManagement = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    // RBAC Guard
+    const isAdminOrOwner = user?.role === 'Administrator' || user?.role === 'Owner';
+
     const { data: users, isLoading: usersLoading } = useUsers();
     const { data: branches, isLoading: branchesLoading } = useBranches();
     const updateMutation = useUpdateUser();
@@ -217,6 +224,23 @@ const UserManagement = () => {
             toast.error(detail || t('admin.branch_create_failed', 'Failed to create branch.'));
         }
     };
+
+    if (!isAdminOrOwner) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
+                <div className="p-4 rounded-full bg-red-100">
+                    <Shield className="w-8 h-8 text-red-600" />
+                </div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tighter uppercase">Access Denied</h2>
+                <p className="text-sm font-bold text-slate-500 text-center max-w-md">
+                    You do not have the required operational clearance to access the Staff Registry. Contact your local Administrator.
+                </p>
+                <Button variant="outline" onClick={() => navigate('/')} className="mt-4">
+                    Return to Dashboard
+                </Button>
+            </div>
+        );
+    }
 
     if (usersLoading || branchesLoading) {
         return (

@@ -2,18 +2,27 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getUsers, updateUser, createUser } from '@/api/auth';
 import { getBranches, createBranch } from '@/api/branches';
 import type { UpdateUserCommand, CreateUserCommand } from '@/api/types/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useUsers = () => {
+    const { user } = useAuth();
+    const isAdminOrOwner = user?.role === 'Administrator' || user?.role === 'Owner';
+
     return useQuery({
         queryKey: ['users'],
         queryFn: () => getUsers().then(res => res.data),
+        enabled: isAdminOrOwner,
     });
 };
 
 export const useBranches = () => {
+    const { user } = useAuth();
+    const isAdminOrOwner = user?.role === 'Administrator' || user?.role === 'Owner';
+
     return useQuery({
         queryKey: ['branches'],
         queryFn: () => getBranches(),
+        enabled: isAdminOrOwner,
     });
 };
 
