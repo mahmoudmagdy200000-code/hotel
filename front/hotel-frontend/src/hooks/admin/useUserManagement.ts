@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getUsers, updateUser, createUser } from '@/api/auth';
-import { getBranches } from '@/api/branches';
+import { getBranches, createBranch } from '@/api/branches';
 import type { UpdateUserCommand, CreateUserCommand } from '@/api/types/auth';
 
 export const useUsers = () => {
@@ -36,3 +36,14 @@ export const useCreateUser = () => {
         },
     });
 };
+
+export const useCreateBranch = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (name: string) => createBranch(name),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['branches'] });
+        },
+    });
+};
+

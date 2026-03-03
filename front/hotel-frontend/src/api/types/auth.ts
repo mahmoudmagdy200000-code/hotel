@@ -32,6 +32,8 @@ export interface UpdateUserCommand {
     userId: string;
     branchId: string | null;
     roles: string[];
+    /** Optional — when set, the backend resets the user's password to this value. */
+    newPassword?: string;
 }
 
 export interface CreateUserCommand {

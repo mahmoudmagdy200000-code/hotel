@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useUsers, useBranches, useUpdateUser, useCreateUser } from '@/hooks/admin/useUserManagement';
+import { useUsers, useBranches, useUpdateUser, useCreateUser, useCreateBranch } from '@/hooks/admin/useUserManagement';
 import {
     Table,
     TableBody,
@@ -47,6 +47,7 @@ const UserManagement = () => {
     const { data: branches, isLoading: branchesLoading } = useBranches();
     const updateMutation = useUpdateUser();
     const createMutation = useCreateUser();
+    const createBranchMutation = useCreateBranch();
 
     const [pendingChanges, setPendingChanges] = useState<Record<string, { branchId: string | null; roles: string[] }>>({});
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -56,6 +57,15 @@ const UserManagement = () => {
         role: 'Receptionist',
         branchId: 'none'
     });
+
+    // --- Password Reset State ---
+    const [passwordResetUserId, setPasswordResetUserId] = useState<string | null>(null);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    // --- Create Branch State ---
+    const [isCreateBranchOpen, setIsCreateBranchOpen] = useState(false);
+    const [newBranchName, setNewBranchName] = useState('');
 
     const handleBranchChange = (userId: string, branchId: string) => {
         const user = users?.find(u => u.id === userId);
@@ -76,10 +86,9 @@ const UserManagement = () => {
 
         const currentBranchId = pendingChanges[userId]?.branchId === undefined ? user.branchId : pendingChanges[userId].branchId;
 
-        // Auto-clear Global Access if demoted to Receptionist
         let validatedBranchId = currentBranchId;
         if (role === 'Receptionist' && !currentBranchId) {
-            validatedBranchId = branches?.[0]?.id || null; // Force first branch if available, else null
+            validatedBranchId = branches?.[0]?.id || null;
             toast.info(t('admin.receptionist_branch_required', 'Receptionist must be assigned to a branch. Auto-assigning default.'));
         }
 
@@ -153,6 +162,60 @@ const UserManagement = () => {
         }
     };
 
+    // --- Password Reset Handlers ---
+    const openPasswordReset = (userId: string) => {
+        setPasswordResetUserId(userId);
+        setNewPassword('');
+        setConfirmPassword('');
+    };
+
+    const handlePasswordReset = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!passwordResetUserId) return;
+
+        if (newPassword !== confirmPassword) {
+            toast.error(t('admin.password_mismatch', 'Passwords do not match.'));
+            return;
+        }
+        if (newPassword.length < 6) {
+            toast.error(t('admin.password_too_short', 'Password must be at least 6 characters.'));
+            return;
+        }
+
+        const user = users?.find(u => u.id === passwordResetUserId);
+        if (!user) return;
+
+        try {
+            await updateMutation.mutateAsync({
+                userId: passwordResetUserId,
+                branchId: user.branchId,
+                roles: user.roles,
+                newPassword,
+            });
+            toast.success(t('admin.password_reset_success', 'Password reset successfully. The user should log out and log back in.'));
+            setPasswordResetUserId(null);
+        } catch (error: any) {
+            const detail = error.response?.data?.detail || error.response?.data?.[0]?.description;
+            toast.error(detail || t('admin.password_reset_failed', 'Failed to reset password.'));
+        }
+    };
+
+    // --- Create Branch Handlers ---
+    const handleCreateBranch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newBranchName.trim()) return;
+
+        try {
+            await createBranchMutation.mutateAsync(newBranchName.trim());
+            toast.success(t('admin.branch_created', 'Branch created successfully.'));
+            setIsCreateBranchOpen(false);
+            setNewBranchName('');
+        } catch (error: any) {
+            const detail = error.response?.data?.detail;
+            toast.error(detail || t('admin.branch_create_failed', 'Failed to create branch.'));
+        }
+    };
+
     if (usersLoading || branchesLoading) {
         return (
             <div className="space-y-6 animate-pulse p-4">
@@ -180,6 +243,8 @@ const UserManagement = () => {
         unbound: branches?.length || 0
     };
 
+    const passwordResetUser = users?.find(u => u.id === passwordResetUserId);
+
     return (
         <div className="space-y-6 pb-24 sm:pb-8">
             {/* STICKY NAVY ACTION BAR */}
@@ -204,6 +269,45 @@ const UserManagement = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
+                            {/* Create Branch Button */}
+                            <Dialog open={isCreateBranchOpen} onOpenChange={setIsCreateBranchOpen}>
+                                <DialogTrigger asChild>
+                                    <Button className="bg-white/10 hover:bg-white/20 border border-white/10 h-10 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest text-white transition-all">
+                                        <Building2 className="w-4 h-4 mr-1.5" />
+                                        {t('admin.add_branch', 'New Branch')}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[380px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden">
+                                    <div className="bg-slate-900 p-8 text-white">
+                                        <h2 className="text-xl font-black uppercase tracking-tighter">{t('admin.create_branch', 'Create Branch')}</h2>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">Property Node</p>
+                                    </div>
+                                    <form onSubmit={handleCreateBranch} className="p-8 space-y-5">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                {t('admin.branch_name', 'Branch Name')}
+                                            </Label>
+                                            <Input
+                                                required
+                                                maxLength={120}
+                                                value={newBranchName}
+                                                onChange={e => setNewBranchName(e.target.value)}
+                                                className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11"
+                                                placeholder="e.g. North Wing, Cairo Branch…"
+                                            />
+                                        </div>
+                                        <div className="pt-2 flex gap-3">
+                                            <Button type="button" variant="ghost" onClick={() => setIsCreateBranchOpen(false)} className="flex-1 h-12 rounded-2xl font-black text-[11px] uppercase tracking-widest text-slate-400">Cancel</Button>
+                                            <Button type="submit" disabled={createBranchMutation.isPending || !newBranchName.trim()} className="flex-[2] h-12 rounded-2xl bg-slate-900 text-white font-black text-[11px] uppercase tracking-widest shadow-lg">
+                                                {createBranchMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : <Plus className="w-4 h-4 me-2" />}
+                                                {t('admin.create_branch_commit', 'Create Branch')}
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+
+                            {/* Add User Button */}
                             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button className="bg-blue-600 hover:bg-blue-700 h-10 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-900/40 active:scale-95 transition-all">
@@ -334,6 +438,66 @@ const UserManagement = () => {
                 />
             </div>
 
+            {/* PASSWORD RESET DIALOG */}
+            <Dialog open={!!passwordResetUserId} onOpenChange={open => { if (!open) setPasswordResetUserId(null); }}>
+                <DialogContent className="sm:max-w-[400px] rounded-[32px] border-none shadow-2xl p-0 overflow-hidden">
+                    <div className="bg-slate-900 p-8 text-white">
+                        <h2 className="text-xl font-black uppercase tracking-tighter">{t('admin.reset_password', 'Reset Password')}</h2>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60 truncate">
+                            {passwordResetUser?.email}
+                        </p>
+                    </div>
+                    <form onSubmit={handlePasswordReset} className="p-8 space-y-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('admin.new_password', 'New Password')}</Label>
+                            <div className="relative">
+                                <Key className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                                <Input
+                                    type="password"
+                                    required
+                                    minLength={6}
+                                    className="rounded-xl bg-slate-50 border-slate-100 font-bold h-11 ps-10"
+                                    value={newPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                    placeholder="Min 6 chars, uppercase, digit…"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('admin.confirm_password', 'Confirm Password')}</Label>
+                            <div className="relative">
+                                <Key className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                                <Input
+                                    type="password"
+                                    required
+                                    className={cn(
+                                        "rounded-xl bg-slate-50 border-slate-100 font-bold h-11 ps-10",
+                                        confirmPassword && confirmPassword !== newPassword && "border-red-300 bg-red-50"
+                                    )}
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    placeholder="Repeat password…"
+                                />
+                            </div>
+                            {confirmPassword && confirmPassword !== newPassword && (
+                                <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">Passwords do not match</p>
+                            )}
+                        </div>
+                        <div className="pt-2 flex gap-3">
+                            <Button type="button" variant="ghost" onClick={() => setPasswordResetUserId(null)} className="flex-1 h-12 rounded-2xl font-black text-[11px] uppercase tracking-widest text-slate-400">Cancel</Button>
+                            <Button
+                                type="submit"
+                                disabled={updateMutation.isPending || !newPassword || newPassword !== confirmPassword}
+                                className="flex-[2] h-12 rounded-2xl bg-slate-900 text-white font-black text-[11px] uppercase tracking-widest shadow-lg"
+                            >
+                                {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : <Key className="w-4 h-4 me-2" />}
+                                {t('admin.confirm_reset', 'Reset Password')}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
             {/* STAFF REGISTRY LEDGER */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between px-2">
@@ -363,16 +527,28 @@ const UserManagement = () => {
                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block truncate opacity-60">ID: {user.id}</span>
                                         </div>
                                     </div>
-                                    {hasChanges && (
+                                    <div className="flex items-center gap-2">
+                                        {/* Password Reset Icon Button */}
                                         <Button
                                             size="icon"
-                                            onClick={() => handleSave(user.id)}
-                                            disabled={updateMutation.isPending}
-                                            className="h-10 w-10 rounded-xl bg-blue-600 shadow-lg shadow-blue-500/30"
+                                            variant="ghost"
+                                            onClick={() => openPasswordReset(user.id)}
+                                            className="h-10 w-10 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                                            title="Reset Password"
                                         >
-                                            {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                            <Key className="w-4 h-4" />
                                         </Button>
-                                    )}
+                                        {hasChanges && (
+                                            <Button
+                                                size="icon"
+                                                onClick={() => handleSave(user.id)}
+                                                disabled={updateMutation.isPending}
+                                                className="h-10 w-10 rounded-xl bg-blue-600 shadow-lg shadow-blue-500/30"
+                                            >
+                                                {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-3">
@@ -497,18 +673,31 @@ const UserManagement = () => {
                                             </Select>
                                         </TableCell>
                                         <TableCell className="py-5 pr-8 text-right">
-                                            <Button
-                                                size="sm"
-                                                disabled={!hasChanges || updateMutation.isPending}
-                                                onClick={() => handleSave(user.id)}
-                                                className={cn(
-                                                    "rounded-xl h-10 px-5 font-black text-[10px] uppercase tracking-widest transition-all",
-                                                    hasChanges ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 active:scale-95" : "bg-slate-100 text-slate-400"
-                                                )}
-                                            >
-                                                {updateMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />}
-                                                Commit
-                                            </Button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                {/* Password Reset Button */}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-10 w-10 rounded-xl text-slate-300 hover:text-slate-700 hover:bg-slate-100 transition-all"
+                                                    onClick={() => openPasswordReset(user.id)}
+                                                    title="Reset Password"
+                                                >
+                                                    <Key className="w-3.5 h-3.5" />
+                                                </Button>
+                                                {/* Save Changes Button */}
+                                                <Button
+                                                    size="sm"
+                                                    disabled={!hasChanges || updateMutation.isPending}
+                                                    onClick={() => handleSave(user.id)}
+                                                    className={cn(
+                                                        "rounded-xl h-10 px-5 font-black text-[10px] uppercase tracking-widest transition-all",
+                                                        hasChanges ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 active:scale-95" : "bg-slate-100 text-slate-400"
+                                                    )}
+                                                >
+                                                    {updateMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />}
+                                                    Commit
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 );
