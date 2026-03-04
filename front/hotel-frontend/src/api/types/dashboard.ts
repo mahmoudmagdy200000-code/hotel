@@ -78,6 +78,30 @@ export interface GetDailyCashFlowParams {
 export interface DailyCashFlowDto {
     netCashInDrawer: number;
     currency: number;
+    totalCashPayments: number;
+    totalCashExtraCharges: number;
+    totalCashExpenses: number;
+    cashPayments: CashPaymentItemDto[];
+    cashExtraCharges: CashExtraChargeItemDto[];
+    cashExpenses: CashExpenseItemDto[];
+}
+
+export interface CashPaymentItemDto {
+    reservationId: number;
+    amount: number;
+    time: string;
+}
+
+export interface CashExtraChargeItemDto {
+    description: string;
+    amount: number;
+    time: string;
+}
+
+export interface CashExpenseItemDto {
+    description: string;
+    amount: number;
+    businessDate: string;
 }
 
 // ============================================================================
