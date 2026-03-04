@@ -41,7 +41,7 @@ public class Expense : BaseAuditableEntity
         }
     }
 
-    public PaymentMethod PaymentMethod { get; set; }
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
     
     public string Description
     {

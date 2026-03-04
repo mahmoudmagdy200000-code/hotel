@@ -33,12 +33,13 @@ public class CashFlowService(
             .SumAsync(e => e.Amount, cancellationToken);
 
         // ── 3. Paid Cash Extra Charges (by business date) ────────────────────────
-        // ExtraCharge.Date is a plain DateTime (hotel local), no timezone conversion needed.
-        var startOfDay = businessDate.ToDateTime(TimeOnly.MinValue);
-        var endOfDay   = startOfDay.AddDays(1);
 
+        // Use `Created` (the UTC DateTimeOffset stamped by AuditableEntityInterceptor) rather than
+        // `Date` (a client-supplied DateTime whose Kind=Utc from JSON deserialization creates
+        // a silent Kind mismatch when compared against local-midnight bounds).
+        // This is identical in shape to the Payments query — consistent, timezone-safe.
         var totalExtraCharges = await context.ExtraCharges
-            .Where(e => e.Date >= startOfDay && e.Date < endOfDay)
+            .Where(e => e.Created >= startUtc && e.Created < endUtc)
             .Where(e => e.CurrencyCode == currency
                      && e.PaymentStatus == PaymentStatus.Paid
                      && e.PaymentMethod == PaymentMethod.Cash)

@@ -10,7 +10,7 @@ public class Payment : BaseAuditableEntity
     
     public decimal Amount { get; set; }
     public CurrencyCode CurrencyCode { get; set; }
-    public PaymentMethod PaymentMethod { get; set; }
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
     
     public string? Notes { get; set; }
     
