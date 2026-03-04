@@ -17,4 +17,8 @@ public class ExtraCharge : BaseAuditableEntity
     
     public CurrencyCode CurrencyCode { get; set; } = CurrencyCode.EGP;
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
+
+    /// <summary>How this extra charge was settled. Defaults to Cash for backwards compatibility.
+    /// Only Cash payments affect the physical Net Cash in Drawer metric.</summary>
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
 }

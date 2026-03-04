@@ -17,4 +17,11 @@ public interface IDateTimeProvider
     /// threshold (e.g. 10:00 AM) for a specific checkout date.
     /// </summary>
     bool IsLateCheckOut(DateTime checkOutDate);
+
+    /// <summary>
+    /// Converts a hotel-local <see cref="DateTime"/> (DateTimeKind.Unspecified) to UTC
+    /// using the configured hotel timezone (e.g. Egypt Standard Time).
+    /// Use this when building UTC range filters for <see cref="DateTimeOffset"/> columns.
+    /// </summary>
+    DateTime ToUtc(DateTime hotelLocalTime);
 }

@@ -188,4 +188,163 @@ public class FinancialIntegrationTests : BaseTestFixture
         Assert.That(dto!.NetCashInDrawer, Is.EqualTo(80m),
             "Net Cash must include Paid extra charges (80) and exclude Pending ones (120).");
     }
+    // ─────────────────────────────────────────────────────────────────────────
+    // TEST 3: Full Net Cash formula — Payments + ExtraCharges - Expenses
+    //         AND PaymentMethod filtering (Cash only)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Seeds for business date 2026-09-10:
+    ///   - 1 Cash Payment     = 500 EGP  ✅ counted
+    ///   - 1 Paid Cash ExtraCharge  = 100 EGP  ✅ counted
+    ///   - 1 Paid Card ExtraCharge  = 200 EGP  ❌ excluded (PaymentMethod != Cash)
+    ///   - 1 Cash Expense           =  50 EGP  ➖ deducted
+    /// Expected: 500 + 100 - 50 = 550
+    /// </summary>
+    [Test]
+    public async Task ShouldIncludeExtraChargesInCashFlow_CashOnly_ExcludesCardPayments()
+    {
+        await RunAsAdministratorAsync();
+
+        var testDate = new DateOnly(2026, 9, 10);
+        var testDateTime = testDate.ToDateTime(TimeOnly.MinValue);
+
+        // ── Seed reservation (FK required) ──────────────────────────────────
+        var rt = new RoomType { Name = "Suite", Capacity = 2 };
+        await AddAsync(rt);
+        var room = new Room { RoomNumber = "S01", RoomTypeId = rt.Id };
+        await AddAsync(room);
+        var res = new Reservation
+        {
+            GuestName = "Net Cash Test Guest",
+            CheckInDate = testDateTime,
+            CheckOutDate = testDateTime.AddDays(1),
+            Status = ReservationStatus.CheckedIn
+        };
+        await AddAsync(res);
+
+        // ── Seed: Cash Payment = 500 EGP ─────────────────────────────────────
+        // Created is set by EF via the interceptor — we seed via AddAsync so the
+        // Created timestamp will be "now" (test DB time). For stable filtering,
+        // CashFlowService uses businessDate param, not "today" when called with a date.
+        await AddAsync(new Payment
+        {
+            ReservationId = res.Id,
+            Amount = 500m,
+            CurrencyCode = CurrencyCode.EGP,
+            PaymentMethod = PaymentMethod.Cash
+        });
+
+        // ── Seed: Paid CASH ExtraCharge = 100 EGP ✅ ─────────────────────────
+        await AddAsync(new ExtraCharge
+        {
+            ReservationId = res.Id,
+            Description = "Cash Room Service",
+            Amount = 100m,
+            Date = testDateTime,
+            CurrencyCode = CurrencyCode.EGP,
+            PaymentStatus = PaymentStatus.Paid,
+            PaymentMethod = PaymentMethod.Cash
+        });
+
+        // ── Seed: Paid CARD ExtraCharge = 200 EGP ❌ should NOT enter drawer ─
+        await AddAsync(new ExtraCharge
+        {
+            ReservationId = res.Id,
+            Description = "Card Tour",
+            Amount = 200m,
+            Date = testDateTime,
+            CurrencyCode = CurrencyCode.EGP,
+            PaymentStatus = PaymentStatus.Paid,
+            PaymentMethod = PaymentMethod.Visa
+        });
+
+        // ── Seed: Cash Expense = 50 EGP ➖ ────────────────────────────────────
+        await AddAsync(new Expense
+        {
+            BusinessDate = testDate,
+            Category = ExpenseCategory.Other,
+            Description = "Supplies",
+            Amount = 50m,
+            CurrencyCode = CurrencyCode.EGP,
+            PaymentMethod = PaymentMethod.Cash
+        });
+
+        // Act — query for the specific business date
+        var response = await _client.GetAsync(
+            $"/api/dashboard/cash-flow?businessDate={testDate:yyyy-MM-dd}&currency=2");
+
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.That(response.IsSuccessStatusCode,
+            $"CashFlow call failed {response.StatusCode}: {body}");
+
+        var dto = await response.Content.ReadFromJsonAsync<DailyCashFlowDto>();
+        // 500 (cash payment) + 100 (cash extra) - 50 (cash expense) = 550
+        // Card extra (200) must be excluded
+        Assert.That(dto!.NetCashInDrawer, Is.EqualTo(550m),
+            "Net Cash must be 550: Cash payments + Cash extras - Cash expenses. Card extras excluded.");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // TEST 4: Daily reset isolation
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Seeds all data on 2026-10-01.
+    /// Querying 2026-10-01 → returns non-zero.
+    /// Querying 2026-10-02 (different day) → returns 0 (resets daily).
+    /// </summary>
+    [Test]
+    public async Task ShouldResetDaily_QueriedDateReturnsOnly_ThatDaysData()
+    {
+        await RunAsAdministratorAsync();
+
+        var seededDate   = new DateOnly(2026, 10, 1);
+        var differentDate = new DateOnly(2026, 10, 2);
+        var seededDateTime = seededDate.ToDateTime(TimeOnly.MinValue);
+
+        // Seed reservation
+        var rt = new RoomType { Name = "Standard", Capacity = 1 };
+        await AddAsync(rt);
+        var room = new Room { RoomNumber = "R99", RoomTypeId = rt.Id };
+        await AddAsync(room);
+        var res = new Reservation
+        {
+            GuestName = "Reset Test Guest",
+            CheckInDate = seededDateTime,
+            CheckOutDate = seededDateTime.AddDays(1),
+            Status = ReservationStatus.CheckedIn
+        };
+        await AddAsync(res);
+
+        // Seed a Paid Cash ExtraCharge on Oct 1
+        await AddAsync(new ExtraCharge
+        {
+            ReservationId = res.Id,
+            Description = "SPA on Oct 1",
+            Amount = 300m,
+            Date = seededDateTime,
+            CurrencyCode = CurrencyCode.EGP,
+            PaymentStatus = PaymentStatus.Paid,
+            PaymentMethod = PaymentMethod.Cash
+        });
+
+        // Query for Oct 1 → should include the 300 (plus 0 payments - 0 expenses)
+        var resp1 = await _client.GetAsync(
+            $"/api/dashboard/cash-flow?businessDate={seededDate:yyyy-MM-dd}&currency=2");
+        var body1 = await resp1.Content.ReadAsStringAsync();
+        Assert.That(resp1.IsSuccessStatusCode, $"Oct 1 call failed: {body1}");
+        var dto1 = await resp1.Content.ReadFromJsonAsync<DailyCashFlowDto>();
+        Assert.That(dto1!.NetCashInDrawer, Is.GreaterThan(0m),
+            "Oct 1 must have a non-zero net cash because we seeded data on that date.");
+
+        // Query for Oct 2 → should be 0 (no data on that day)
+        var resp2 = await _client.GetAsync(
+            $"/api/dashboard/cash-flow?businessDate={differentDate:yyyy-MM-dd}&currency=2");
+        var body2 = await resp2.Content.ReadAsStringAsync();
+        Assert.That(resp2.IsSuccessStatusCode, $"Oct 2 call failed: {body2}");
+        var dto2 = await resp2.Content.ReadFromJsonAsync<DailyCashFlowDto>();
+        Assert.That(dto2!.NetCashInDrawer, Is.EqualTo(0m),
+            "Oct 2 must be 0 — no data seeded for that date, confirming daily isolation.");
+    }
 }

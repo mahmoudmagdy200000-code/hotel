@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, Trash2, Loader2, ShoppingBag, CheckCircle, Clock } from 'lucide-react';
+import { Plus, Trash2, Loader2, ShoppingBag, CheckCircle, Clock, CreditCard, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useExtraChargeMutations } from '@/hooks/reservations/useExtraChargeMutations';
 import { CurrencyCodeEnum, CurrencyCodeLabels } from '@/api/types/reservations';
-import { PaymentStatusEnum } from '@/api/types/extraCharges';
-import type { ExtraChargeDto, CreateExtraChargeCommand } from '@/api/types/extraCharges';
+import { PaymentStatusEnum, PaymentMethodEnum } from '@/api/types/extraCharges';
+import type { ExtraChargeDto, CreateExtraChargeCommand, PaymentMethodValue } from '@/api/types/extraCharges';
 import type { CurrencyCodeValue } from '@/api/types/reservations';
 import { formatCurrency, extractErrorMessage } from '@/lib/utils';
 
@@ -23,7 +23,7 @@ interface ExtraChargesModalProps {
     guestName?: string;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Quick-add presets ────────────────────────────────────────────────────────
 
 const QUICK_ITEMS = [
     { label: 'Room Service', emoji: '🍽️' },
@@ -35,6 +35,24 @@ const QUICK_ITEMS = [
     { label: 'Extra Bedding', emoji: '🛏️' },
     { label: 'Airport Transfer', emoji: '🚗' },
 ];
+
+// ─── Payment Method toggle options ───────────────────────────────────────────
+
+const PAYMENT_METHOD_OPTIONS: { value: PaymentMethodValue; label: string; icon: React.ReactNode }[] =
+    [
+        {
+            value: PaymentMethodEnum.Cash,
+            label: 'Cash',
+            icon: <Banknote className="w-3.5 h-3.5" />,
+        },
+        {
+            value: PaymentMethodEnum.Visa,
+            label: 'Card',
+            icon: <CreditCard className="w-3.5 h-3.5" />,
+        },
+    ];
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const ExtraChargesModal = ({
     isOpen,
@@ -51,6 +69,7 @@ const ExtraChargesModal = ({
     const [amount, setAmount] = useState('');
     const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCodeValue>(currencyCode);
     const [paymentStatus, setPaymentStatus] = useState<0 | 1>(PaymentStatusEnum.Paid);
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethodValue>(PaymentMethodEnum.Cash);
 
     const handleQuickItem = (label: string) => setDescription(label);
 
@@ -69,6 +88,7 @@ const ExtraChargesModal = ({
             date: new Date().toISOString(),
             currencyCode: selectedCurrency,
             paymentStatus,
+            paymentMethod,
         };
 
         try {
@@ -76,8 +96,9 @@ const ExtraChargesModal = ({
             toast.success('Extra charge added successfully.');
             setDescription('');
             setAmount('');
-            setSelectedCurrency(currencyCode); // reset to reservation default
+            setSelectedCurrency(currencyCode);
             setPaymentStatus(PaymentStatusEnum.Paid);
+            setPaymentMethod(PaymentMethodEnum.Cash);
         } catch (err) {
             toast.error(`Failed to add charge: ${extractErrorMessage(err)}`);
         }
@@ -140,6 +161,8 @@ const ExtraChargesModal = ({
                                             </p>
                                             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                                                 {charge.paymentStatus === PaymentStatusEnum.Paid ? 'PAID' : 'PENDING'}
+                                                {' · '}
+                                                {charge.paymentMethod === PaymentMethodEnum.Cash ? '💵 Cash' : '💳 Card'}
                                             </p>
                                         </div>
                                     </div>
@@ -193,6 +216,7 @@ const ExtraChargesModal = ({
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
                             New Charge
                         </p>
+
                         {/* Description */}
                         <input
                             type="text"
@@ -203,7 +227,7 @@ const ExtraChargesModal = ({
                             className="w-full h-12 px-5 text-sm font-bold bg-white border border-slate-200 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 placeholder:text-slate-300 transition-all"
                         />
 
-                        {/* Amount + Currency + Status */}
+                        {/* Amount + Currency */}
                         <div className="flex gap-3">
                             <input
                                 type="number"
@@ -226,7 +250,32 @@ const ExtraChargesModal = ({
                                     ))}
                                 </select>
                             </div>
-                            {/* Payment Status Toggle */}
+                        </div>
+
+                        {/* Payment Method + Payment Status row */}
+                        <div className="flex gap-3">
+                            {/* Payment Method Toggle (Cash / Card) */}
+                            <div className="flex gap-1.5 flex-1 bg-slate-100 p-1 rounded-[14px]">
+                                {PAYMENT_METHOD_OPTIONS.map((opt) => (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setPaymentMethod(opt.value)}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 h-10 rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all
+                                            ${paymentMethod === opt.value
+                                                ? opt.value === PaymentMethodEnum.Cash
+                                                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                                                    : 'bg-violet-500 text-white shadow-md shadow-violet-500/20'
+                                                : 'text-slate-500 hover:text-slate-700'
+                                            }`}
+                                    >
+                                        {opt.icon}
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Payment Status Toggle (Paid / Pending) */}
                             <button
                                 type="button"
                                 onClick={() => setPaymentStatus(s => s === PaymentStatusEnum.Paid ? PaymentStatusEnum.Pending : PaymentStatusEnum.Paid)}
@@ -241,6 +290,14 @@ const ExtraChargesModal = ({
                                     : <><Clock className="w-3.5 h-3.5" /> Pending</>}
                             </button>
                         </div>
+
+                        {/* Cash warning hint */}
+                        {paymentMethod !== PaymentMethodEnum.Cash && (
+                            <p className="text-[9px] font-bold text-violet-500 uppercase tracking-widest flex items-center gap-1">
+                                <CreditCard className="w-3 h-3" />
+                                Card charges won't appear in Net Cash in Drawer
+                            </p>
+                        )}
 
                         <Button
                             type="submit"

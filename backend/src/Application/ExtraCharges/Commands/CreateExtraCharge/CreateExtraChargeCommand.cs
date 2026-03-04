@@ -14,6 +14,8 @@ public record CreateExtraChargeCommand : IRequest<int>
     public DateTime Date { get; init; }
     public CurrencyCode CurrencyCode { get; init; }
     public PaymentStatus PaymentStatus { get; init; }
+    /// <summary>Defaults to Cash for backwards compatibility with existing API consumers.</summary>
+    public PaymentMethod PaymentMethod { get; init; } = PaymentMethod.Cash;
 }
 
 public class CreateExtraChargeCommandValidator : AbstractValidator<CreateExtraChargeCommand>
@@ -26,6 +28,7 @@ public class CreateExtraChargeCommandValidator : AbstractValidator<CreateExtraCh
         RuleFor(v => v.Date).NotEmpty();
         RuleFor(v => v.CurrencyCode).IsInEnum();
         RuleFor(v => v.PaymentStatus).IsInEnum();
+        RuleFor(v => v.PaymentMethod).IsInEnum();
     }
 }
 
@@ -46,7 +49,8 @@ public class CreateExtraChargeCommandHandler(IApplicationDbContext context) : IR
             Amount        = request.Amount,
             Date          = request.Date,
             CurrencyCode  = request.CurrencyCode,
-            PaymentStatus = request.PaymentStatus
+            PaymentStatus = request.PaymentStatus,
+            PaymentMethod = request.PaymentMethod
         };
 
         context.ExtraCharges.Add(entity);

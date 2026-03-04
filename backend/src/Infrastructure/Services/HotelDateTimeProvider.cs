@@ -82,4 +82,10 @@ public class HotelDateTimeProvider : IDateTimeProvider
 
         return false;
     }
+
+    /// <inheritdoc />
+    public DateTime ToUtc(DateTime hotelLocalTime) =>
+        TimeZoneInfo.ConvertTimeToUtc(
+            DateTime.SpecifyKind(hotelLocalTime, DateTimeKind.Unspecified),
+            _hotelTimeZone);
 }

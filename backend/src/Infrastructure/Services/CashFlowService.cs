@@ -4,42 +4,47 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Infrastructure.Services;
 
-public class CashFlowService : ICashFlowService
+public class CashFlowService(
+    IApplicationDbContext context,
+    IDateTimeProvider dateTimeProvider) : ICashFlowService
 {
-    private readonly IApplicationDbContext _context;
-
-    public CashFlowService(IApplicationDbContext context)
+    public async Task<decimal> GetNetCashTodayAsync(
+        DateOnly businessDate,
+        CurrencyCode currency,
+        CancellationToken cancellationToken)
     {
-        _context = context;
-    }
+        // ── 1. Cash Payments (filtered by hotel-timezone-aware UTC boundary) ──────
+        // Payment.Created is a DateTimeOffset stored in UTC by EF Core.
+        // We must convert the hotel's business-day midnight to UTC first, otherwise
+        // payments at e.g. 01:00 Egypt time would land in the wrong day's drawer.
+        var hotelMidnightLocal = businessDate.ToDateTime(TimeOnly.MinValue);
+        var startUtc = new DateTimeOffset(dateTimeProvider.ToUtc(hotelMidnightLocal), TimeSpan.Zero);
+        var endUtc   = startUtc.AddDays(1); // exclusive upper bound
 
-    public async Task<decimal> GetNetCashTodayAsync(DateOnly businessDate, CurrencyCode currency, CancellationToken cancellationToken)
-    {
-        // 1. Total Cash Payments Today (Physical timestamp)
-        // We filter by payments created on the physical day corresponding to the business date
-        var startOfDay = new DateTimeOffset(businessDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
-        var endOfDay = startOfDay.AddDays(1);
-
-        var totalPayments = await _context.Payments
-            .Where(p => p.Created >= startOfDay && p.Created < endOfDay)
+        var totalPayments = await context.Payments
+            .Where(p => p.Created >= startUtc && p.Created < endUtc)
             .Where(p => p.CurrencyCode == currency && p.PaymentMethod == PaymentMethod.Cash)
             .SumAsync(p => p.Amount, cancellationToken);
 
-        // 2. Total Cash Expenses Today (Business Date + Payment Method Cash)
-        var totalExpenses = await _context.Expenses
+        // ── 2. Cash Expenses (keyed by BusinessDate — already hotel-timezone) ─────
+        var totalExpenses = await context.Expenses
             .Where(e => e.BusinessDate == businessDate)
             .Where(e => e.CurrencyCode == currency && e.PaymentMethod == PaymentMethod.Cash)
             .SumAsync(e => e.Amount, cancellationToken);
 
-        // 3. Total Extra Charges Today (Paid)
-        var startOfBusinessDay = businessDate.ToDateTime(TimeOnly.MinValue);
-        var endOfBusinessDay = startOfBusinessDay.AddDays(1);
+        // ── 3. Paid Cash Extra Charges (by business date) ────────────────────────
+        // ExtraCharge.Date is a plain DateTime (hotel local), no timezone conversion needed.
+        var startOfDay = businessDate.ToDateTime(TimeOnly.MinValue);
+        var endOfDay   = startOfDay.AddDays(1);
 
-        var totalExtraCharges = await _context.ExtraCharges
-            .Where(e => e.Date >= startOfBusinessDay && e.Date < endOfBusinessDay)
-            .Where(e => e.CurrencyCode == currency && e.PaymentStatus == PaymentStatus.Paid)
+        var totalExtraCharges = await context.ExtraCharges
+            .Where(e => e.Date >= startOfDay && e.Date < endOfDay)
+            .Where(e => e.CurrencyCode == currency
+                     && e.PaymentStatus == PaymentStatus.Paid
+                     && e.PaymentMethod == PaymentMethod.Cash)
             .SumAsync(e => e.Amount, cancellationToken);
 
+        // Net = Cash In (Payments + Extra Charges) − Cash Out (Expenses)
         return totalPayments + totalExtraCharges - totalExpenses;
     }
 }
