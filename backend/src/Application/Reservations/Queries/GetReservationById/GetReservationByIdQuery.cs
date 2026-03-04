@@ -23,6 +23,7 @@ public class GetReservationByIdQueryHandler : IRequestHandler<GetReservationById
                 .ThenInclude(l => l.Room)
             .Include(x => x.Lines)
                 .ThenInclude(l => l.RoomType)
+            .Include(x => x.ExtraCharges)
             .Where(x => x.Id == request.Id && !x.IsDeleted)
             .ProjectTo<ReservationDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);

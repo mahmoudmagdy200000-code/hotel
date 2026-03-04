@@ -42,6 +42,9 @@ import { StatusBadge } from '@/components/reservation/StatusBadge';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useState } from 'react';
 import { EditReservationDialog } from '@/pages/reservations/components/EditReservationDialog';
+import { CheckOutModal } from '@/pages/reservations/components/CheckOutModal';
+import { PaymentStatusEnum, PaymentStatusLabels } from '@/api/types/extraCharges';
+import { useExtraChargeMutations } from '@/hooks/reservations/useExtraChargeMutations';
 import { useGetConfirmationPlan, useApplyConfirmationPlan } from '@/features/reception/hooks/useBulkConfirmation';
 import { AllocationReviewModal } from '@/pages/reception/components/AllocationReviewModal';
 import type { ReservationAllocationPlanDto } from '@/api/types/reception';
@@ -76,6 +79,8 @@ const ReservationDetails = () => {
 
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isExtraChargesOpen, setIsExtraChargesOpen] = useState(false);
+    const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
+    const extraChargeMutations = useExtraChargeMutations(reservationId);
     const getPlan = useGetConfirmationPlan();
     const applyPlan = useApplyConfirmationPlan();
     const [allocationPlan, setAllocationPlan] = useState<ReservationAllocationPlanDto | null>(null);
@@ -335,7 +340,7 @@ const ReservationDetails = () => {
                             <>
                                 <Button
                                     className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wide shadow-lg shadow-blue-600/30 transition-all active:scale-[0.97]"
-                                    onClick={() => handleAction('check-out', (id) => actions.checkOut.mutateAsync({ id, businessDate }))}
+                                    onClick={() => setIsCheckOutOpen(true)}
                                     disabled={actions.checkOut.isPending}
                                 >
                                     <LogOut className="w-4 h-4 mr-2" />
@@ -479,6 +484,78 @@ const ReservationDetails = () => {
                                     </div>
                                 </div>
                             ))}
+                        </CardContent>
+                    </Card>
+
+                    {/* FOLIO & EXTRA CHARGES */}
+                    <Card className="border-none shadow-sm rounded-[32px] bg-white overflow-hidden">
+                        <CardHeader className="p-6 pb-0 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-blue-50 rounded-xl"><FileText className="w-4 h-4 text-blue-600" /></div>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Folio & Extra Charges</span>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            {res.extraCharges && res.extraCharges.length > 0 ? (
+                                <div className="space-y-3">
+                                    <div className="rounded-[24px] border border-slate-100 overflow-hidden">
+                                        <table className="w-full text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                            <thead className="bg-slate-50/80 border-b border-slate-100">
+                                                <tr>
+                                                    <th className="px-5 py-4 w-28">Date</th>
+                                                    <th className="px-5 py-4">Description</th>
+                                                    <th className="px-5 py-4">Method</th>
+                                                    <th className="px-5 py-4 text-right">Amount</th>
+                                                    <th className="px-5 py-4 w-24">Status</th>
+                                                    <th className="px-5 py-4 w-12 border-l border-slate-100"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50">
+                                                {res.extraCharges.map((ec) => (
+                                                    <tr key={ec.id} className="hover:bg-slate-50/50 transition-colors group">
+                                                        <td className="px-5 py-4 tracking-tight text-slate-700 whitespace-nowrap">
+                                                            {formatHotelTime(ec.date, 'MMM d, HH:mm')}
+                                                        </td>
+                                                        <td className="px-5 py-4 text-slate-900 font-black tracking-tighter">
+                                                            {ec.description}
+                                                        </td>
+                                                        <td className="px-5 py-4">
+                                                            {PaymentMethodLabels[ec.paymentMethod]}
+                                                        </td>
+                                                        <td className="px-5 py-4 text-right font-black text-slate-900 tracking-tighter text-sm">
+                                                            {formatCurrency(ec.amount, res.currency)}
+                                                        </td>
+                                                        <td className="px-5 py-4">
+                                                            <Badge className={cn(
+                                                                "px-2 py-0.5 rounded-lg text-[8px] border-none shadow-sm",
+                                                                ec.paymentStatus === PaymentStatusEnum.Paid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                                                            )}>
+                                                                {PaymentStatusLabels[ec.paymentStatus]}
+                                                            </Badge>
+                                                        </td>
+                                                        <td className="px-3 py-4 text-center border-l border-slate-50">
+                                                            {ec.paymentStatus === PaymentStatusEnum.Pending && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-rose-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                                    onClick={() => handleAction('delete-charge', () => extraChargeMutations.removeCharge.mutateAsync(ec.id))}
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </Button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                    No extra charges recorded
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
@@ -719,6 +796,25 @@ const ReservationDetails = () => {
                 currencyCode={res?.currencyCode}
                 guestName={res?.guestName}
             />
+
+            {res && (
+                <CheckOutModal
+                    isOpen={isCheckOutOpen}
+                    onClose={() => setIsCheckOutOpen(false)}
+                    reservation={res}
+                    isSubmitting={actions.checkOut.isPending}
+                    onConfirm={async () => {
+                        try {
+                            await actions.checkOut.mutateAsync({ id: reservationId, businessDate });
+                            setIsCheckOutOpen(false);
+                            toast.success(t('reservations.checkout_success', 'Checked out successfully!'));
+                            refetch();
+                        } catch (err: unknown) {
+                            toast.error(extractErrorMessage(err));
+                        }
+                    }}
+                />
+            )}
         </div >
     );
 };

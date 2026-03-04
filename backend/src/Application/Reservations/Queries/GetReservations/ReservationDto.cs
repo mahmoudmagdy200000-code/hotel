@@ -27,7 +27,30 @@ public class ReservationDto
     public int? NumberOfPersons { get; init; }
     
     public List<ReservationLineDto> Lines { get; init; } = new();
+    public List<ExtraChargeDto> ExtraCharges { get; init; } = new();
 
+    public class ExtraChargeDto
+    {
+        public int Id { get; init; }
+        public int ReservationId { get; init; }
+        public string Description { get; init; } = string.Empty;
+        public decimal Amount { get; init; }
+        public DateTime Date { get; init; }
+        public int CurrencyCode { get; init; }
+        public int PaymentStatus { get; init; }
+        public int PaymentMethod { get; init; }
+
+        private class Mapping : Profile
+        {
+            public Mapping()
+            {
+                CreateMap<Domain.Entities.ExtraCharge, ExtraChargeDto>()
+                    .ForMember(d => d.CurrencyCode, opt => opt.MapFrom(s => (int)s.CurrencyCode))
+                    .ForMember(d => d.PaymentStatus, opt => opt.MapFrom(s => (int)s.PaymentStatus))
+                    .ForMember(d => d.PaymentMethod, opt => opt.MapFrom(s => (int)s.PaymentMethod));
+            }
+        }
+    }
     private class Mapping : Profile
     {
         private static string? ParseNoteTag(string? notes, string key)

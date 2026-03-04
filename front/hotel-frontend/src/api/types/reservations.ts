@@ -1,3 +1,5 @@
+import type { ExtraChargeDto } from './extraCharges';
+
 export const ReservationStatus = {
     Draft: 1,
     Confirmed: 2,
@@ -85,6 +87,7 @@ export interface ReservationDto {
     mealPlan?: string | null;
     /** Number of guests extracted from PDF, stored in Notes tag. Null if unavailable. */
     numberOfPersons?: number | null;
+    extraCharges: ExtraChargeDto[];
 }
 
 export interface GetReservationsQuery {

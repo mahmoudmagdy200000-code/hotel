@@ -45,6 +45,7 @@ public class CheckOutReservationCommandHandler : IRequestHandler<CheckOutReserva
     public async Task<ReservationStatusChangedDto> Handle(CheckOutReservationCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Reservations
+            .Include(r => r.ExtraCharges)
             .FirstOrDefaultAsync(r => r.Id == request.ReservationId, cancellationToken);
 
         if (entity == null)
@@ -62,6 +63,12 @@ public class CheckOutReservationCommandHandler : IRequestHandler<CheckOutReserva
         if (entity.Status != ReservationStatus.CheckedIn)
         {
             throw new ConflictException($"Cannot check-out reservation with status {entity.Status}. Only CheckedIn reservations can be checked-out.");
+        }
+
+        // Validate unpaid extra charges
+        if (entity.ExtraCharges.Any(ec => ec.PaymentStatus != PaymentStatus.Paid))
+        {
+            throw new ConflictException("Cannot check-out: There are unpaid extra charges. Please settle them before checking out.");
         }
 
         // Apply edits (e.g. clear balance) before changing status

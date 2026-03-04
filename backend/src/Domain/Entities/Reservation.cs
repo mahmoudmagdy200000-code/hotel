@@ -42,6 +42,7 @@ public class Reservation : BaseAuditableEntity
     public string? DeleteReason { get; set; }
 
     public ICollection<ReservationLine> Lines { get; private set; } = new HashSet<ReservationLine>();
+    public ICollection<ExtraCharge> ExtraCharges { get; private set; } = new HashSet<ExtraCharge>();
 
     // Validation Properties using Value Objects
     public DateRange DateRange => new DateRange(CheckInDate, CheckOutDate);
