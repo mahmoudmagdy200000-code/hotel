@@ -252,7 +252,11 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
                 <div className="xl:col-start-3">
                     <DailyCashFlowCard
-                        businessDate={businessDate}
+                        businessDate={
+                            dateRange?.to
+                                ? format(dateRange.to, 'yyyy-MM-dd')
+                                : businessDate
+                        }
                         currency={selectedCurrency}
                     />
                 </div>
