@@ -53,8 +53,8 @@ public class GetDailyCashFlowQueryHandler(
         var cashPayments = await context.Payments
             .Where(p => p.Created >= startUtc && p.Created < endUtc)
             .Where(p => p.CurrencyCode == currency && p.PaymentMethod == PaymentMethod.Cash)
+            .OrderByDescending(p => p.Created)                    // ✅ order entity column first
             .Select(p => new CashPaymentItemDto(p.ReservationId, p.Amount, p.Created))
-            .OrderByDescending(p => p.Time)
             .ToListAsync(cancellationToken);
 
         // ── 2. Cash Extra Charges (Paid only) ────────────────────────────
@@ -63,16 +63,16 @@ public class GetDailyCashFlowQueryHandler(
             .Where(e => e.CurrencyCode == currency
                      && e.PaymentStatus == PaymentStatus.Paid
                      && e.PaymentMethod == PaymentMethod.Cash)
+            .OrderByDescending(e => e.Created)                    // ✅ order entity column first
             .Select(e => new CashExtraChargeItemDto(e.Description, e.Amount, e.Created))
-            .OrderByDescending(e => e.Time)
             .ToListAsync(cancellationToken);
 
         // ── 3. Cash Expenses (keyed by BusinessDate) ─────────────────────
         var cashExpenses = await context.Expenses
             .Where(e => e.BusinessDate == businessDate)
             .Where(e => e.CurrencyCode == currency && e.PaymentMethod == PaymentMethod.Cash)
+            .OrderByDescending(e => e.Amount)                     // ✅ order entity column first
             .Select(e => new CashExpenseItemDto(e.Description, e.Amount, e.BusinessDate))
-            .OrderByDescending(e => e.Amount)
             .ToListAsync(cancellationToken);
 
         // ── Totals ───────────────────────────────────────────────────────
