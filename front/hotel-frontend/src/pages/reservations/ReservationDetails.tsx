@@ -504,7 +504,7 @@ const ReservationDetails = () => {
                         <CardContent className="p-6">
                             {res.extraCharges && res.extraCharges.length > 0 ? (
                                 <div className="space-y-3">
-                                    <div className="rounded-[24px] border border-slate-100 overflow-hidden">
+                                    <div className="rounded-[24px] border border-slate-100 overflow-x-auto custom-scrollbar">
                                         <table className="w-full text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                             <thead className="bg-slate-50/80 border-b border-slate-100">
                                                 <tr>
@@ -513,7 +513,7 @@ const ReservationDetails = () => {
                                                     <th className="px-5 py-4">Method</th>
                                                     <th className="px-5 py-4 text-right">Amount</th>
                                                     <th className="px-5 py-4 w-24">Status</th>
-                                                    <th className="px-5 py-4 w-12 border-l border-slate-100"></th>
+                                                    <th className="px-5 py-4 w-12 border-l border-slate-100 sticky right-0 bg-slate-50/95 backdrop-blur-sm z-10"></th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50">
@@ -539,7 +539,7 @@ const ReservationDetails = () => {
                                                                 {PaymentStatusLabels[ec.paymentStatus]}
                                                             </Badge>
                                                         </td>
-                                                        <td className="px-3 py-4 text-center border-l border-slate-50">
+                                                        <td className="px-3 py-4 text-center border-l border-slate-50 sticky right-0 bg-white/95 backdrop-blur-sm z-10 group-hover:bg-slate-50/95 transition-colors">
                                                             <div className="flex items-center justify-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-all">
                                                                 <Button
                                                                     variant="ghost"

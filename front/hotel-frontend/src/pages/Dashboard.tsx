@@ -46,11 +46,9 @@ const Dashboard = () => {
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
         const start = new Date(businessDate);
-        const end = new Date(start);
-        end.setDate(end.getDate() + 7);
         return {
             from: start,
-            to: end,
+            to: start,
         };
     });
     const [mode, setMode] = useState<'Forecast' | 'Actual'>('Actual');
