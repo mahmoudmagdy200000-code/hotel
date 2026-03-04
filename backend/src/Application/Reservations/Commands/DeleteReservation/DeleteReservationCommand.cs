@@ -65,19 +65,25 @@ public class DeleteReservationCommandHandler : IRequestHandler<DeleteReservation
         }
 
         // --- INTEGRITY FIX ---
-        // Reservation uses soft-delete, so the database-level ON DELETE CASCADE on Payments
-        // is never triggered. We must hard-delete the associated Payment records explicitly
-        // so they do not become orphaned ghost values in the Net Cash in Drawer calculation.
-        // This entire operation (soft-delete + payment removal + audit) is atomic because
-        // EF Core wraps a single SaveChangesAsync call in one database transaction.
+        // Reservation uses soft-delete, so database-level ON DELETE CASCADE is never triggered.
+        // Hard-delete all associated child records explicitly so they don't become orphaned.
+        // All removals + the soft-delete are wrapped in one SaveChangesAsync → fully atomic.
+
+        // 1. Hard-delete orphaned ExtraCharges
+        var extraCharges = await _context.ExtraCharges
+            .Where(e => e.ReservationId == request.Id)
+            .ToListAsync(cancellationToken);
+
+        if (extraCharges.Count > 0)
+            _context.ExtraCharges.RemoveRange(extraCharges);
+
+        // 2. Hard-delete orphaned Payments
         var payments = await _context.Payments
             .Where(p => p.ReservationId == request.Id)
             .ToListAsync(cancellationToken);
 
         if (payments.Count > 0)
-        {
             _context.Payments.RemoveRange(payments);
-        }
 
         // Create audit event
         var auditEvent = new ReservationAuditEvent

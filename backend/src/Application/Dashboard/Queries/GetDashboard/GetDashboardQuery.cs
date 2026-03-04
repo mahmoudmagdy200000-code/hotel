@@ -79,11 +79,17 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
 
         // 3.6 Get Extra Charges
+        // Fetch all paid charges in the window, then split in-memory by mode so that
+        // Actual mode only counts charges on/before today and Forecast only counts future ones.
+        // This mirrors the identical Actual/Forecast split already applied to Expenses below.
         var extraChargesList = await _context.ExtraCharges
             .Where(e => e.Date >= from && e.Date < to && e.CurrencyCode == currency && e.PaymentStatus == PaymentStatus.Paid)
             .ToListAsync(cancellationToken);
 
+        var currentHotelDate = today; // hotel-timezone-aware, from _dateTimeProvider.GetHotelToday()
+
         var extraChargesByDayDict = extraChargesList
+            .Where(e => mode == "Actual" ? e.Date <= currentHotelDate : e.Date > currentHotelDate)
             .GroupBy(e => e.Date.ToString("yyyy-MM-dd"))
             .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
 
@@ -130,8 +136,13 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         }
 
         // 5. Build Summary
-        var extraChargesTotal = extraChargesList.Sum(e => e.Amount);
-        var totalRev = revenueByDay.TotalRevenue + extraChargesTotal; // Sum of core daily revenue + extra charges
+        // Split extra charges by mode — same pattern as the Expense split below.
+        // "Actual"   → only charges with Date on or before today (already materialised).
+        // "Forecast" → only charges with Date after today (future / anticipated).
+        var actualExtraCharges   = extraChargesList.Where(e => e.Date <= currentHotelDate).Sum(e => e.Amount);
+        var forecastExtraCharges = extraChargesList.Where(e => e.Date >  currentHotelDate).Sum(e => e.Amount);
+        var extraChargesTotal    = mode == "Actual" ? actualExtraCharges : forecastExtraCharges;
+        var totalRev = revenueByDay.TotalRevenue + extraChargesTotal; // core revenue + mode-scoped ancillary income
 
         // Split expenses by today's date so Actuals and Forecast are never double-counted.
         // "Actual"   → only expenses already incurred (BusinessDate <= today).
