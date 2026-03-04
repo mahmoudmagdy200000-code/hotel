@@ -12,5 +12,9 @@ export const createExtraCharge = async (command: CreateExtraChargeCommand): Prom
 };
 
 export const deleteExtraCharge = async (reservationId: number, id: number): Promise<void> => {
-    await http.delete(`reservations/${reservationId}/charges/${id}`);
+    await http.delete(`extra-charges/${reservationId}/charges/${id}`);
+};
+
+export const markExtraChargeAsPaid = async (reservationId: number, id: number): Promise<void> => {
+    await http.patch(`extra-charges/${reservationId}/charges/${id}/pay`);
 };

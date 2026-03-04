@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createExtraCharge, deleteExtraCharge } from '@/api/extraCharges';
+import { createExtraCharge, deleteExtraCharge, markExtraChargeAsPaid } from '@/api/extraCharges';
 import type { CreateExtraChargeCommand } from '@/api/types/extraCharges';
 
 /**
@@ -35,5 +35,13 @@ export const useExtraChargeMutations = (reservationId: number) => {
         onSuccess: invalidateCaches,
     });
 
-    return { addCharge, removeCharge };
+    const payCharge = useMutation({
+        mutationFn: (chargeId: number) => {
+            if (!reservationId) throw new Error('Reservation ID required');
+            return markExtraChargeAsPaid(reservationId, chargeId);
+        },
+        onSuccess: invalidateCaches,
+    });
+
+    return { addCharge, removeCharge, payCharge };
 };

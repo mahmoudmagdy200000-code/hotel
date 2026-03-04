@@ -1,6 +1,7 @@
 import {
     Dialog,
     DialogContent,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
@@ -18,24 +19,41 @@ import type { CurrencyCodeValue } from '@/api/types/reservations';
 import { CurrencyCodeLabels } from '@/api/types/reservations';
 import { formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, CreditCard, Tag, FileText, CheckCircle2, Clock } from 'lucide-react';
+import { CalendarDays, CreditCard, Tag, FileText, CheckCircle2, Clock, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useExtraChargeMutations } from '@/hooks/reservations/useExtraChargeMutations';
+import { toast } from 'sonner';
 
 interface ExtraChargeDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
     charge: ExtraChargeDto | null;
     currency: CurrencyCodeValue;
+    reservationId: number;
 }
 
 export const ExtraChargeDetailsModal = ({
     isOpen,
     onClose,
     charge,
-    currency
+    currency,
+    reservationId
 }: ExtraChargeDetailsModalProps) => {
+    const { payCharge } = useExtraChargeMutations(reservationId);
+
     if (!charge) return null;
 
     const isPaid = charge.paymentStatus === PaymentStatusEnum.Paid;
+
+    const handlePay = async () => {
+        try {
+            await payCharge.mutateAsync(charge.id);
+            toast.success('Extra charge marked as paid successfully!');
+            onClose();
+        } catch (err) {
+            toast.error('Failed to mark charge as paid');
+        }
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -103,7 +121,21 @@ export const ExtraChargeDetailsModal = ({
                         </div>
                     </div>
                 </div>
+
+                {!isPaid && (
+                    <DialogFooter className="p-6 pt-0">
+                        <Button
+                            className="w-full bg-slate-900 text-white hover:bg-slate-800 rounded-2xl h-12 font-black text-[10px] uppercase tracking-widest"
+                            onClick={handlePay}
+                            disabled={payCharge.isPending}
+                        >
+                            <Check className="w-4 h-4 mr-2" />
+                            {payCharge.isPending ? 'Processing...' : 'Mark as Paid'}
+                        </Button>
+                    </DialogFooter>
+                )}
             </DialogContent>
         </Dialog>
     );
 };
+

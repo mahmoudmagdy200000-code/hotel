@@ -540,7 +540,7 @@ const ReservationDetails = () => {
                                                             </Badge>
                                                         </td>
                                                         <td className="px-3 py-4 text-center border-l border-slate-50">
-                                                            <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                                            <div className="flex items-center justify-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-all">
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="icon"
@@ -839,6 +839,7 @@ const ReservationDetails = () => {
                     onClose={() => setViewChargeDetails(null)}
                     charge={viewChargeDetails}
                     currency={res.currencyCode}
+                    reservationId={reservationId}
                 />
             )}
 
