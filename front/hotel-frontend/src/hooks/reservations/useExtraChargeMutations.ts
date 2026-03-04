@@ -28,7 +28,10 @@ export const useExtraChargeMutations = (reservationId: number) => {
     });
 
     const removeCharge = useMutation({
-        mutationFn: (chargeId: number) => deleteExtraCharge(chargeId),
+        mutationFn: (chargeId: number) => {
+            if (!reservationId) throw new Error('Reservation ID required');
+            return deleteExtraCharge(reservationId, chargeId);
+        },
         onSuccess: invalidateCaches,
     });
 

@@ -429,6 +429,54 @@ const Dashboard = () => {
                     </CardContent>
                 </Card>
             )}
+
+            {/* ANCILLARY SEGMENTATION: EXTRA CHARGES DISTRIBUTION */}
+            {data?.byAncillary && data.byAncillary.length > 0 && (
+                <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                    <CardHeader className="p-3 pb-2 flex items-center gap-2 border-b border-slate-50">
+                        <div className="p-2 bg-emerald-50 rounded-xl"><DollarSign className="w-4 h-4 text-emerald-600" /></div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ancillary Revenue</span>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                        <div className="space-y-4">
+                            {data.byAncillary.map((item, idx) => {
+                                // Calculate total ancillary revenue for percentages
+                                const totalAncillary = data.byAncillary!.reduce((acc, curr) => acc + curr.amount, 0);
+                                const percentage = totalAncillary > 0 ? (item.amount / totalAncillary) * 100 : 0;
+
+                                return (
+                                    <div key={idx} className="space-y-2 group">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700">
+                                                    <Zap className="w-3 h-3" />
+                                                </div>
+                                                <span className="text-[10px] font-black text-slate-900 uppercase tracking-tighter">
+                                                    {item.description}
+                                                </span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-[10px] font-black text-slate-900 tracking-tighter block">
+                                                    {formatCurrency(item.amount, CurrencyCodeLabels[selectedCurrency as keyof typeof CurrencyCodeLabels])}
+                                                </span>
+                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                                                    {percentage.toFixed(1)}% Share
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-emerald-500 transition-all duration-1000 ease-out"
+                                                style={{ width: `${percentage}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

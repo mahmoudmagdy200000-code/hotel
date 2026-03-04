@@ -11,6 +11,6 @@ export const createExtraCharge = async (command: CreateExtraChargeCommand): Prom
     return response.data;
 };
 
-export const deleteExtraCharge = async (id: number): Promise<void> => {
-    await http.delete(`extra-charges/${id}`);
+export const deleteExtraCharge = async (reservationId: number, id: number): Promise<void> => {
+    await http.delete(`reservations/${reservationId}/charges/${id}`);
 };

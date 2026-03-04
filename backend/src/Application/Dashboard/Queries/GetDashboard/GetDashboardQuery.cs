@@ -78,19 +78,24 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             .GroupBy(e => e.BusinessDate.ToString("yyyy-MM-dd"))
             .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
 
-        // 3.6 Get Extra Charges
-        // Fetch all paid charges in the window, then split in-memory by mode so that
-        // Actual mode only counts charges on/before today and Forecast only counts future ones.
-        // This mirrors the identical Actual/Forecast split already applied to Expenses below.
+        // 3.6 Get Extra Charges (CRITICAL: Match CashFlowService Date logic exactly)
+        var hotelMidnightLocal = from.Date;
+        var hotelToLocal = to.Date; // exclusive bound already
+        var startUtc = new DateTimeOffset(_dateTimeProvider.ToUtc(hotelMidnightLocal), TimeSpan.Zero);
+        var endUtc = new DateTimeOffset(_dateTimeProvider.ToUtc(hotelToLocal), TimeSpan.Zero);
+
         var extraChargesList = await _context.ExtraCharges
-            .Where(e => e.Date >= from && e.Date < to && e.CurrencyCode == currency && e.PaymentStatus == PaymentStatus.Paid)
+            .Where(e => e.Created >= startUtc && e.Created < endUtc && e.CurrencyCode == currency && e.PaymentStatus == PaymentStatus.Paid)
             .ToListAsync(cancellationToken);
 
         var currentHotelDate = today; // hotel-timezone-aware, from _dateTimeProvider.GetHotelToday()
+        // Midnight of "today" to split Actual (<= today) from Forecast (> today)
+        var todayMidnightUtcOffset = new DateTimeOffset(_dateTimeProvider.ToUtc(currentHotelDate.Date), TimeSpan.Zero);
+        var tomorrowMidnightUtcOffset = todayMidnightUtcOffset.AddDays(1);
 
         var extraChargesByDayDict = extraChargesList
-            .Where(e => mode == "Actual" ? e.Date <= currentHotelDate : e.Date > currentHotelDate)
-            .GroupBy(e => e.Date.ToString("yyyy-MM-dd"))
+            .Where(e => mode == "Actual" ? e.Created < tomorrowMidnightUtcOffset : e.Created >= tomorrowMidnightUtcOffset)
+            .GroupBy(e => e.Date.Date.ToString("yyyy-MM-dd"))
             .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
 
         RevenueSummaryDto? revenueByRoomType = null;
@@ -136,11 +141,9 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         }
 
         // 5. Build Summary
-        // Split extra charges by mode — same pattern as the Expense split below.
-        // "Actual"   → only charges with Date on or before today (already materialised).
-        // "Forecast" → only charges with Date after today (future / anticipated).
-        var actualExtraCharges   = extraChargesList.Where(e => e.Date <= currentHotelDate).Sum(e => e.Amount);
-        var forecastExtraCharges = extraChargesList.Where(e => e.Date >  currentHotelDate).Sum(e => e.Amount);
+        // Split extra charges by mode — using the strict UTC Created bounds
+        var actualExtraCharges   = extraChargesList.Where(e => e.Created < tomorrowMidnightUtcOffset).Sum(e => e.Amount);
+        var forecastExtraCharges = extraChargesList.Where(e => e.Created >= tomorrowMidnightUtcOffset).Sum(e => e.Amount);
         var extraChargesTotal    = mode == "Actual" ? actualExtraCharges : forecastExtraCharges;
         var totalRev = revenueByDay.TotalRevenue + extraChargesTotal; // core revenue + mode-scoped ancillary income
 
@@ -241,12 +244,29 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             })
             .ToList();
 
+        // 8. Build Ancillary Revenue Breakdown
+        // Only include those matching the selected 'mode'
+        var validModeCharges = extraChargesList
+            .Where(e => mode == "Actual" ? e.Created < tomorrowMidnightUtcOffset : e.Created >= tomorrowMidnightUtcOffset)
+            .ToList();
+
+        var byAncillary = validModeCharges
+            .GroupBy(e => e.Description ?? "Other")
+            .Select(g => new DashboardAncillaryRevenueKpiDto
+            {
+                Description = g.Key,
+                Amount = g.Sum(e => e.Amount)
+            })
+            .OrderByDescending(x => x.Amount)
+            .ToList();
+
         return new DashboardDto
         {
             Summary = summary,
             ByDay = byDaySeries,
             ByRoomType = byRoomType,
-            ByCategory = byCategory
+            ByCategory = byCategory,
+            ByAncillary = byAncillary
         };
     }
     

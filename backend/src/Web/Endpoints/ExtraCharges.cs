@@ -13,7 +13,7 @@ public class ExtraCharges : EndpointGroupBase
         group.RequireAuthorization();
 
         group.MapPost("", CreateExtraCharge);
-        group.MapDelete("{id}", DeleteExtraCharge);
+        group.MapDelete("{reservationId}/charges/{id}", DeleteExtraCharge);
     }
 
     public async Task<Created<int>> CreateExtraCharge(ISender sender, CreateExtraChargeCommand command)
@@ -22,9 +22,9 @@ public class ExtraCharges : EndpointGroupBase
         return TypedResults.Created($"/api/extra-charges/{result}", result);
     }
 
-    public async Task<Results<NoContent, NotFound>> DeleteExtraCharge(ISender sender, int id)
+    public async Task<Results<NoContent, NotFound>> DeleteExtraCharge(ISender sender, int reservationId, int id)
     {
-        await sender.Send(new DeleteExtraChargeCommand(id));
+        await sender.Send(new DeleteExtraChargeCommand(reservationId, id));
         return TypedResults.NoContent();
     }
 }

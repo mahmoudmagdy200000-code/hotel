@@ -1,0 +1,18 @@
+﻿ D backend/build_errors.txt
+M  backend/src/Application/Dashboard/Queries/GetDashboard/DashboardDto.cs
+M  backend/src/Application/Dashboard/Queries/GetDashboard/GetDashboardQuery.cs
+M  backend/src/Application/ExtraCharges/Commands/DeleteExtraCharge/DeleteExtraChargeCommand.cs
+M  backend/src/Web/Endpoints/ExtraCharges.cs
+ D front/hotel-frontend/build_output.txt
+ M front/hotel-frontend/package-lock.json
+ M front/hotel-frontend/package.json
+M  front/hotel-frontend/src/api/extraCharges.ts
+M  front/hotel-frontend/src/api/types/dashboard.ts
+A  front/hotel-frontend/src/components/ui/alert-dialog.tsx
+M  front/hotel-frontend/src/hooks/reservations/useExtraChargeMutations.ts
+ M front/hotel-frontend/src/i18n/locales/ar.json
+ M front/hotel-frontend/src/i18n/locales/en.json
+M  front/hotel-frontend/src/pages/Dashboard.tsx
+M  front/hotel-frontend/src/pages/reservations/ReservationDetails.tsx
+A  front/hotel-frontend/src/pages/reservations/components/ExtraChargeDetailsModal.tsx
+?? git_status_fixed.txt

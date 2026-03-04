@@ -6,6 +6,13 @@ public record DashboardDto
     public List<DashboardSeriesPointDto> ByDay { get; init; } = new();
     public List<DashboardRoomTypeKpiDto>? ByRoomType { get; init; }
     public List<DashboardExpenseCategoryKpiDto> ByCategory { get; init; } = new();
+    public List<DashboardAncillaryRevenueKpiDto> ByAncillary { get; init; } = new();
+}
+
+public record DashboardAncillaryRevenueKpiDto
+{
+    public string Description { get; init; } = string.Empty;
+    public decimal Amount { get; init; }
 }
 
 public record DashboardExpenseCategoryKpiDto

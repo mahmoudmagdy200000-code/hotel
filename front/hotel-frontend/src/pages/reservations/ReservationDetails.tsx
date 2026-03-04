@@ -53,6 +53,10 @@ import CheckInDialog from '@/features/reception/components/CheckInDialog';
 import { useReceptionActions } from '@/features/reception/hooks/useReceptionActions';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
 import ExtraChargesModal from '@/components/reservation/ExtraChargesModal';
+import { ExtraChargeDetailsModal } from './components/ExtraChargeDetailsModal';
+import type { ExtraChargeDto } from '@/api/types/extraCharges';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
 
 /**
  * Ras Sedr Rental - Stay Operations Detail
@@ -80,6 +84,8 @@ const ReservationDetails = () => {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isExtraChargesOpen, setIsExtraChargesOpen] = useState(false);
     const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
+    const [viewChargeDetails, setViewChargeDetails] = useState<ExtraChargeDto | null>(null);
+    const [deleteChargeId, setDeleteChargeId] = useState<number | null>(null);
     const extraChargeMutations = useExtraChargeMutations(reservationId);
     const getPlan = useGetConfirmationPlan();
     const applyPlan = useApplyConfirmationPlan();
@@ -192,7 +198,7 @@ const ReservationDetails = () => {
             isOpen: true,
             title,
             description,
-            variant: type === 'cancel' ? 'destructive' : 'default',
+            variant: type === 'cancel' || type === 'delete-charge' ? 'destructive' : 'default',
             onConfirm: async () => {
                 closeConfirm();
                 try {
@@ -534,16 +540,26 @@ const ReservationDetails = () => {
                                                             </Badge>
                                                         </td>
                                                         <td className="px-3 py-4 text-center border-l border-slate-50">
-                                                            {ec.paymentStatus === PaymentStatusEnum.Pending && (
+                                                            <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="icon"
-                                                                    className="h-8 w-8 text-rose-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                                                    onClick={() => handleAction('delete-charge', () => extraChargeMutations.removeCharge.mutateAsync(ec.id))}
+                                                                    className="h-8 w-8 text-blue-400 hover:bg-blue-50 hover:text-blue-600 rounded-lg"
+                                                                    onClick={() => setViewChargeDetails(ec)}
                                                                 >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                    <FileText className="w-3.5 h-3.5" />
                                                                 </Button>
-                                                            )}
+                                                                {ec.paymentStatus === PaymentStatusEnum.Pending && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-rose-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg"
+                                                                        onClick={() => setDeleteChargeId(ec.id)}
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -815,6 +831,51 @@ const ReservationDetails = () => {
                     }}
                 />
             )}
+
+            {/* Extra Charge Details Modal */}
+            {res && (
+                <ExtraChargeDetailsModal
+                    isOpen={!!viewChargeDetails}
+                    onClose={() => setViewChargeDetails(null)}
+                    charge={viewChargeDetails}
+                    currency={res.currencyCode}
+                />
+            )}
+
+            {/* Delete Extra Charge Confirmation Dialog */}
+            <AlertDialog open={!!deleteChargeId} onOpenChange={(open: boolean) => !open && setDeleteChargeId(null)}>
+                <AlertDialogContent className="rounded-3xl border-slate-100 shadow-2xl overflow-hidden p-0 max-w-sm">
+                    <div className="p-8 text-center bg-white space-y-6">
+                        <div className="mx-auto w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mb-6 ring-8 ring-rose-50/50">
+                            <Trash2 className="w-8 h-8 text-rose-500" />
+                        </div>
+                        <div className="space-y-2">
+                            <AlertDialogTitle className="text-2xl font-black text-slate-900 tracking-tighter">
+                                Delete Extra Charge?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-sm font-bold text-slate-500 max-w-[260px] mx-auto">
+                                This action cannot be undone. The charge will be permanently removed from this folio.
+                            </AlertDialogDescription>
+                        </div>
+                        <div className="flex gap-3 pt-4">
+                            <AlertDialogCancel className="h-12 flex-1 rounded-xl text-xs font-black uppercase tracking-widest text-slate-500 border-slate-200 hover:bg-slate-50 transition-colors">
+                                Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                                className="h-12 flex-1 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-rose-200 transition-all"
+                                onClick={() => {
+                                    if (deleteChargeId) {
+                                        handleAction('delete-charge', () => extraChargeMutations.removeCharge.mutateAsync(deleteChargeId));
+                                        setDeleteChargeId(null);
+                                    }
+                                }}
+                            >
+                                Delete
+                            </AlertDialogAction>
+                        </div>
+                    </div>
+                </AlertDialogContent>
+            </AlertDialog>
         </div >
     );
 };

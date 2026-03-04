@@ -5,14 +5,14 @@ using MediatR;
 
 namespace CleanArchitecture.Application.ExtraCharges.Commands.DeleteExtraCharge;
 
-public record DeleteExtraChargeCommand(int Id) : IRequest;
+public record DeleteExtraChargeCommand(int ReservationId, int Id) : IRequest;
 
 public class DeleteExtraChargeCommandHandler(IApplicationDbContext context) : IRequestHandler<DeleteExtraChargeCommand>
 {
     public async Task Handle(DeleteExtraChargeCommand request, CancellationToken cancellationToken)
     {
         var entity = await context.ExtraCharges
-            .FindAsync(new object[] { request.Id }, cancellationToken);
+            .FirstOrDefaultAsync(e => e.Id == request.Id && e.ReservationId == request.ReservationId, cancellationToken);
 
         if (entity == null)
         {

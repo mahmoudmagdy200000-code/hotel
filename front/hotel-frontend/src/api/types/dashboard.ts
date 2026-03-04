@@ -20,6 +20,12 @@ export interface DashboardDto {
     byDay: DashboardSeriesPointDto[];
     byRoomType?: DashboardRoomTypeKpiDto[] | null;
     byCategory: DashboardExpenseCategoryKpiDto[];
+    byAncillary?: DashboardAncillaryRevenueKpiDto[];
+}
+
+export interface DashboardAncillaryRevenueKpiDto {
+    description: string;
+    amount: number;
 }
 
 export interface DashboardExpenseCategoryKpiDto {
