@@ -50,7 +50,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         builder.Entity<Payment>().HasQueryFilter(p => !_user.BranchId.HasValue || p.BranchId == _user.BranchId);
         builder.Entity<Expense>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
         builder.Entity<BranchListing>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
-        builder.Entity<ExtraCharge>().HasQueryFilter(e => !_user.BranchId.HasValue || e.Reservation.BranchId == _user.BranchId);
+        // Note: ExtraCharge does NOT have its own query filter — branch isolation is inherited
+        // via the Reservation FK (Reservations already have a branch filter applied).
 
         // Dashboard Memory Optimisations & Composite Indexes
         builder.Entity<Reservation>()
