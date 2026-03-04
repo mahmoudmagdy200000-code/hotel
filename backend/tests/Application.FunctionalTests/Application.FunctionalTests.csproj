@@ -19,6 +19,7 @@
     </ItemGroup>
     <!--#endif-->
     <ItemGroup>
+      <PackageReference Include="FluentAssertions" />
       <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" />
       <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
@@ -42,6 +43,11 @@
       <!--#endif-->
       <!--#if (UseSqlServer)-->
       <PackageReference Include="Testcontainers.MsSql" />
+      <PackageReference Include="xunit" />
+      <PackageReference Include="xunit.runner.visualstudio">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
       <!--#endif-->
     </ItemGroup>
     

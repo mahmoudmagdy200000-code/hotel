@@ -78,6 +78,15 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             .GroupBy(e => e.BusinessDate.ToString("yyyy-MM-dd"))
             .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
 
+        // 3.6 Get Extra Charges
+        var extraChargesList = await _context.ExtraCharges
+            .Where(e => e.Date >= from && e.Date < to && e.CurrencyCode == currency && e.PaymentStatus == PaymentStatus.Paid)
+            .ToListAsync(cancellationToken);
+
+        var extraChargesByDayDict = extraChargesList
+            .GroupBy(e => e.Date.ToString("yyyy-MM-dd"))
+            .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
+
         RevenueSummaryDto? revenueByRoomType = null;
         if (includeRoomType)
         {
@@ -95,6 +104,8 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         foreach (var occDay in occupancy.ByDay)
         {
             var rev = revenueDayDict.GetValueOrDefault(occDay.Date, 0m); // Default 0
+            var extra = extraChargesByDayDict.GetValueOrDefault(occDay.Date, 0m);
+            rev += extra; // Add ancillary income to daily revenue
             var exp = expensesByDayDict.GetValueOrDefault(occDay.Date, 0m);
             var net = rev - exp;
             
@@ -119,7 +130,8 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         }
 
         // 5. Build Summary
-        var totalRev = revenueByDay.TotalRevenue; // Sum of daily revenue matches total
+        var extraChargesTotal = extraChargesList.Sum(e => e.Amount);
+        var totalRev = revenueByDay.TotalRevenue + extraChargesTotal; // Sum of core daily revenue + extra charges
 
         // Split expenses by today's date so Actuals and Forecast are never double-counted.
         // "Actual"   → only expenses already incurred (BusinessDate <= today).

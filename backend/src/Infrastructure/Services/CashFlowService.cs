@@ -31,6 +31,15 @@ public class CashFlowService : ICashFlowService
             .Where(e => e.CurrencyCode == currency && e.PaymentMethod == PaymentMethod.Cash)
             .SumAsync(e => e.Amount, cancellationToken);
 
-        return totalPayments - totalExpenses;
+        // 3. Total Extra Charges Today (Paid)
+        var startOfBusinessDay = businessDate.ToDateTime(TimeOnly.MinValue);
+        var endOfBusinessDay = startOfBusinessDay.AddDays(1);
+
+        var totalExtraCharges = await _context.ExtraCharges
+            .Where(e => e.Date >= startOfBusinessDay && e.Date < endOfBusinessDay)
+            .Where(e => e.CurrencyCode == currency && e.PaymentStatus == PaymentStatus.Paid)
+            .SumAsync(e => e.Amount, cancellationToken);
+
+        return totalPayments + totalExtraCharges - totalExpenses;
     }
 }

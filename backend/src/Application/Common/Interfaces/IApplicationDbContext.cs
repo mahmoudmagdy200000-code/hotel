@@ -24,5 +24,7 @@ public interface IApplicationDbContext
 
     DbSet<ActivityLog> ActivityLogs { get; }
 
+    DbSet<ExtraCharge> ExtraCharges { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

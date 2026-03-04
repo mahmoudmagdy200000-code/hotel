@@ -36,6 +36,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
     public DbSet<BranchListing> BranchListings => Set<BranchListing>();
 
+    public DbSet<ExtraCharge> ExtraCharges => Set<ExtraCharge>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -48,6 +50,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         builder.Entity<Payment>().HasQueryFilter(p => !_user.BranchId.HasValue || p.BranchId == _user.BranchId);
         builder.Entity<Expense>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
         builder.Entity<BranchListing>().HasQueryFilter(r => !_user.BranchId.HasValue || r.BranchId == _user.BranchId);
+        builder.Entity<ExtraCharge>().HasQueryFilter(e => !_user.BranchId.HasValue || e.Reservation.BranchId == _user.BranchId);
 
         // Dashboard Memory Optimisations & Composite Indexes
         builder.Entity<Reservation>()

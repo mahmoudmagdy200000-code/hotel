@@ -30,7 +30,8 @@ import {
     Briefcase,
     AlertCircle,
     Utensils,
-    Users
+    Users,
+    ShoppingBag
 } from 'lucide-react';
 import { getAttachmentMetadata } from '@/api/attachments';
 import { AttachmentList } from '@/components/attachments/AttachmentList';
@@ -48,6 +49,7 @@ import { useBusinessDate } from '@/app/providers/BusinessDateProvider';
 import CheckInDialog from '@/features/reception/components/CheckInDialog';
 import { useReceptionActions } from '@/features/reception/hooks/useReceptionActions';
 import type { ReceptionReservationItemDto } from '@/api/types/reception';
+import ExtraChargesModal from '@/components/reservation/ExtraChargesModal';
 
 /**
  * Ras Sedr Rental - Stay Operations Detail
@@ -73,6 +75,7 @@ const ReservationDetails = () => {
     const { businessDate } = useBusinessDate();
 
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isExtraChargesOpen, setIsExtraChargesOpen] = useState(false);
     const getPlan = useGetConfirmationPlan();
     const applyPlan = useApplyConfirmationPlan();
     const [allocationPlan, setAllocationPlan] = useState<ReservationAllocationPlanDto | null>(null);
@@ -329,14 +332,26 @@ const ReservationDetails = () => {
                         )}
 
                         {res.status === ReservationStatus.CheckedIn && (
-                            <Button
-                                className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wide shadow-lg shadow-blue-600/30 transition-all active:scale-[0.97]"
-                                onClick={() => handleAction('check-out', (id) => actions.checkOut.mutateAsync({ id, businessDate }))}
-                                disabled={actions.checkOut.isPending}
-                            >
-                                <LogOut className="w-4 h-4 mr-2" />
-                                {t('reservations.check_out')}
-                            </Button>
+                            <>
+                                <Button
+                                    className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wide shadow-lg shadow-blue-600/30 transition-all active:scale-[0.97]"
+                                    onClick={() => handleAction('check-out', (id) => actions.checkOut.mutateAsync({ id, businessDate }))}
+                                    disabled={actions.checkOut.isPending}
+                                >
+                                    <LogOut className="w-4 h-4 mr-2" />
+                                    {t('reservations.check_out')}
+                                </Button>
+                                {/* Extra Charges trigger — only on active stays */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="flex-none h-12 w-12 rounded-xl bg-amber-400/10 hover:bg-amber-400/20 text-amber-400 hover:text-amber-300 transition-all active:scale-[0.97]"
+                                    title="Extra Charges"
+                                    onClick={() => setIsExtraChargesOpen(true)}
+                                >
+                                    <ShoppingBag className="w-5 h-5" />
+                                </Button>
+                            </>
                         )}
 
                         {res.status === ReservationStatus.CheckedOut && (
@@ -695,6 +710,15 @@ const ReservationDetails = () => {
                     isSubmitting={applyPlan.isPending}
                 />
             )}
+
+            {/* EXTRA CHARGES MODAL */}
+            <ExtraChargesModal
+                isOpen={isExtraChargesOpen}
+                onClose={() => setIsExtraChargesOpen(false)}
+                reservationId={reservationId}
+                currencyCode={res?.currencyCode}
+                guestName={res?.guestName}
+            />
         </div >
     );
 };
