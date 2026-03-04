@@ -4,7 +4,7 @@ import { Plus, Trash2, Loader2, ShoppingBag, CheckCircle, Clock } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useExtraChargeMutations } from '@/hooks/reservations/useExtraChargeMutations';
-import { CurrencyCodeEnum } from '@/api/types/reservations';
+import { CurrencyCodeEnum, CurrencyCodeLabels } from '@/api/types/reservations';
 import { PaymentStatusEnum } from '@/api/types/extraCharges';
 import type { ExtraChargeDto, CreateExtraChargeCommand } from '@/api/types/extraCharges';
 import type { CurrencyCodeValue } from '@/api/types/reservations';
@@ -49,6 +49,7 @@ const ExtraChargesModal = ({
     // Form state
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
+    const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCodeValue>(currencyCode);
     const [paymentStatus, setPaymentStatus] = useState<0 | 1>(PaymentStatusEnum.Paid);
 
     const handleQuickItem = (label: string) => setDescription(label);
@@ -66,7 +67,7 @@ const ExtraChargesModal = ({
             description: description.trim(),
             amount: parsedAmount,
             date: new Date().toISOString(),
-            currencyCode,
+            currencyCode: selectedCurrency,
             paymentStatus,
         };
 
@@ -75,6 +76,7 @@ const ExtraChargesModal = ({
             toast.success('Extra charge added successfully.');
             setDescription('');
             setAmount('');
+            setSelectedCurrency(currencyCode); // reset to reservation default
             setPaymentStatus(PaymentStatusEnum.Paid);
         } catch (err) {
             toast.error(`Failed to add charge: ${extractErrorMessage(err)}`);
@@ -201,7 +203,7 @@ const ExtraChargesModal = ({
                             className="w-full h-12 px-5 text-sm font-bold bg-white border border-slate-200 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 placeholder:text-slate-300 transition-all"
                         />
 
-                        {/* Amount + Status */}
+                        {/* Amount + Currency + Status */}
                         <div className="flex gap-3">
                             <input
                                 type="number"
@@ -212,6 +214,18 @@ const ExtraChargesModal = ({
                                 step="0.01"
                                 className="flex-1 h-12 px-5 text-sm font-bold bg-white border border-slate-200 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 placeholder:text-slate-300 transition-all"
                             />
+                            {/* Currency Selector */}
+                            <div className="flex-1">
+                                <select
+                                    value={selectedCurrency}
+                                    onChange={(e) => setSelectedCurrency(Number(e.target.value) as CurrencyCodeValue)}
+                                    className="w-full h-12 px-4 text-sm font-bold bg-white border border-slate-200 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all appearance-none cursor-pointer"
+                                >
+                                    {(Object.entries(CurrencyCodeLabels) as [string, string][]).map(([code, label]) => (
+                                        <option key={code} value={code}>{label}</option>
+                                    ))}
+                                </select>
+                            </div>
                             {/* Payment Status Toggle */}
                             <button
                                 type="button"
