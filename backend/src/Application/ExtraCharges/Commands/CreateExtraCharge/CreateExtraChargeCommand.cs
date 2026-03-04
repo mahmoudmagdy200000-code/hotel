@@ -33,18 +33,23 @@ public class CreateExtraChargeCommandHandler(IApplicationDbContext context) : IR
 {
     public async Task<int> Handle(CreateExtraChargeCommand request, CancellationToken cancellationToken)
     {
+        // Fetch the parent reservation to inherit its BranchId (required NOT NULL on production DB)
+        var reservation = await context.Reservations
+            .FindAsync(new object[] { request.ReservationId }, cancellationToken)
+            ?? throw new KeyNotFoundException($"Reservation {request.ReservationId} not found.");
+
         var entity = new ExtraCharge
         {
             ReservationId = request.ReservationId,
-            Description = request.Description,
-            Amount = request.Amount,
-            Date = request.Date,
-            CurrencyCode = request.CurrencyCode,
+            BranchId      = reservation.BranchId,   // ← satisfy NOT NULL FK
+            Description   = request.Description,
+            Amount        = request.Amount,
+            Date          = request.Date,
+            CurrencyCode  = request.CurrencyCode,
             PaymentStatus = request.PaymentStatus
         };
 
         context.ExtraCharges.Add(entity);
-
         await context.SaveChangesAsync(cancellationToken);
 
         return entity.Id;
