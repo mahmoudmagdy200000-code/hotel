@@ -10,6 +10,7 @@ import type { ReceptionReservationItemDto } from '@/api/types/reception';
 import { UnifiedBookingCard } from '@/components/reservation/UnifiedBookingCard';
 import { UnifiedBookingRow } from '@/components/reservation/UnifiedBookingRow';
 import { mapReceptionDto } from '@/api/adapters/bookingAdapter';
+import { useCurrentTime } from '@/hooks/useCurrentTime';
 
 /**
  * Ras Sedr Rental - Reception Operation Table
@@ -24,6 +25,7 @@ interface ReceptionTableProps {
 
 const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) => {
     const { t } = useTranslation();
+    const currentTime = useCurrentTime();
 
     if (data.length === 0) {
         return (
@@ -56,6 +58,7 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                         booking={mapReceptionDto(item)}
                         onAction={handleAction}
                         detailPath={`/reception/reservations/${item.reservationId}`}
+                        currentTime={currentTime}
                     />
                 ))}
             </div>
@@ -79,6 +82,7 @@ const ReceptionTable = ({ data, emptyMessage, onAction }: ReceptionTableProps) =
                                 booking={mapReceptionDto(item)}
                                 onAction={handleAction}
                                 detailPath={`/reception/reservations/${item.reservationId}`}
+                                currentTime={currentTime}
                             />
                         ))}
                     </TableBody>

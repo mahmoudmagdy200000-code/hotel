@@ -1,11 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import {
     Receipt,
     Plus,
     Filter,
-    Calendar,
     DollarSign,
     PieChart,
     Building2,
@@ -58,6 +57,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useGlobalDateFilter } from '@/app/providers/GlobalDateProvider';
+import { GlobalDateFilter } from '@/components/ui/GlobalDateFilter';
 
 /**
  * Ras Sedr Rental - Operational Expenditure Ledger
@@ -66,13 +67,25 @@ import { toast } from 'sonner';
 
 const Expenses = () => {
     const { t } = useTranslation();
+    const { globalDate } = useGlobalDateFilter();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    // Instead of local date state, we initialize with globalDate for the current focus
     const initialFilters: GetExpensesParams = {
-        from: format(new Date(), 'yyyy-MM-01'),
-        to: format(new Date(), 'yyyy-MM-dd'),
+        from: globalDate,
+        to: globalDate,
         currency: CurrencyCodeEnum.EGP // Explicit default for summary clarity
     };
     const [filters, setFilters] = useState<GetExpensesParams>(initialFilters);
+
+    // Sync filters when global date changes
+    useEffect(() => {
+        setFilters((prev) => ({
+            ...prev,
+            from: globalDate,
+            to: globalDate
+        }));
+    }, [globalDate]);
 
     const { data: summary, isLoading, isError, refetch, isFetching } = useExpenses(filters);
     const expenses = summary?.items || [];
@@ -168,7 +181,7 @@ const Expenses = () => {
                                 <div className="flex items-center gap-1.5 mt-1">
                                     <span className={`w-1.5 h-1.5 rounded-full ${isFetching ? 'bg-amber-400 animate-pulse' : 'bg-rose-500'}`} />
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                        {filters.from} → {filters.to}
+                                        {format(new Date(globalDate), 'MMM dd, yyyy')}
                                     </span>
                                 </div>
                             </div>
@@ -273,11 +286,8 @@ const Expenses = () => {
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-inner h-10">
-                            <Calendar className="w-3.5 h-3.5 text-slate-400 ml-2" />
-                            <input type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })} className="bg-transparent border-none text-[10px] font-black uppercase focus:ring-0 outline-none w-[110px]" />
-                            <span className="text-[10px] text-slate-300 font-black">TO</span>
-                            <input type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })} className="bg-transparent border-none text-[10px] font-black uppercase focus:ring-0 outline-none w-[110px]" />
+                        <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-inner h-10 px-3">
+                            <GlobalDateFilter />
                         </div>
 
                         <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">

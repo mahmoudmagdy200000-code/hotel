@@ -5,19 +5,22 @@ import { Hash, CalendarDays, Bed, LogIn, LogOut, Eye, AlertCircle, Utensils, Hom
 import { cn, formatCurrency } from '@/lib/utils';
 import type { BookingDisplayData } from '@/api/adapters/bookingAdapter';
 import { StatusBadge } from '@/components/reservation/StatusBadge';
+import { isLateCheckout } from '@/utils/reservation.utils';
 
 interface UnifiedBookingCardProps {
     booking: BookingDisplayData;
     onAction?: (type: string, booking: BookingDisplayData) => void;
     detailPath?: string;
     showAction?: boolean;
+    currentTime?: Date;
 }
 
 export const UnifiedBookingCard = ({
     booking,
     onAction,
     detailPath,
-    showAction = true
+    showAction = true,
+    currentTime
 }: UnifiedBookingCardProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -41,9 +44,14 @@ export const UnifiedBookingCard = ({
         }
     };
 
+    const isLate = currentTime ? isLateCheckout({ departureDate: booking.checkOutDate, status: booking.status }, currentTime) : false;
+
     return (
         <div
-            className="bg-white border-b border-slate-200 p-4 active:bg-slate-50 transition-colors cursor-pointer w-full"
+            className={cn(
+                "border-b p-4 transition-colors cursor-pointer w-full",
+                isLate ? "bg-red-50 border-red-200 hover:bg-red-100" : "bg-white border-slate-200 hover:bg-slate-50 active:bg-slate-50"
+            )}
             onClick={handleNavigate}
         >
             <div className="flex flex-col gap-2.5">
@@ -55,13 +63,19 @@ export const UnifiedBookingCard = ({
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">
                         <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-black text-slate-900 text-[15px] truncate uppercase tracking-tight">
+                            <span className={cn(
+                                "font-black text-[15px] truncate uppercase tracking-tight",
+                                isLate ? "text-red-900" : "text-slate-900"
+                            )}>
                                 {booking.guestName}
                             </span>
                             <div className={cn("w-2 h-2 rounded-full flex-shrink-0", statusColor)} title={booking.status} />
                             <StatusBadge status={booking.status} className="scale-[0.85] origin-left flex-shrink-0" />
                         </div>
-                        <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest truncate mt-0.5">
+                        <div className={cn(
+                            "text-[11px] font-black uppercase tracking-widest truncate mt-0.5",
+                            isLate ? "text-red-600" : "text-slate-500"
+                        )}>
                             {booking.phone || t('reception.no_phone', 'No Phone')}
                         </div>
                     </div>
@@ -89,6 +103,15 @@ export const UnifiedBookingCard = ({
                     {booking.isEarlyCheckOut && (
                         <div className="px-1.5 py-1 bg-orange-50 text-orange-700 text-[9px] font-black rounded border border-orange-200 uppercase tracking-tighter">
                             {t('reception.left_early', 'Left Early')}
+                        </div>
+                    )}
+
+                    {isLate && (
+                        <div className="flex items-center gap-1 bg-red-100 text-red-700 px-2 py-1 rounded border border-red-300 animate-pulse shadow-sm">
+                            <AlertCircle className="w-3 h-3" />
+                            <span className="text-[10px] font-black uppercase tracking-widest leading-none">
+                                {t('reception.late_checkout', 'Late Checkout')}
+                            </span>
                         </div>
                     )}
                 </div>

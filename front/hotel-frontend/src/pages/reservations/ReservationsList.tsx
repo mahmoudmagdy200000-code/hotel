@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils';
 import { UnifiedBookingCard } from '@/components/reservation/UnifiedBookingCard';
 import { UnifiedBookingRow } from '@/components/reservation/UnifiedBookingRow';
 import { mapReservationDto } from '@/api/adapters/bookingAdapter';
-
+import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useBusinessDate } from '@/app/providers/BusinessDateProvider';
 
 const ReservationsList = () => {
@@ -49,6 +49,7 @@ const ReservationsList = () => {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const fromDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : '';
     const toDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : '';
+    const currentTime = useCurrentTime();
 
     // Debounce search term
     useEffect(() => {
@@ -182,10 +183,10 @@ const ReservationsList = () => {
                 ) : (
                     <>
                         {/* Mobile: List Cards (Virtualized when > 50 items) */}
-                        <MobileCardList reservations={reservations ?? []} />
+                        <MobileCardList reservations={reservations ?? []} currentTime={currentTime} />
 
                         {/* Desktop: Premium Table (Virtualized when > 50 items) */}
-                        <DesktopTable reservations={reservations ?? []} t={t} />
+                        <DesktopTable reservations={reservations ?? []} t={t} currentTime={currentTime} />
                     </>
                 )}
             </div>
@@ -213,9 +214,10 @@ interface ListProps {
     reservations: ReservationDto[];
     navigate: (path: string) => void;
     t: TFunction;
+    currentTime: Date;
 }
 
-function MobileCardList({ reservations }: Omit<ListProps, 'navigate' | 't'>) {
+function MobileCardList({ reservations, currentTime }: Omit<ListProps, 'navigate' | 't'>) {
     const parentRef = useRef<HTMLDivElement>(null);
     const shouldVirtualize = reservations.length > VIRTUALIZE_THRESHOLD;
 
@@ -236,6 +238,7 @@ function MobileCardList({ reservations }: Omit<ListProps, 'navigate' | 't'>) {
                         booking={mapReservationDto(res)}
                         showAction={false}
                         detailPath={`/reservations/${res.id}`}
+                        currentTime={currentTime}
                     />
                 ))}
             </div>
@@ -263,6 +266,7 @@ function MobileCardList({ reservations }: Omit<ListProps, 'navigate' | 't'>) {
                                 booking={mapReservationDto(res)}
                                 showAction={false}
                                 detailPath={`/reservations/${res.id}`}
+                                currentTime={currentTime}
                             />
                         </div>
                     );
@@ -272,7 +276,7 @@ function MobileCardList({ reservations }: Omit<ListProps, 'navigate' | 't'>) {
     );
 }
 
-function DesktopTable({ reservations, t }: Omit<ListProps, 'navigate'>) {
+function DesktopTable({ reservations, t, currentTime }: Omit<ListProps, 'navigate'>) {
     const parentRef = useRef<HTMLDivElement>(null);
     const shouldVirtualize = reservations.length > VIRTUALIZE_THRESHOLD;
 
@@ -305,6 +309,7 @@ function DesktopTable({ reservations, t }: Omit<ListProps, 'navigate'>) {
                                 showAction={false}
                                 detailPath={`/reservations/${res.id}`}
                                 isDesktop={true}
+                                currentTime={currentTime}
                             />
                         ))}
                     </TableBody>
@@ -351,6 +356,7 @@ function DesktopTable({ reservations, t }: Omit<ListProps, 'navigate'>) {
                                             showAction={false}
                                             detailPath={`/reservations/${res.id}`}
                                             isDesktop={true}
+                                            currentTime={currentTime}
                                         />
                                     </div>
                                 );

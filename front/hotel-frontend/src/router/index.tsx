@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/components/routes/ProtectedRoute';
 import { AdminRoute } from '@/components/routes/AdminRoute';
 import { OwnerRoute } from '@/components/routes/OwnerRoute';
 import { useAuth } from '@/hooks/useAuth';
+import { RouteErrorBoundary } from '@/components/errors/RouteErrorBoundary';
 
 // ─── Critical path (eagerly loaded) ────────────────────────────
 import ReceptionToday from '@/pages/reception/ReceptionToday';
@@ -63,6 +64,7 @@ const router = createBrowserRouter([
                 <AppLayout />
             </ProtectedRoute>
         ),
+        errorElement: <RouteErrorBoundary />,
         children: [
             {
                 index: true,
