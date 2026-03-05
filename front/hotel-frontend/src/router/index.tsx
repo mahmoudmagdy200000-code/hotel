@@ -5,7 +5,7 @@ import { ProtectedRoute } from '@/components/routes/ProtectedRoute';
 import { AdminRoute } from '@/components/routes/AdminRoute';
 import { OwnerRoute } from '@/components/routes/OwnerRoute';
 import { useAuth } from '@/hooks/useAuth';
-import { RouteErrorBoundary } from '@/components/errors/RouteErrorBoundary';
+import { ChunkErrorView } from '@/components/errors/ChunkErrorView';
 import { lazyWithRetry } from '@/utils/lazyWithRetry';
 
 // ─── Critical path (eagerly loaded) ────────────────────────────
@@ -65,7 +65,7 @@ const router = createBrowserRouter([
                 <AppLayout />
             </ProtectedRoute>
         ),
-        errorElement: <RouteErrorBoundary />,
+        errorElement: <ChunkErrorView />,
         children: [
             {
                 index: true,

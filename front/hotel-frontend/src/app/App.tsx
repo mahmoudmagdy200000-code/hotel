@@ -7,9 +7,11 @@ import router from '@/router';
 
 import { Toaster } from '@/components/ui/sonner';
 import { PwaPrompt } from '@/components/PwaPrompt';
-import { PwaUpdater } from '@/hooks/usePwaManager';
+import { useVersionUpdateMonitor } from '@/hooks/useVersionUpdateMonitor';
 
 function App() {
+    useVersionUpdateMonitor();
+
     return (
         <QueryProvider>
             <AuthProvider>
@@ -18,7 +20,6 @@ function App() {
                         <RouterProvider router={router} />
                         <Toaster />
                         <PwaPrompt />
-                        <PwaUpdater />
                     </GlobalDateProvider>
                 </BusinessDateProvider>
             </AuthProvider>
