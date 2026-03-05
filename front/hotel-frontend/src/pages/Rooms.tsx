@@ -317,7 +317,7 @@ const Rooms = () => {
                                     required
                                 >
                                     <option value={0} disabled className="font-bold">{t('rooms.select_type')}</option>
-                                    {roomTypes?.map(rt => (
+                                    {roomTypes?.filter(rt => rt.isActive || rt.id === formData.roomTypeId).map(rt => (
                                         <option key={rt.id} value={rt.id} className="font-bold text-slate-900">
                                             {rt.name.toUpperCase()} — {formatCurrency(rt.defaultRate)}
                                         </option>

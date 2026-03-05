@@ -313,7 +313,7 @@ const ReservationCreate = () => {
                                                     required
                                                 >
                                                     <option value={0} disabled>Select Type</option>
-                                                    {roomTypes?.map(rt => (
+                                                    {roomTypes?.filter(rt => rt.isActive).map(rt => (
                                                         <option key={rt.id} value={rt.id}>{rt.name}</option>
                                                     ))}
                                                 </select>
@@ -327,7 +327,7 @@ const ReservationCreate = () => {
                                                     required
                                                 >
                                                     <option value={0} disabled>Select Room</option>
-                                                    {rooms?.filter(r => r.roomTypeId === line.roomTypeId || line.roomTypeId === 0).map(r => (
+                                                    {rooms?.filter(r => r.isActive && (r.roomTypeId === line.roomTypeId || line.roomTypeId === 0)).map(r => (
                                                         <option key={r.id} value={r.id}>{r.roomNumber}</option>
                                                     ))}
                                                 </select>

@@ -1,32 +1,33 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import AppLayout from '@/layouts/AppLayout';
 import { ProtectedRoute } from '@/components/routes/ProtectedRoute';
 import { AdminRoute } from '@/components/routes/AdminRoute';
 import { OwnerRoute } from '@/components/routes/OwnerRoute';
 import { useAuth } from '@/hooks/useAuth';
 import { RouteErrorBoundary } from '@/components/errors/RouteErrorBoundary';
+import { lazyWithRetry } from '@/utils/lazyWithRetry';
 
 // ─── Critical path (eagerly loaded) ────────────────────────────
 import ReceptionToday from '@/pages/reception/ReceptionToday';
 import Login from '@/pages/Login';
 
 // ─── Lazy-loaded pages (code-split) ────────────────────────────
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
-const PendingRequests = lazy(() => import('@/pages/reception/PendingRequests'));
-const ReservationsList = lazy(() => import('@/pages/reservations/ReservationsList'));
-const ReservationDetails = lazy(() => import('@/pages/reservations/ReservationDetails'));
-const ReservationCreate = lazy(() => import('@/pages/reservations/ReservationCreate'));
-const ReceptionSearch = lazy(() => import('@/pages/ReceptionSearch'));
-const Rooms = lazy(() => import('@/pages/Rooms'));
-const RoomTypes = lazy(() => import('@/pages/RoomTypes'));
-const Occupancy = lazy(() => import('@/pages/Occupancy'));
-const Financials = lazy(() => import('@/pages/Financials'));
-const Expenses = lazy(() => import('@/pages/Expenses'));
-const AuditDeletes = lazy(() => import('@/pages/admin/AuditDeletes'));
-const Listings = lazy(() => import('@/pages/admin/Listings'));
-const UserManagement = lazy(() => import('@/pages/admin/UserManagement'));
-const NotFound = lazy(() => import('@/pages/NotFound'));
+const Dashboard = lazyWithRetry(() => import('@/pages/Dashboard'));
+const PendingRequests = lazyWithRetry(() => import('@/pages/reception/PendingRequests'));
+const ReservationsList = lazyWithRetry(() => import('@/pages/reservations/ReservationsList'));
+const ReservationDetails = lazyWithRetry(() => import('@/pages/reservations/ReservationDetails'));
+const ReservationCreate = lazyWithRetry(() => import('@/pages/reservations/ReservationCreate'));
+const ReceptionSearch = lazyWithRetry(() => import('@/pages/ReceptionSearch'));
+const Rooms = lazyWithRetry(() => import('@/pages/Rooms'));
+const RoomTypes = lazyWithRetry(() => import('@/pages/RoomTypes'));
+const Occupancy = lazyWithRetry(() => import('@/pages/Occupancy'));
+const Financials = lazyWithRetry(() => import('@/pages/Financials'));
+const Expenses = lazyWithRetry(() => import('@/pages/Expenses'));
+const AuditDeletes = lazyWithRetry(() => import('@/pages/admin/AuditDeletes'));
+const Listings = lazyWithRetry(() => import('@/pages/admin/Listings'));
+const UserManagement = lazyWithRetry(() => import('@/pages/admin/UserManagement'));
+const NotFound = lazyWithRetry(() => import('@/pages/NotFound'));
 
 // ─── Suspense wrapper with minimal loading state ────────────────
 function LazyPage({ children }: { children: React.ReactNode }) {
