@@ -24,6 +24,7 @@ public class CashFlowService(
         var totalPayments = await context.Payments
             .Where(p => p.Created >= startUtc && p.Created < endUtc)
             .Where(p => p.CurrencyCode == currency && p.PaymentMethod == PaymentMethod.Cash)
+            .Where(p => p.PaymentType == PaymentType.Payment)
             .SumAsync(p => p.Amount, cancellationToken);
 
         // ── 2. Cash Expenses (keyed by BusinessDate — already hotel-timezone) ─────
@@ -45,7 +46,15 @@ public class CashFlowService(
                      && e.PaymentMethod == PaymentMethod.Cash)
             .SumAsync(e => e.Amount, cancellationToken);
 
-        // Net = Cash In (Payments + Extra Charges) − Cash Out (Expenses)
-        return totalPayments + totalExtraCharges - totalExpenses;
+        // ── 4. Cash Refunds (Folio Adjustments) ──────────────────────────────────
+        var totalRefunds = await context.Payments
+            .Where(p => p.Created >= startUtc && p.Created < endUtc)
+            .Where(p => p.CurrencyCode == currency && p.PaymentMethod == PaymentMethod.Cash)
+            .Where(p => p.PaymentType == PaymentType.Refund)
+            .SumAsync(p => p.Amount, cancellationToken);
+
+        // Net = Cash In (Payments + Extra Charges) − Cash Out (Expenses + Refunds)
+        return totalPayments + totalExtraCharges - totalExpenses - totalRefunds;
     }
 }
+

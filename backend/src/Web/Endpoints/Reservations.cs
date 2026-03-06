@@ -9,6 +9,8 @@ using CleanArchitecture.Application.Reservations.Commands.UpdateReservation;
 using CleanArchitecture.Application.Reservations.Queries.GetReservationById;
 using CleanArchitecture.Application.Reservations.Queries.GetReservations;
 using Microsoft.AspNetCore.Http.HttpResults;
+using RefundCommand = CleanArchitecture.Application.Reservations.Commands.ReceptionActions.ProcessRefundCommand;
+using RefundResult = CleanArchitecture.Application.Reservations.Commands.ReceptionActions.RefundResultDto;
 
 namespace CleanArchitecture.Web.Endpoints;
 
@@ -29,6 +31,7 @@ public class Reservations : EndpointGroupBase
         group.MapPost("{id}/checkout", CheckOutReservation);
         group.MapPost("{id}/noshow", NoShowReservation);
         group.MapPost("{id}/cancel", CancelReservation);
+        group.MapPost("{id}/refund", ProcessRefund);
         group.MapDelete("{id}", DeleteReservation);
     }
 
@@ -94,5 +97,11 @@ public class Reservations : EndpointGroupBase
     {
         await sender.Send(new DeleteReservationCommand(id, reason));
         return TypedResults.NoContent();
+    }
+
+    public async Task<Ok<RefundResult>> ProcessRefund(ISender sender, int id, RefundCommand command)
+    {
+        var result = await sender.Send(command with { ReservationId = id });
+        return TypedResults.Ok(result);
     }
 }

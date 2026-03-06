@@ -12,6 +12,9 @@ public class Payment : BaseAuditableEntity
     public CurrencyCode CurrencyCode { get; set; }
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
     
+    /// <summary>Discriminator: Payment (default/0) vs Refund (1).</summary>
+    public PaymentType PaymentType { get; set; } = PaymentType.Payment;
+    
     public string? Notes { get; set; }
     
     public Guid BranchId { get; set; }

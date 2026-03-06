@@ -9,6 +9,7 @@ namespace CleanArchitecture.Application.Dashboard.Queries.GetDailyCashFlow;
 public record CashPaymentItemDto(int ReservationId, decimal Amount, DateTimeOffset Time);
 public record CashExtraChargeItemDto(string Description, decimal Amount, DateTimeOffset Time);
 public record CashExpenseItemDto(string Description, decimal Amount, DateOnly BusinessDate);
+public record CashRefundItemDto(int ReservationId, decimal Amount, string? Notes, DateTimeOffset Time);
 
 // ── Response DTO ─────────────────────────────────────────────────────────────
 public record DailyCashFlowDto
@@ -20,11 +21,13 @@ public record DailyCashFlowDto
     public decimal TotalCashPayments { get; init; }
     public decimal TotalCashExtraCharges { get; init; }
     public decimal TotalCashExpenses { get; init; }
+    public decimal TotalCashRefunds { get; init; }
 
     // Detailed items
     public List<CashPaymentItemDto> CashPayments { get; init; } = [];
     public List<CashExtraChargeItemDto> CashExtraCharges { get; init; } = [];
     public List<CashExpenseItemDto> CashExpenses { get; init; } = [];
+    public List<CashRefundItemDto> CashRefunds { get; init; } = [];
 }
 
 // ── Query ────────────────────────────────────────────────────────────────────
@@ -49,11 +52,12 @@ public class GetDailyCashFlowQueryHandler(
         var startUtc = new DateTimeOffset(dateTimeProvider.ToUtc(hotelMidnightLocal), TimeSpan.Zero);
         var endUtc = startUtc.AddDays(1);
 
-        // ── 1. Cash Payments ─────────────────────────────────────────────
+        // ── 1. Cash Payments (exclude Refunds) ────────────────────────────
         var cashPayments = await context.Payments
             .Where(p => p.Created >= startUtc && p.Created < endUtc)
             .Where(p => p.CurrencyCode == currency && p.PaymentMethod == PaymentMethod.Cash)
-            .OrderByDescending(p => p.Created)                    // ✅ order entity column first
+            .Where(p => p.PaymentType == PaymentType.Payment)
+            .OrderByDescending(p => p.Created)
             .Select(p => new CashPaymentItemDto(p.ReservationId, p.Amount, p.Created))
             .ToListAsync(cancellationToken);
 
@@ -63,7 +67,7 @@ public class GetDailyCashFlowQueryHandler(
             .Where(e => e.CurrencyCode == currency
                      && e.PaymentStatus == PaymentStatus.Paid
                      && e.PaymentMethod == PaymentMethod.Cash)
-            .OrderByDescending(e => e.Created)                    // ✅ order entity column first
+            .OrderByDescending(e => e.Created)
             .Select(e => new CashExtraChargeItemDto(e.Description, e.Amount, e.Created))
             .ToListAsync(cancellationToken);
 
@@ -71,15 +75,25 @@ public class GetDailyCashFlowQueryHandler(
         var cashExpenses = await context.Expenses
             .Where(e => e.BusinessDate == businessDate)
             .Where(e => e.CurrencyCode == currency && e.PaymentMethod == PaymentMethod.Cash)
-            .OrderByDescending(e => e.Amount)                     // ✅ order entity column first
+            .OrderByDescending(e => e.Amount)
             .Select(e => new CashExpenseItemDto(e.Description, e.Amount, e.BusinessDate))
+            .ToListAsync(cancellationToken);
+
+        // ── 4. Cash Refunds (PaymentType == Refund) ──────────────────────
+        var cashRefunds = await context.Payments
+            .Where(p => p.Created >= startUtc && p.Created < endUtc)
+            .Where(p => p.CurrencyCode == currency && p.PaymentMethod == PaymentMethod.Cash)
+            .Where(p => p.PaymentType == PaymentType.Refund)
+            .OrderByDescending(p => p.Created)
+            .Select(p => new CashRefundItemDto(p.ReservationId, p.Amount, p.Notes, p.Created))
             .ToListAsync(cancellationToken);
 
         // ── Totals ───────────────────────────────────────────────────────
         var totalPayments = cashPayments.Sum(p => p.Amount);
         var totalExtraCharges = cashExtraCharges.Sum(e => e.Amount);
         var totalExpenses = cashExpenses.Sum(e => e.Amount);
-        var netCash = totalPayments + totalExtraCharges - totalExpenses;
+        var totalRefunds = cashRefunds.Sum(r => r.Amount);
+        var netCash = totalPayments + totalExtraCharges - totalExpenses - totalRefunds;
 
         return new DailyCashFlowDto
         {
@@ -88,9 +102,12 @@ public class GetDailyCashFlowQueryHandler(
             TotalCashPayments = totalPayments,
             TotalCashExtraCharges = totalExtraCharges,
             TotalCashExpenses = totalExpenses,
+            TotalCashRefunds = totalRefunds,
             CashPayments = cashPayments,
             CashExtraCharges = cashExtraCharges,
-            CashExpenses = cashExpenses
+            CashExpenses = cashExpenses,
+            CashRefunds = cashRefunds
         };
     }
 }
+
