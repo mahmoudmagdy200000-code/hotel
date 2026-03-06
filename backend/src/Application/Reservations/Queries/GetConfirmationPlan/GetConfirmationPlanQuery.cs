@@ -269,6 +269,31 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
                 })
                 .ToList();
 
+            // FALLBACK MECHANISM (Fix for NO ROOMS block)
+            bool usedFallback = false;
+            if (targetRoomTypeId != null && !availableRooms.Any())
+            {
+                usedFallback = true;
+                // Re-calculate available rooms bypassing the targetRoomTypeId entirely
+                availableRooms = allRooms
+                    .Where(r => !occupiedRoomIds.Contains(r.Id))
+                    .Select(r => {
+                        var perRoomTarget = item.TargetNightlyPrice.HasValue 
+                            ? (item.TargetNightlyPrice.Value / item.RequestedRoomCount)
+                            : 0;
+                        
+                        return new {
+                            Room = r,
+                            Price = r.RoomType?.DefaultRate ?? 0,
+                            Diff = item.TargetNightlyPrice.HasValue 
+                                ? Math.Abs((r.RoomType?.DefaultRate ?? 0) - perRoomTarget)
+                                : 0,
+                            PerRoomTarget = perRoomTarget
+                        };
+                    })
+                    .ToList();
+            }
+
             // 3. Sort Candidates
             IEnumerable<ProposedRoomDto> sortedCandidates;
 
@@ -325,7 +350,7 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
 
             // Phase 2: Fill remaining slots from best available candidates
             // [STRICT AUTO-ASSIGN]: Only auto-fill if we have a 100% room type match and it's not ambiguous
-            if (draft.Source != ReservationSource.PDF || targetRoomTypeId != null)
+            if (!usedFallback && (draft.Source != ReservationSource.PDF || targetRoomTypeId != null))
             {
                 var needed = item.RequestedRoomCount - item.ProposedRooms.Count;
                 if (needed > 0)
@@ -367,15 +392,23 @@ public class GetConfirmationPlanQueryHandler : IRequestHandler<GetConfirmationPl
             else if (item.CandidateRooms.Count > 0)
             {
                  item.Status = "NeedsManual";
-                 item.Warnings.Add(targetRoomTypeId != null 
-                    ? $"Only {item.ProposedRooms.Count} / {item.RequestedRoomCount} matching rooms available."
-                    : $"Please assign room(s) manually. {item.CandidateRooms.Count} available candidates.");
+                 
+                 if (usedFallback)
+                 {
+                     item.Warnings.Add("Requested room type is fully booked. Please assign any available room manually.");
+                 }
+                 else 
+                 {
+                     item.Warnings.Add(targetRoomTypeId != null 
+                        ? $"Only {item.ProposedRooms.Count} / {item.RequestedRoomCount} matching rooms available."
+                        : $"Please assign room(s) manually. {item.CandidateRooms.Count} available candidates.");
+                 }
             }
             else
             {
                  item.Status = "NoRooms";
                  item.Warnings.Add(targetRoomTypeId != null
-                    ? $"No available rooms of type '{item.CandidateRooms.FirstOrDefault()?.RoomTypeName ?? "Requested"}' found."
+                    ? $"No available rooms of type '{item.RequestedRoomTypeName ?? "Requested"}' found."
                     : "No available rooms found for these dates.");
             }
 
