@@ -902,7 +902,7 @@ const ReservationDetails = () => {
                     isOpen={!!viewChargeDetails}
                     onClose={() => setViewChargeDetails(null)}
                     charge={viewChargeDetails}
-                    currency={res.currencyCode}
+                    currency={res.currency}
                     reservationId={reservationId}
                 />
             )}
