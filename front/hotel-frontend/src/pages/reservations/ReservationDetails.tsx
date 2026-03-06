@@ -561,7 +561,7 @@ const ReservationDetails = () => {
                                                             {PaymentMethodLabels[ec.paymentMethod]}
                                                         </td>
                                                         <td className="px-5 py-4 text-right font-black text-slate-900 tracking-tighter text-sm">
-                                                            {formatCurrency(ec.amount, res.currency)}
+                                                            {formatCurrency(ec.amount, CurrencyCodeLabels[ec.currencyCode])}
                                                         </td>
                                                         <td className="px-5 py-4">
                                                             <Badge className={cn(

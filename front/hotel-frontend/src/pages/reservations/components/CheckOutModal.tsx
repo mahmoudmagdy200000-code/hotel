@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { formatCurrency } from '@/lib/utils';
 import { AlertCircle, LogOut, CheckCircle2 } from 'lucide-react';
 import type { ReservationDto } from '@/api/types/reservations';
+import { CurrencyCodeLabels } from '@/api/types/reservations';
 import { PaymentStatusEnum } from '@/api/types/extraCharges';
 
 interface CheckOutModalProps {
@@ -18,11 +19,27 @@ export function CheckOutModal({ isOpen, onClose, reservation, onConfirm, isSubmi
     const { t } = useTranslation();
 
     const unpaidCharges = reservation.extraCharges.filter(c => c.paymentStatus !== PaymentStatusEnum.Paid);
-    const unpaidChargesTotal = unpaidCharges.reduce((sum, c) => sum + c.amount, 0);
-    const hasUnpaidCharges = unpaidChargesTotal > 0;
 
-    // Total Amount Due at check-out
-    const totalDue = reservation.balanceDue + unpaidChargesTotal;
+    // Group unpaid charges by currency
+    const unpaidByCurrency = unpaidCharges.reduce((acc, c) => {
+        const currency = CurrencyCodeLabels[c.currencyCode] || reservation.currency;
+        acc[currency] = (acc[currency] || 0) + c.amount;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const hasUnpaidCharges = Object.keys(unpaidByCurrency).length > 0;
+
+    // We only sum the unpaid charges that match the reservation's base currency for the "Total Due" aggregate,
+    // but the UI will show other currencies as separate line items to avoid math errors.
+    const unpaidChargesInBaseCurrency = unpaidByCurrency[reservation.currency] || 0;
+    const otherUnpaidCurrencies = Object.entries(unpaidByCurrency).filter(([curr]) => curr !== reservation.currency);
+
+    // Total Amount Due at check-out in BASE currency
+    const totalDueBase = reservation.balanceDue + unpaidChargesInBaseCurrency;
+
+    const formattedUnpaidList = Object.entries(unpaidByCurrency)
+        .map(([curr, amt]) => formatCurrency(amt, curr))
+        .join(' + ');
 
     const handleConfirm = async () => {
         if (hasUnpaidCharges) return;
@@ -48,19 +65,34 @@ export function CheckOutModal({ isOpen, onClose, reservation, onConfirm, isSubmi
                             <span>{formatCurrency(reservation.balanceDue, reservation.currency)}</span>
                         </div>
 
+                        {/* Base Currency Unpaid Charges */}
                         <div className="flex justify-between items-center text-sm font-bold text-slate-700">
-                            <span>Unpaid Extra Charges</span>
-                            <span className={hasUnpaidCharges ? 'text-amber-500' : ''}>
-                                {formatCurrency(unpaidChargesTotal, reservation.currency)}
+                            <span>Unpaid Extra Charges ({reservation.currency})</span>
+                            <span className={unpaidChargesInBaseCurrency > 0 ? 'text-amber-500' : ''}>
+                                {formatCurrency(unpaidChargesInBaseCurrency, reservation.currency)}
                             </span>
                         </div>
+
+                        {/* Other Currencies Unpaid Charges */}
+                        {otherUnpaidCurrencies.map(([curr, amt]) => (
+                            <div key={curr} className="flex justify-between items-center text-sm font-bold text-amber-600">
+                                <span>Unpaid Extra Charges ({curr})</span>
+                                <span>{formatCurrency(amt, curr)}</span>
+                            </div>
+                        ))}
 
                         <div className="h-px bg-slate-200 my-2" />
 
                         <div className="flex justify-between items-center text-lg font-black text-slate-900 tracking-tighter">
-                            <span>Total Due</span>
-                            <span>{formatCurrency(totalDue, reservation.currency)}</span>
+                            <span>Total Due ({reservation.currency})</span>
+                            <span>{formatCurrency(totalDueBase, reservation.currency)}</span>
                         </div>
+
+                        {otherUnpaidCurrencies.length > 0 && (
+                            <div className="text-[10px] font-black text-amber-600 uppercase tracking-widest text-right">
+                                + OTHER CURRENCIES PENDING
+                            </div>
+                        )}
                     </div>
 
                     {hasUnpaidCharges && (
@@ -68,17 +100,17 @@ export function CheckOutModal({ isOpen, onClose, reservation, onConfirm, isSubmi
                             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                             <div className="text-xs font-bold leading-relaxed">
                                 <span className="block mb-1 font-black text-sm uppercase tracking-widest text-amber-600">Action Required</span>
-                                Guest has {formatCurrency(unpaidChargesTotal, reservation.currency)} in unpaid extra charges. Please settle these charges via the Folio before finalizing check-out.
+                                Guest has {formattedUnpaidList} in unpaid extra charges. Please settle these charges via the Folio before finalizing check-out.
                             </div>
                         </div>
                     )}
 
-                    {!hasUnpaidCharges && totalDue > 0 && (
+                    {!hasUnpaidCharges && totalDueBase > 0 && (
                         <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex gap-3 text-emerald-800 shadow-sm">
                             <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
                             <div className="text-xs font-bold leading-relaxed">
                                 <span className="block mb-1 font-black text-sm uppercase tracking-widest text-emerald-600">Balance Notice</span>
-                                Guest has a remaining balance of {formatCurrency(totalDue, reservation.currency)}. The system will automatically clear this balance to 0 upon check-out and record a generic payment. If they are paying with a specific method, please record it manually first.
+                                Guest has a remaining balance of {formatCurrency(totalDueBase, reservation.currency)}. The system will automatically clear this balance to 0 upon check-out and record a generic payment. If they are paying with a specific method, please record it manually first.
                             </div>
                         </div>
                     )}
