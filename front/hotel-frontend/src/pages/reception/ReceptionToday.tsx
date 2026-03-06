@@ -11,7 +11,7 @@ import { AlertCircle, RefreshCw, LogIn, LogOut, Home } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { isValidYYYYMMDD, extractErrorMessage } from '@/lib/utils';
+import { isValidYYYYMMDD, extractErrorMessage, cn } from '@/lib/utils';
 import ReceptionTable from '@/features/reception/components/ReceptionTable';
 import RoomsStatusView from '@/features/reception/components/RoomsStatusView';
 import CheckInDialog from '@/features/reception/components/CheckInDialog';
@@ -270,31 +270,39 @@ const ReceptionToday = () => {
                         </Card>
                     </div>
 
+                    {/* Modern Tab Navigation */}
                     <Tabs defaultValue="rooms" className="w-full">
-                        {/* Sticky Tabs Navigation */}
-                        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md py-3 -mx-4 px-4 sm:relative sm:top-auto sm:bg-transparent sm:py-0 sm:mx-0 sm:px-0 border-b lg:border-none border-slate-100 mb-4">
-                            <TabsList className="flex items-center w-full bg-slate-100 p-1 rounded-xl h-auto">
-                                <TabsTrigger value="rooms" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
-                                    {t('reception.rooms')}
-                                </TabsTrigger>
-                                <TabsTrigger value="arrivals" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
-                                    {t('reception.arrivals')}
-                                    <span className="ms-1.5 px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[9px] font-black">
-                                        {data.summary.arrivalsCount}
-                                    </span>
-                                </TabsTrigger>
-                                <TabsTrigger value="departures" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
-                                    {t('reception.departures')}
-                                    <span className="ms-1.5 px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[9px] font-black">
-                                        {data.summary.departuresCount}
-                                    </span>
-                                </TabsTrigger>
-                                <TabsTrigger value="in_house" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
-                                    {t('reception.in_house')}
-                                    <span className="ms-1.5 px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[9px] font-black">
-                                        {data.summary.inHouseCount}
-                                    </span>
-                                </TabsTrigger>
+                        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md py-3 -mx-4 px-4 sm:relative sm:top-auto sm:bg-transparent sm:py-0 sm:mx-0 sm:px-0 border-b border-slate-100 mb-6">
+                            <TabsList className="flex items-center w-full bg-slate-100/50 p-1 rounded-2xl h-auto overflow-x-auto overflow-y-hidden scrollbar-hide gap-1 justify-start sm:justify-center no-scrollbar">
+                                {[
+                                    { id: 'rooms', label: t('reception.rooms'), count: null },
+                                    { id: 'arrivals', label: t('reception.arrivals'), count: data.summary.arrivalsCount },
+                                    { id: 'departures', label: t('reception.departures'), count: data.summary.departuresCount },
+                                    { id: 'in_house', label: t('reception.in_house'), count: data.summary.inHouseCount }
+                                ].map((tab) => (
+                                    <TabsTrigger
+                                        key={tab.id}
+                                        value={tab.id}
+                                        className={cn(
+                                            "flex-shrink-0 min-w-fit px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-200",
+                                            "data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm",
+                                            "data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:text-slate-600 data-[state=inactive]:hover:bg-slate-200/50"
+                                        )}
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            {tab.label}
+                                            {tab.count !== null && (
+                                                <span className={cn(
+                                                    "px-1.5 py-0.5 rounded-md text-[9px] font-black transition-colors duration-200",
+                                                    "group-data-[state=active]:bg-slate-900 group-data-[state=active]:text-white",
+                                                    "bg-slate-200 text-slate-600"
+                                                )}>
+                                                    {tab.count}
+                                                </span>
+                                            )}
+                                        </span>
+                                    </TabsTrigger>
+                                ))}
                             </TabsList>
                         </div>
 
