@@ -13,6 +13,7 @@ interface UnifiedBookingCardProps {
     detailPath?: string;
     showAction?: boolean;
     currentTime?: Date;
+    onAssignRoom?: (reservationId: string) => void;
 }
 
 export const UnifiedBookingCard = ({
@@ -20,7 +21,8 @@ export const UnifiedBookingCard = ({
     onAction,
     detailPath,
     showAction = true,
-    currentTime
+    currentTime,
+    onAssignRoom
 }: UnifiedBookingCardProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -83,11 +85,27 @@ export const UnifiedBookingCard = ({
 
                 {/* ROW 2: Badges — Room Type, Meal Plan, Locked — wrap freely on their own row */}
                 <div className="flex flex-wrap items-center gap-1.5 pl-12">
-                    {booking.roomNumbers.length > 0 && (
+                    {booking.roomNumbers.length > 0 ? (
                         <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
                             <Home className="w-3 h-3 text-emerald-600" />
                             <span className="uppercase">{t('reception.room', 'Room')} {booking.roomNumbers.join(', ')}</span>
                         </div>
+                    ) : (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAssignRoom?.(booking.id.toString());
+                            }}
+                            className={cn(
+                                "flex items-center gap-1.5 text-[10px] font-black px-2 py-1 rounded-md border transition-all active:scale-95 min-h-[32px]",
+                                onAssignRoom
+                                    ? "text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 active:bg-amber-200"
+                                    : "text-slate-400 bg-slate-50 border-slate-200"
+                            )}
+                        >
+                            <Home className="w-3 h-3" />
+                            <span className="uppercase">{t('unassigned', 'Unassigned')}</span>
+                        </button>
                     )}
                     <div className="flex items-center gap-1.5 text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
                         <Bed className="w-3 h-3 text-blue-600" />

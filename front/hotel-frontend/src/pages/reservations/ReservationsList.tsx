@@ -1,12 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { DateRange } from "react-day-picker";
-import { format, addDays } from "date-fns";
+import { format, addDays, isSameDay, parseISO } from "date-fns";
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
+import { useMemo } from 'react';
 import { useReservationsList } from '@/hooks/reservations/useReservationsList';
+import { useReservationFilters, type QuickFilterType } from '@/hooks/reservations/useReservationFilters';
+import { QuickFilterChips } from './components/QuickFilterChips';
+import { AssignRoomBottomSheet } from './components/AssignRoomBottomSheet';
+import type { BookingDisplayData } from '@/api/adapters/bookingAdapter';
 import {
     Table,
     TableBody,
@@ -51,6 +56,10 @@ const ReservationsList = () => {
     const toDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : '';
     const currentTime = useCurrentTime();
 
+    // Quick Filters & Actions
+    const [quickFilter, setQuickFilter] = useState<QuickFilterType>('all');
+    const [assignRoomBooking, setAssignRoomBooking] = useState<BookingDisplayData | null>(null);
+
     // Debounce search term
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -66,6 +75,43 @@ const ReservationsList = () => {
         searchTerm: debouncedSearch || undefined,
         includeLines: true
     });
+
+    const { filteredAndSortedReservations } = useReservationFilters({
+        reservations,
+        quickFilter,
+        businessDate
+    });
+
+    const counts = useMemo(() => {
+        if (!reservations) return { all: 0, arrivals: 0, departures: 0, inHouse: 0, actionRequired: 0 };
+
+        const bDate = parseISO(businessDate);
+        const upcomingThreshold = addDays(bDate, 3);
+
+        return reservations.reduce((acc, res) => {
+            acc.all++;
+            const arrivalDate = parseISO(res.checkInDate);
+            const departureDate = parseISO(res.checkOutDate);
+            const isUnassigned = res.lines.some(l => !l.roomId || l.roomNumber?.toLowerCase().includes('unassigned'));
+
+            if (isSameDay(arrivalDate, bDate)) acc.arrivals++;
+            if (isSameDay(departureDate, bDate)) acc.departures++;
+            if (res.status === ReservationStatus.CheckedIn) acc.inHouse++;
+
+            const isDraft = res.status === ReservationStatus.Draft;
+            const needsAssignment = isUnassigned && arrivalDate <= upcomingThreshold && res.status !== ReservationStatus.Cancelled && res.status !== ReservationStatus.CheckedOut;
+            if (isDraft || needsAssignment) acc.actionRequired++;
+
+            return acc;
+        }, { all: 0, arrivals: 0, departures: 0, inHouse: 0, actionRequired: 0 });
+    }, [reservations, businessDate]);
+
+    const handleAssignRoom = (reservationId: string) => {
+        const res = reservations?.find(r => r.id.toString() === reservationId);
+        if (res) {
+            setAssignRoomBooking(mapReservationDto(res));
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -137,6 +183,13 @@ const ReservationsList = () => {
                         />
                     </div>
                 </div>
+
+                {/* Quick Filters */}
+                <QuickFilterChips
+                    activeFilter={quickFilter}
+                    onFilterChange={setQuickFilter}
+                    counts={counts}
+                />
             </div>
 
             {/* List View: Mobile Cards / Desktop Table */}
@@ -183,10 +236,19 @@ const ReservationsList = () => {
                 ) : (
                     <>
                         {/* Mobile: List Cards (Virtualized when > 50 items) */}
-                        <MobileCardList reservations={reservations ?? []} currentTime={currentTime} />
+                        <MobileCardList
+                            reservations={filteredAndSortedReservations}
+                            currentTime={currentTime}
+                            onAssignRoom={handleAssignRoom}
+                        />
 
                         {/* Desktop: Premium Table (Virtualized when > 50 items) */}
-                        <DesktopTable reservations={reservations ?? []} t={t} currentTime={currentTime} />
+                        <DesktopTable
+                            reservations={filteredAndSortedReservations}
+                            t={t}
+                            currentTime={currentTime}
+                            onAssignRoom={handleAssignRoom}
+                        />
                     </>
                 )}
             </div>
@@ -199,6 +261,13 @@ const ReservationsList = () => {
             >
                 <Plus className="w-7 h-7" />
             </Button>
+
+            {/* Modals */}
+            <AssignRoomBottomSheet
+                isOpen={!!assignRoomBooking}
+                booking={assignRoomBooking}
+                onClose={() => setAssignRoomBooking(null)}
+            />
         </div>
     );
 };
@@ -215,9 +284,10 @@ interface ListProps {
     navigate: (path: string) => void;
     t: TFunction;
     currentTime: Date;
+    onAssignRoom?: (reservationId: string) => void;
 }
 
-function MobileCardList({ reservations, currentTime }: Omit<ListProps, 'navigate' | 't'>) {
+function MobileCardList({ reservations, currentTime, onAssignRoom }: Omit<ListProps, 'navigate' | 't'>) {
     const parentRef = useRef<HTMLDivElement>(null);
     const shouldVirtualize = reservations.length > VIRTUALIZE_THRESHOLD;
 
@@ -239,6 +309,7 @@ function MobileCardList({ reservations, currentTime }: Omit<ListProps, 'navigate
                         showAction={false}
                         detailPath={`/reservations/${res.id}`}
                         currentTime={currentTime}
+                        onAssignRoom={onAssignRoom}
                     />
                 ))}
             </div>
@@ -267,6 +338,7 @@ function MobileCardList({ reservations, currentTime }: Omit<ListProps, 'navigate
                                 showAction={false}
                                 detailPath={`/reservations/${res.id}`}
                                 currentTime={currentTime}
+                                onAssignRoom={onAssignRoom}
                             />
                         </div>
                     );
@@ -276,7 +348,7 @@ function MobileCardList({ reservations, currentTime }: Omit<ListProps, 'navigate
     );
 }
 
-function DesktopTable({ reservations, t, currentTime }: Omit<ListProps, 'navigate'>) {
+function DesktopTable({ reservations, t, currentTime, onAssignRoom }: Omit<ListProps, 'navigate'>) {
     const parentRef = useRef<HTMLDivElement>(null);
     const shouldVirtualize = reservations.length > VIRTUALIZE_THRESHOLD;
 
@@ -310,6 +382,7 @@ function DesktopTable({ reservations, t, currentTime }: Omit<ListProps, 'navigat
                                 detailPath={`/reservations/${res.id}`}
                                 isDesktop={true}
                                 currentTime={currentTime}
+                                onAssignRoom={onAssignRoom}
                             />
                         ))}
                     </TableBody>
@@ -357,6 +430,7 @@ function DesktopTable({ reservations, t, currentTime }: Omit<ListProps, 'navigat
                                             detailPath={`/reservations/${res.id}`}
                                             isDesktop={true}
                                             currentTime={currentTime}
+                                            onAssignRoom={onAssignRoom}
                                         />
                                     </div>
                                 );

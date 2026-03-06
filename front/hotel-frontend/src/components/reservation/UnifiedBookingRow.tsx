@@ -17,6 +17,7 @@ interface UnifiedBookingRowProps {
     showAction?: boolean;
     isDesktop?: boolean;
     currentTime?: Date;
+    onAssignRoom?: (reservationId: string) => void;
 }
 
 export const UnifiedBookingRow = ({
@@ -25,7 +26,8 @@ export const UnifiedBookingRow = ({
     detailPath,
     showAction = true,
     isDesktop = false,
-    currentTime
+    currentTime,
+    onAssignRoom
 }: UnifiedBookingRowProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -134,7 +136,22 @@ export const UnifiedBookingRow = ({
                             )}
                         </div>
                         <div className="text-[9px] text-slate-500 font-bold uppercase truncate max-w-[140px] tracking-tighter mt-0.5">
-                            {booking.roomNumbers.length > 0 ? `${t('reception.room', 'Room')} ${booking.roomNumbers.join(', ')}` : t('no_room_assigned', 'No Room Assigned')}
+                            {booking.roomNumbers.length > 0 ? (
+                                `${t('reception.room', 'Room')} ${booking.roomNumbers.join(', ')}`
+                            ) : (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onAssignRoom?.(booking.id.toString());
+                                    }}
+                                    className={cn(
+                                        "hover:text-blue-600 transition-colors",
+                                        onAssignRoom && "cursor-pointer underline decoration-dotted"
+                                    )}
+                                >
+                                    {t('no_room_assigned', 'No Room Assigned')}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
