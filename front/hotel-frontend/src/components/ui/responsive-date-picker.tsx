@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { useDateFilter, DateFilterRange } from '@/hooks/useDateFilter';
+import { useDateFilter } from '@/hooks/useDateFilter';
 import { Calendar } from './calendar';
 import { format, parseISO } from 'date-fns';
-import { DateRange } from 'react-day-picker';
+import type { DateRange } from 'react-day-picker';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ar, enUS } from 'date-fns/locale';
