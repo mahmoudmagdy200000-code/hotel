@@ -12,24 +12,24 @@ builder.AddWebServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    await app.InitialiseDatabaseAsync();
-}
-else
-{
-    // Try to init DB in production too (for first deployment)
-    try 
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
     {
+        logger.LogInformation("Starting automated database migration and initialization...");
         await app.InitialiseDatabaseAsync();
+        logger.LogInformation("Database initialization completed successfully.");
     }
     catch (Exception ex)
     {
-        // Log but continue if it fails (might be permissions)
-        Console.WriteLine($"DB Init failed: {ex.Message}");
+        logger.LogCritical(ex, "A critical error occurred while migrating the database during startup.");
+        // throw; // Uncomment to crash gracefully if migrations fail
     }
+}
 
+if (!app.Environment.IsDevelopment())
+{
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }

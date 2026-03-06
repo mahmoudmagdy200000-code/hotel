@@ -51,6 +51,41 @@ export const CurrencyCodeLabels: Record<CurrencyCodeValue, string> = {
     [CurrencyCodeEnum.Other]: 'Other'
 };
 
+// Payment type discriminator (mirrors backend PaymentType enum)
+export const PaymentTypeEnum = {
+    Payment: 0,
+    Refund: 1
+} as const;
+
+export type PaymentTypeValue = typeof PaymentTypeEnum[keyof typeof PaymentTypeEnum];
+
+export interface PaymentDto {
+    id: number;
+    reservationId: number;
+    amount: number;
+    currencyCode: CurrencyCodeValue;
+    paymentMethod: PaymentMethodValue;
+    paymentType: PaymentTypeValue;
+    notes?: string | null;
+    created: string;
+}
+
+export interface ProcessRefundCommand {
+    refundAmount: number;
+    paymentMethod: PaymentMethodValue;
+    currencyCode?: CurrencyCodeValue;
+    reason?: string;
+    businessDate: string;
+}
+
+export interface RefundResultDto {
+    reservationId: number;
+    refundAmount: number;
+    newTotalAmount: number;
+    newBalanceDue: number;
+    paymentType: string;
+}
+
 export interface ReservationLineDto {
     id: number;
     roomId: number;

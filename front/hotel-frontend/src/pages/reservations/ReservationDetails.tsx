@@ -56,6 +56,9 @@ import ExtraChargesModal from '@/components/reservation/ExtraChargesModal';
 import { ExtraChargeDetailsModal } from './components/ExtraChargeDetailsModal';
 import type { ExtraChargeDto } from '@/api/types/extraCharges';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { RefundModal } from './components/RefundModal';
+import { useRefundEligibility } from '@/hooks/reservations/useRefundEligibility';
+import { Undo2 } from 'lucide-react';
 
 
 /**
@@ -84,6 +87,7 @@ const ReservationDetails = () => {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isExtraChargesOpen, setIsExtraChargesOpen] = useState(false);
     const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
+    const [isRefundOpen, setIsRefundOpen] = useState(false);
     const [viewChargeDetails, setViewChargeDetails] = useState<ExtraChargeDto | null>(null);
     const [deleteChargeId, setDeleteChargeId] = useState<number | null>(null);
     const extraChargeMutations = useExtraChargeMutations(reservationId);
@@ -100,6 +104,8 @@ const ReservationDetails = () => {
         isOpen: false,
         reservation: null,
     });
+
+    const refundEligibility = useRefundEligibility(res);
 
     const mapToReceptionDto = (reservationData: any): ReceptionReservationItemDto => ({
         reservationId: reservationData.id,
@@ -356,19 +362,45 @@ const ReservationDetails = () => {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="flex-none h-12 w-12 rounded-xl bg-amber-400/10 hover:bg-amber-400/20 text-amber-400 hover:text-amber-300 transition-all active:scale-[0.97]"
+                                    className="flex-none h-12 w-12 rounded-xl bg-amber-400/10 hover:bg-amber-400/20 text-amber-500 hover:text-amber-400 transition-all active:scale-[0.97]"
                                     title="Extra Charges"
                                     onClick={() => setIsExtraChargesOpen(true)}
                                 >
                                     <ShoppingBag className="w-5 h-5" />
                                 </Button>
+                                {/* Refund trigger */}
+                                {refundEligibility.isEligible && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="flex-none h-12 w-12 rounded-xl bg-slate-100 hover:bg-amber-50 text-amber-600 hover:text-amber-700 transition-all active:scale-[0.97]"
+                                        title={`Refund (Max: ${formatCurrency(refundEligibility.maxRefundable, res.currency)})`}
+                                        onClick={() => setIsRefundOpen(true)}
+                                    >
+                                        <Undo2 className="w-5 h-5" />
+                                    </Button>
+                                )}
                             </>
                         )}
 
                         {res.status === ReservationStatus.CheckedOut && (
-                            <div className="flex-1 h-12 flex items-center justify-center text-[11px] font-bold text-slate-500 uppercase tracking-widest italic">
-                                Archive Sealed
-                            </div>
+                            <>
+                                <div className="flex-1 h-12 flex items-center justify-center text-[11px] font-bold text-slate-500 uppercase tracking-widest italic bg-slate-800/50 rounded-xl mr-2">
+                                    Archive Sealed
+                                </div>
+                                {/* Refund trigger for CheckedOut */}
+                                {refundEligibility.isEligible && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="flex-none h-12 w-12 rounded-xl bg-slate-100 hover:bg-amber-50 text-amber-600 hover:text-amber-700 transition-all active:scale-[0.97]"
+                                        title={`Refund (Max: ${formatCurrency(refundEligibility.maxRefundable, res.currency)})`}
+                                        onClick={() => setIsRefundOpen(true)}
+                                    >
+                                        <Undo2 className="w-5 h-5" />
+                                    </Button>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
@@ -824,6 +856,38 @@ const ReservationDetails = () => {
                             await actions.checkOut.mutateAsync({ id: reservationId, businessDate });
                             setIsCheckOutOpen(false);
                             toast.success(t('reservations.checkout_success', 'Checked out successfully!'));
+                            refetch();
+                        } catch (err: unknown) {
+                            toast.error(extractErrorMessage(err));
+                        }
+                    }}
+                />
+            )}
+
+            {/* REFUND MODAL */}
+            {res && refundEligibility.isEligible && (
+                <RefundModal
+                    isOpen={isRefundOpen}
+                    onClose={() => setIsRefundOpen(false)}
+                    maxRefundable={refundEligibility.maxRefundable}
+                    currency={res.currency}
+                    currencyCode={res.currencyCode}
+                    reservationId={reservationId}
+                    isSubmitting={actions.refund.isPending}
+                    onConfirm={async (amount, method, reason) => {
+                        try {
+                            await actions.refund.mutateAsync({
+                                id: reservationId,
+                                command: {
+                                    refundAmount: amount,
+                                    paymentMethod: method,
+                                    reason,
+                                    currencyCode: res.currencyCode,
+                                    businessDate
+                                }
+                            });
+                            setIsRefundOpen(false);
+                            toast.success(`Refund of ${formatCurrency(amount, res.currency)} processed successfully!`);
                             refetch();
                         } catch (err: unknown) {
                             toast.error(extractErrorMessage(err));

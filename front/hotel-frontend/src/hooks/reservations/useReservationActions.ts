@@ -4,10 +4,11 @@ import {
     updateReservation,
     confirmReservation,
     cancelReservation,
-    deleteReservation
+    deleteReservation,
+    processRefund
 } from '@/api/reservations';
 import { checkInReservation as receptionCheckIn, checkOutReservation as receptionCheckOut, noShowReservation as receptionNoShow } from '@/api/reception';
-import type { CreateReservationCommand, UpdateReservationCommand } from '@/api/types/reservations';
+import type { CreateReservationCommand, UpdateReservationCommand, ProcessRefundCommand } from '@/api/types/reservations';
 
 export const useReservationActions = () => {
     const queryClient = useQueryClient();
@@ -73,6 +74,18 @@ export const useReservationActions = () => {
         },
     });
 
+    const refund = useMutation({
+        mutationFn: ({ id, command }: { id: number; command: ProcessRefundCommand }) =>
+            processRefund(id, command),
+        onSuccess: (_, variables) => {
+            invalidate(variables.id);
+            // Refunds affect financial queries — invalidate dashboard & cash flow
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+            queryClient.invalidateQueries({ queryKey: ['dailyCashFlow'] });
+            queryClient.invalidateQueries({ queryKey: ['revenue'] });
+        },
+    });
+
     return {
         create,
         update,
@@ -82,5 +95,6 @@ export const useReservationActions = () => {
         noShow,
         cancel,
         remove,
+        refund,
     };
 };

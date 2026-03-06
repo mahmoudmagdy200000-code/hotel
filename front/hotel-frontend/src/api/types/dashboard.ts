@@ -81,9 +81,11 @@ export interface DailyCashFlowDto {
     totalCashPayments: number;
     totalCashExtraCharges: number;
     totalCashExpenses: number;
+    totalCashRefunds: number;
     cashPayments: CashPaymentItemDto[];
     cashExtraCharges: CashExtraChargeItemDto[];
     cashExpenses: CashExpenseItemDto[];
+    cashRefunds: CashRefundItemDto[];
 }
 
 export interface CashPaymentItemDto {
@@ -102,6 +104,13 @@ export interface CashExpenseItemDto {
     description: string;
     amount: number;
     businessDate: string;
+}
+
+export interface CashRefundItemDto {
+    reservationId: number;
+    amount: number;
+    notes?: string | null;
+    time: string;
 }
 
 // ============================================================================

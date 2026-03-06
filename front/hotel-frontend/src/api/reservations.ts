@@ -3,7 +3,9 @@ import type {
     ReservationDto,
     GetReservationsQuery,
     CreateReservationCommand,
-    UpdateReservationCommand
+    UpdateReservationCommand,
+    ProcessRefundCommand,
+    RefundResultDto
 } from './types/reservations';
 
 /**
@@ -52,4 +54,9 @@ export const cancelReservation = async (id: number): Promise<void> => {
 
 export const deleteReservation = async (id: number, reason?: string): Promise<void> => {
     await http.delete(`reservations/${id}`, { params: { reason } });
+};
+
+export const processRefund = async (id: number, command: ProcessRefundCommand): Promise<RefundResultDto> => {
+    const response = await http.post<RefundResultDto>(`reservations/${id}/refund`, command);
+    return response.data;
 };
