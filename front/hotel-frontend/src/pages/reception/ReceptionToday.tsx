@@ -20,6 +20,8 @@ import type { ReceptionReservationItemDto } from '@/api/types/reception';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useBusinessDate } from '@/app/providers/BusinessDateProvider';
+import { DailyCashFlowCard } from '@/components/common/DailyCashFlowCard';
+import { CurrencyCodeEnum } from '@/api/types/reservations';
 
 const ReceptionToday = () => {
     const { t } = useTranslation();
@@ -30,6 +32,11 @@ const ReceptionToday = () => {
     const isDateValid = isValidYYYYMMDD(selectedDate);
     const { data, isLoading, isError, error, refetch } = useReceptionToday(selectedDate);
     const actions = useReceptionActions();
+
+    const [selectedCurrency] = useState<number>(() => {
+        const saved = localStorage.getItem('pms.currency');
+        return saved ? parseInt(saved, 10) : CurrencyCodeEnum.EGP;
+    });
 
 
 
@@ -201,61 +208,75 @@ const ReceptionToday = () => {
                 </div>
             ) : data ? (
                 <>
-                    {/* Metrics Grid: Professional Horizontal Pulse Grid */}
-                    <div className="grid grid-cols-3 gap-3">
-                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-blue-50/20">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
-                                <CardTitle className="text-[9px] sm:text-[10px] uppercase font-black text-slate-400 tracking-wider">
+                    {/* TOP SECTION: Cashier Card + Quick Metrics */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        {/* 1. Shared Net Cash Card (from Dashboard) */}
+                        <div className="md:col-span-1">
+                            <DailyCashFlowCard
+                                businessDate={selectedDate}
+                                currency={selectedCurrency}
+                            />
+                        </div>
+
+                        {/* 2. Compact Arrivals Card */}
+                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-blue-50/20 md:col-span-1 overflow-hidden">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2.5 pb-0.5">
+                                <CardTitle className="text-[9px] uppercase font-black text-slate-400 tracking-wider">
                                     {t('reception.arrivals', 'Arrivals')}
                                 </CardTitle>
-                                <div className="p-1 sm:p-1.5 bg-blue-100 rounded-lg text-blue-600">
-                                    <LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                <div className="p-1 bg-blue-100/50 rounded-lg text-blue-600">
+                                    <LogIn className="h-3.5 w-3.5" />
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-3 pt-0">
-                                <div className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">
+                            <CardContent className="p-2.5 pt-0">
+                                <div className="text-xl font-black text-slate-900 leading-none tracking-tight">
                                     {data.summary.arrivalsCount}
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-amber-50/20">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
-                                <CardTitle className="text-[9px] sm:text-[10px] uppercase font-black text-slate-400 tracking-wider">
+                        {/* 3. Compact Departures Card */}
+                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-amber-50/20 md:col-span-1 overflow-hidden">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2.5 pb-0.5">
+                                <CardTitle className="text-[9px] uppercase font-black text-slate-400 tracking-wider">
                                     {t('reception.departures', 'Departures')}
                                 </CardTitle>
-                                <div className="p-1 sm:p-1.5 bg-amber-100 rounded-lg text-amber-600">
-                                    <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                <div className="p-1 bg-amber-100/50 rounded-lg text-amber-600">
+                                    <LogOut className="h-3.5 w-3.5" />
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-3 pt-0">
-                                <div className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">
+                            <CardContent className="p-2.5 pt-0">
+                                <div className="text-xl font-black text-slate-900 leading-none tracking-tight">
                                     {data.summary.departuresCount}
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-emerald-50/20">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1">
-                                <CardTitle className="text-[9px] sm:text-[10px] uppercase font-black text-slate-400 tracking-wider">
+                        {/* 4. Compact In House Card */}
+                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-emerald-50/20 md:col-span-1 overflow-hidden">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2.5 pb-0.5">
+                                <CardTitle className="text-[9px] uppercase font-black text-slate-400 tracking-wider">
                                     {t('reception.in_house', 'In House')}
                                 </CardTitle>
-                                <div className="p-1 sm:p-1.5 bg-emerald-100 rounded-lg text-emerald-600">
-                                    <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                <div className="p-1 bg-emerald-100/50 rounded-lg text-emerald-600">
+                                    <Home className="h-3.5 w-3.5" />
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-3 pt-0">
-                                <div className="text-xl sm:text-2xl font-black text-slate-900 leading-none tracking-tight">
+                            <CardContent className="p-2.5 pt-0">
+                                <div className="text-xl font-black text-slate-900 leading-none tracking-tight">
                                     {data.summary.inHouseCount}
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
 
-                    <Tabs defaultValue="arrivals" className="w-full">
+                    <Tabs defaultValue="rooms" className="w-full">
                         {/* Sticky Tabs Navigation */}
                         <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md py-3 -mx-4 px-4 sm:relative sm:top-auto sm:bg-transparent sm:py-0 sm:mx-0 sm:px-0 border-b lg:border-none border-slate-100 mb-4">
                             <TabsList className="flex items-center w-full bg-slate-100 p-1 rounded-xl h-auto">
+                                <TabsTrigger value="rooms" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
+                                    {t('reception.rooms')}
+                                </TabsTrigger>
                                 <TabsTrigger value="arrivals" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
                                     {t('reception.arrivals')}
                                     <span className="ms-1.5 px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[9px] font-black">
@@ -273,9 +294,6 @@ const ReceptionToday = () => {
                                     <span className="ms-1.5 px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[9px] font-black">
                                         {data.summary.inHouseCount}
                                     </span>
-                                </TabsTrigger>
-                                <TabsTrigger value="rooms" className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all">
-                                    {t('reception.rooms')}
                                 </TabsTrigger>
                             </TabsList>
                         </div>

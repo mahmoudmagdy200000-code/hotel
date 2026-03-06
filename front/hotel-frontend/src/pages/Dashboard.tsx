@@ -38,7 +38,7 @@ import {
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import type { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
-import { DailyCashFlowCard } from '@/components/dashboard/DailyCashFlowCard';
+import { DailyCashFlowCard } from '@/components/common/DailyCashFlowCard';
 
 const Dashboard = () => {
     const { t } = useTranslation();
