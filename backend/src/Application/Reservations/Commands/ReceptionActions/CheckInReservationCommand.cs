@@ -201,6 +201,27 @@ public class CheckInReservationCommandHandler : IRequestHandler<CheckInReservati
             var line = dbLines[i];
             var roomId = line.RoomId;
 
+            // ── PHYSICAL OCCUPANCY GUARD (HOTFIX) ──────────────────────────────────
+            // Prevent check-in if another reservation is CURRENTLY occupying this room 
+            // (i.e. overstayed), entirely ignoring scheduled dates.
+
+            var currentlyOccupyingLine = await _context.ReservationLines
+                .Include(l => l.Reservation)
+                .Where(l => l.RoomId == roomId &&
+                            l.ReservationId != entity.Id &&
+                            !l.Reservation!.IsDeleted &&
+                            l.Reservation.Status == ReservationStatus.CheckedIn)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (currentlyOccupyingLine != null)
+            {
+                _logger.LogWarning("[CheckIn] Physical overlap detected: RoomId {RoomId} is still occupied by ResId {OccupyingResId}", roomId, currentlyOccupyingLine.ReservationId);
+                
+                // Fail Fast: Throw a Domain/Conflict Exception
+                throw new ConflictException($"Room {line.Room?.RoomNumber ?? roomId.ToString()} is currently occupied by a previous guest who has not checked out yet. Please verify physical room status.");
+            }
+            // ──────────────────────────────────────────────────────────────────────
+
             var overlappingLine = await _context.ReservationLines
                 .Include(l => l.Reservation)
                 .Where(l => l.RoomId == roomId &&
