@@ -28,21 +28,21 @@ function Calendar({
                 [UI.Nav]: "space-x-1 flex items-center",
                 [UI.PreviousMonthButton]: cn(
                     buttonVariants({ variant: "outline" }),
-                    "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1"
+                    "min-h-[44px] min-w-[44px] h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1"
                 ),
                 [UI.NextMonthButton]: cn(
                     buttonVariants({ variant: "outline" }),
-                    "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1"
+                    "min-h-[44px] min-w-[44px] h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1"
                 ),
                 [UI.MonthGrid]: "w-full border-collapse space-y-1",
                 [UI.Weekdays]: "flex",
                 [UI.Weekday]:
                     "text-slate-500 rounded-md w-9 font-normal text-[0.8rem] dark:text-slate-400",
                 [UI.Week]: "flex w-full mt-2",
-                [UI.Day]: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-slate-100/50 [&:has([aria-selected])]:bg-slate-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 dark:[&:has([aria-selected].day-outside)]:bg-slate-800/50 dark:[&:has([aria-selected])]:bg-slate-800",
+                [UI.Day]: "min-h-[44px] min-w-[44px] h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-slate-100/50 [&:has([aria-selected])]:bg-slate-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 dark:[&:has([aria-selected].day-outside)]:bg-slate-800/50 dark:[&:has([aria-selected])]:bg-slate-800",
                 [UI.DayButton]: cn(
                     buttonVariants({ variant: "ghost" }),
-                    "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+                    "h-full w-full p-0 font-normal aria-selected:opacity-100"
                 ),
                 [SelectionState.range_end]: "day-range-end",
                 [SelectionState.selected]:

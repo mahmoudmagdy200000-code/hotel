@@ -1,6 +1,5 @@
-
 import * as React from "react"
-import { format } from "date-fns"
+import { format, startOfDay, endOfDay } from "date-fns"
 import { ar, enUS } from "date-fns/locale"
 import { Calendar as CalendarIcon } from "lucide-react"
 import type { DateRange } from "react-day-picker"
@@ -19,12 +18,14 @@ interface DatePickerWithRangeProps {
     className?: string
     date?: DateRange
     setDate: (date?: DateRange) => void
+    mode?: 'Actual' | 'Forecast'
 }
 
 export function DatePickerWithRange({
     className,
     date,
     setDate,
+    mode,
 }: DatePickerWithRangeProps) {
     const { i18n } = useTranslation()
     const locale = i18n.language === 'ar' ? ar : enUS
@@ -39,6 +40,13 @@ export function DatePickerWithRange({
         window.addEventListener('resize', check);
         return () => window.removeEventListener('resize', check);
     }, []);
+
+    const today = new Date();
+    const disabledDays = mode === 'Actual'
+        ? { after: endOfDay(today) }
+        : mode === 'Forecast'
+            ? { before: startOfDay(today) }
+            : undefined;
 
     return (
         <div className={cn("grid gap-2", className)}>
@@ -71,12 +79,13 @@ export function DatePickerWithRange({
                     <Calendar
                         initialFocus
                         mode="range"
-                        defaultMonth={date?.from}
+                        defaultMonth={today}
                         selected={date}
                         onSelect={setDate}
                         numberOfMonths={isSmallScreen ? 1 : 2}
                         locale={locale}
                         dir={isRtl ? 'rtl' : 'ltr'}
+                        disabled={disabledDays}
                     />
                 </PopoverContent>
             </Popover>

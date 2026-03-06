@@ -180,6 +180,7 @@ const Dashboard = () => {
                             <DatePickerWithRange
                                 date={dateRange}
                                 setDate={setDateRange}
+                                mode={mode}
                                 className="border-none shadow-none"
                             />
                         </div>
@@ -246,19 +247,21 @@ const Dashboard = () => {
                 )}
             </div>
 
-            {/* CASHIER MODE DRAWER */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
-                <div className="xl:col-start-3">
-                    <DailyCashFlowCard
-                        businessDate={
-                            dateRange?.to
-                                ? format(dateRange.to, 'yyyy-MM-dd')
-                                : businessDate
-                        }
-                        currency={selectedCurrency}
-                    />
+            {/* CASHIER MODE DRAWER (Only available in Actuals view) */}
+            {mode === 'Actual' && (
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
+                    <div className="xl:col-start-3">
+                        <DailyCashFlowCard
+                            businessDate={
+                                dateRange?.to
+                                    ? format(dateRange.to, 'yyyy-MM-dd')
+                                    : businessDate
+                            }
+                            currency={selectedCurrency}
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* OPERATIONAL KPI GRID */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
