@@ -83,13 +83,13 @@ const RoomsStatusView: React.FC<RoomsStatusViewProps> = ({ date }) => {
     return (
         <div className="space-y-4">
             {/* Filter Pills: Professional Navigation */}
-            <div className="flex flex-wrap gap-2 sticky top-14 z-10 bg-white/80 backdrop-blur-sm py-2 -mx-4 px-4 sm:relative sm:top-auto sm:bg-transparent sm:py-0 sm:mx-0 sm:px-0">
+            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto no-scrollbar py-2 -mx-4 px-4 sm:relative sm:top-auto sm:bg-transparent sm:py-0 sm:mx-0 sm:px-0 sticky top-14 z-10 bg-white/80 backdrop-blur-sm sm:flex-wrap">
                 {(['All', 'Available', 'Reserved', 'Occupied'] as const).map(f => (
                     <button
                         key={f}
                         onClick={() => setFilter(f)}
                         className={cn(
-                            "px-3 py-1.5 rounded-lg text-[10px] uppercase font-black tracking-widest transition-all border",
+                            "flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] uppercase font-black tracking-widest transition-all border whitespace-nowrap",
                             filter === f
                                 ? "bg-slate-900 text-white border-slate-900 shadow-md"
                                 : "bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700"
