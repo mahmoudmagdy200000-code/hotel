@@ -18,6 +18,7 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                 nullable: false,
                 defaultValue: 0);
 
+            /* The following columns already exist in production database. Commented out to prevent duplicate errors.
             migrationBuilder.AddColumn<Guid>(
                 name: "BranchId",
                 table: "ExtraCharges",
@@ -45,11 +46,13 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                 principalTable: "Branches",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+            */
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            /*
             migrationBuilder.DropForeignKey(
                 name: "FK_ExtraCharges_Branches_BranchId",
                 table: "ExtraCharges");
@@ -57,11 +60,13 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_ExtraCharges_BranchId",
                 table: "ExtraCharges");
+            */
 
             migrationBuilder.DropColumn(
                 name: "PaymentType",
                 table: "Payments");
 
+            /*
             migrationBuilder.DropColumn(
                 name: "BranchId",
                 table: "ExtraCharges");
@@ -69,6 +74,7 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
             migrationBuilder.DropColumn(
                 name: "PaymentMethod",
                 table: "ExtraCharges");
+            */
         }
     }
 }
