@@ -219,7 +219,7 @@ const ReceptionToday = () => {
                         </div>
 
                         {/* 2. Compact Arrivals Card */}
-                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-blue-50/20 md:col-span-1 overflow-hidden">
+                        <Card className="hidden md:block border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-blue-50/20 md:col-span-1 overflow-hidden">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2.5 pb-0.5">
                                 <CardTitle className="text-[9px] uppercase font-black text-slate-400 tracking-wider">
                                     {t('reception.arrivals', 'Arrivals')}
@@ -236,7 +236,7 @@ const ReceptionToday = () => {
                         </Card>
 
                         {/* 3. Compact Departures Card */}
-                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-amber-50/20 md:col-span-1 overflow-hidden">
+                        <Card className="hidden md:block border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-amber-50/20 md:col-span-1 overflow-hidden">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2.5 pb-0.5">
                                 <CardTitle className="text-[9px] uppercase font-black text-slate-400 tracking-wider">
                                     {t('reception.departures', 'Departures')}
@@ -253,7 +253,7 @@ const ReceptionToday = () => {
                         </Card>
 
                         {/* 4. Compact In House Card */}
-                        <Card className="border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-emerald-50/20 md:col-span-1 overflow-hidden">
+                        <Card className="hidden md:block border border-slate-100 shadow-sm transition-all active:scale-[0.98] group bg-emerald-50/20 md:col-span-1 overflow-hidden">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2.5 pb-0.5">
                                 <CardTitle className="text-[9px] uppercase font-black text-slate-400 tracking-wider">
                                     {t('reception.in_house', 'In House')}
