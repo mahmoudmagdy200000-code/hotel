@@ -59,7 +59,7 @@ export const DailyCashFlowCard = ({ businessDate, currency }: DailyCashFlowCardP
                     <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest leading-none">
                         Cashier Mode • {new Date().toLocaleTimeString()}
                     </p>
-                    {data && (data.cashPayments.length > 0 || data.cashExtraCharges.length > 0 || data.cashExpenses.length > 0) && (
+                    {data && (data.cashPayments.length > 0 || data.cashExtraCharges.length > 0 || data.cashExpenses.length > 0 || data.cashRefunds.length > 0) && (
                         <Button
                             variant="ghost"
                             size="sm"
@@ -76,7 +76,7 @@ export const DailyCashFlowCard = ({ businessDate, currency }: DailyCashFlowCardP
                 {expanded && data && (
                     <div className="mt-2 space-y-3 border-t border-emerald-800/50 pt-3">
                         {/* Subtotals Bar */}
-                        <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="grid grid-cols-2 gap-2 text-center">
                             <div className="bg-emerald-900/50 rounded-xl p-2">
                                 <ArrowUpRight className="w-3 h-3 text-emerald-400 mx-auto mb-1" />
                                 <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Payments</p>
@@ -86,6 +86,11 @@ export const DailyCashFlowCard = ({ businessDate, currency }: DailyCashFlowCardP
                                 <Sparkles className="w-3 h-3 text-blue-400 mx-auto mb-1" />
                                 <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Services</p>
                                 <p className="text-xs font-black text-blue-300 tracking-tight">{formatCurrency(data.totalCashExtraCharges, currencyLabel)}</p>
+                            </div>
+                            <div className="bg-amber-900/30 rounded-xl p-2">
+                                <ArrowDownRight className="w-3 h-3 text-amber-400 mx-auto mb-1" />
+                                <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Refunds</p>
+                                <p className="text-xs font-black text-amber-300 tracking-tight">-{formatCurrency(data.totalCashRefunds, currencyLabel)}</p>
                             </div>
                             <div className="bg-rose-900/30 rounded-xl p-2">
                                 <ArrowDownRight className="w-3 h-3 text-rose-400 mx-auto mb-1" />
@@ -130,6 +135,24 @@ export const DailyCashFlowCard = ({ businessDate, currency }: DailyCashFlowCardP
                             </div>
                         )}
 
+                        {/* Cash Refunds List */}
+                        {data.cashRefunds.length > 0 && (
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black text-amber-600 uppercase tracking-widest">Cash Refunds ({data.cashRefunds.length})</p>
+                                <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
+                                    {data.cashRefunds.map((r, i) => (
+                                        <div key={i} className="flex items-center justify-between bg-amber-900/20 rounded-lg px-2.5 py-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[9px] font-bold text-amber-400">Res #{r.reservationId}</span>
+                                                <span className="text-[8px] text-amber-700">{toLocalTime(r.time)}</span>
+                                            </div>
+                                            <span className="text-[10px] font-black text-amber-300">-{formatCurrency(r.amount, currencyLabel)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Cash Expenses List */}
                         {data.cashExpenses.length > 0 && (
                             <div className="space-y-1">
@@ -146,7 +169,7 @@ export const DailyCashFlowCard = ({ businessDate, currency }: DailyCashFlowCardP
                         )}
 
                         {/* Empty state */}
-                        {data.cashPayments.length === 0 && data.cashExtraCharges.length === 0 && data.cashExpenses.length === 0 && (
+                        {data.cashPayments.length === 0 && data.cashExtraCharges.length === 0 && data.cashExpenses.length === 0 && data.cashRefunds.length === 0 && (
                             <p className="text-center text-[9px] text-emerald-700 font-bold py-2">No cash transactions today</p>
                         )}
                     </div>
