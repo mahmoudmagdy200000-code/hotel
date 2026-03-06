@@ -15,8 +15,6 @@ import {
     PaymentStatusEnum,
     PaymentStatusLabels
 } from '@/api/types/extraCharges';
-import type { CurrencyCodeValue } from '@/api/types/reservations';
-import { CurrencyCodeLabels } from '@/api/types/reservations';
 import { formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, CreditCard, Tag, FileText, CheckCircle2, Clock, Check } from 'lucide-react';
@@ -28,7 +26,7 @@ interface ExtraChargeDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
     charge: ExtraChargeDto | null;
-    currency: CurrencyCodeValue;
+    currency: string;
     reservationId: number;
 }
 
@@ -72,7 +70,7 @@ export const ExtraChargeDetailsModal = ({
                     <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-100">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Amount</span>
                         <span className="text-4xl font-black text-slate-900 tracking-tighter">
-                            {formatCurrency(charge.amount, CurrencyCodeLabels[currency])}
+                            {formatCurrency(charge.amount, currency)}
                         </span>
                         <Badge className={cn(
                             "mt-3 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest border-none",

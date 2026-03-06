@@ -168,7 +168,7 @@ const ExtraChargesModal = ({
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <span className="text-sm font-black text-slate-900">
-                                            {formatCurrency(charge.amount, '')}
+                                            {formatCurrency(charge.amount, CurrencyCodeLabels[selectedCurrency])}
                                         </span>
                                         <button
                                             onClick={() => handleDelete(charge.id)}
