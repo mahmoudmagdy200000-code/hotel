@@ -21,10 +21,14 @@ export const StayInformationSection: React.FC = () => {
     });
 
     const { data: roomTypes } = useRoomTypes();
-    const { data: rooms } = useRooms();
-
     const checkInDate = watch('checkInDate');
     const checkOutDate = watch('checkOutDate');
+
+    const { data: rooms } = useRooms({
+        availableFrom: checkInDate,
+        availableTo: checkOutDate,
+        isActive: true
+    });
 
     const handleRoomTypeChange = (index: number, roomTypeId: number) => {
         setValue(`lines.${index}.roomTypeId`, roomTypeId);
@@ -88,6 +92,8 @@ export const StayInformationSection: React.FC = () => {
                 <CardContent className="space-y-4">
                     {fields.map((field, index) => {
                         const currentLine = watch(`lines.${index}`);
+                        const selectedRoomIds = fields.map((_, i) => watch(`lines.${i}.roomId`)).filter(id => id > 0);
+
                         return (
                             <div key={field.id} className="p-4 bg-slate-50 rounded-xl space-y-4 relative group">
                                 {fields.length > 1 && (
@@ -125,7 +131,11 @@ export const StayInformationSection: React.FC = () => {
                                             required
                                         >
                                             <option value={0} disabled>Select Room</option>
-                                            {rooms?.filter(r => r.isActive && (r.roomTypeId === currentLine.roomTypeId || currentLine.roomTypeId === 0)).map(r => (
+                                            {rooms?.filter(r =>
+                                                r.isActive &&
+                                                (r.roomTypeId === currentLine.roomTypeId || currentLine.roomTypeId === 0) &&
+                                                (!selectedRoomIds.includes(r.id) || r.id === currentLine.roomId)
+                                            ).map(r => (
                                                 <option key={r.id} value={r.id}>{r.roomNumber}</option>
                                             ))}
                                         </select>

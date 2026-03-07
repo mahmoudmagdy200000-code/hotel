@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getRooms, createRoom, updateRoom, deleteRoom } from '@/api/rooms';
-import type { UpdateRoomCommand } from '@/api/types/rooms';
+import type { UpdateRoomCommand, GetRoomsQuery } from '@/api/types/rooms';
 
-export const useRooms = () => {
+export const useRooms = (params?: GetRoomsQuery) => {
     return useQuery({
-        queryKey: ['rooms'],
-        queryFn: () => getRooms(),
+        queryKey: ['rooms', params],
+        queryFn: () => getRooms(params),
     });
 };
 
