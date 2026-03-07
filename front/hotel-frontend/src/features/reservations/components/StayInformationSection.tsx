@@ -117,7 +117,14 @@ export const StayInformationSection: React.FC = () => {
                                             required
                                         >
                                             <option value={0} disabled>Select Type</option>
-                                            {roomTypes?.filter(rt => rt.isActive).map(rt => (
+                                            {roomTypes?.filter(rt => {
+                                                if (!rt.isActive) return false;
+                                                // If we have rooms data, check if this type has ANY available room
+                                                if (rooms) {
+                                                    return rooms.some(r => r.roomTypeId === rt.id);
+                                                }
+                                                return true; // Fallback if rooms not loaded yet
+                                            }).map(rt => (
                                                 <option key={rt.id} value={rt.id}>{rt.name}</option>
                                             ))}
                                         </select>
