@@ -94,7 +94,11 @@ const ReservationCreate = () => {
                     </div>
                 </div>
 
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                <form
+                    id="reservation-form"
+                    onSubmit={form.handleSubmit(handleSubmit)}
+                    className="space-y-6"
+                >
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main Interaction Area */}
                         <div className="lg:col-span-2 space-y-6">
@@ -116,6 +120,7 @@ const ReservationCreate = () => {
                                     totalAmount={totalAmount}
                                     nights={nights}
                                     isPending={create.isPending}
+                                    formId="reservation-form"
                                 />
                             </div>
                         </div>
@@ -124,13 +129,12 @@ const ReservationCreate = () => {
 
                 {/* Mobile Sticky Bar */}
                 <div className="md:hidden">
-                    <FormProvider {...form}>
-                        <StickyBottomActionBar
-                            totalAmount={totalAmount}
-                            nights={nights}
-                            isPending={create.isPending}
-                        />
-                    </FormProvider>
+                    <StickyBottomActionBar
+                        totalAmount={totalAmount}
+                        nights={nights}
+                        isPending={create.isPending}
+                        formId="reservation-form"
+                    />
                 </div>
             </div>
         </FormProvider>

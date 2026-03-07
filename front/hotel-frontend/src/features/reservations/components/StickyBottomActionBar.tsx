@@ -12,12 +12,14 @@ interface StickyBottomActionBarProps {
     totalAmount: number;
     nights: number;
     isPending: boolean;
+    formId?: string;
 }
 
 export const StickyBottomActionBar: React.FC<StickyBottomActionBarProps> = ({
     totalAmount,
     nights,
-    isPending
+    isPending,
+    formId
 }) => {
     const { t } = useTranslation();
     const { register, watch } = useFormContext<ReservationFormValues>();
@@ -72,6 +74,7 @@ export const StickyBottomActionBar: React.FC<StickyBottomActionBarProps> = ({
 
                     <Button
                         type="submit"
+                        form={formId}
                         className="bg-white text-slate-900 hover:bg-slate-100 h-10 md:h-12 px-6 md:w-full text-sm md:text-md font-black uppercase tracking-tight active:scale-95 transition-all"
                         disabled={isPending}
                     >
